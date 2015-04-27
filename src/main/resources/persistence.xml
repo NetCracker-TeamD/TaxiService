@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0">
+<!-- <persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0"> -->
 
-    <persistence-unit name="persistenceUnit">
-        <class>com.teamd.taxi.entity.Car</class>
-        <class>com.teamd.taxi.entity.Contact</class>
-        <class>com.teamd.taxi.entity.Driver</class>
-        <class>com.teamd.taxi.entity.Feature</class>
-        <class>com.teamd.taxi.entity.GroupList</class>
-        <class>com.teamd.taxi.entity.Group</class>
-        <class>com.teamd.taxi.entity.License</class>
-        <class>com.teamd.taxi.entity.PaymentType</class>
-        <class>com.teamd.taxi.entity.Route</class>
-        <class>com.teamd.taxi.entity.ServiceType</class>
-        <class>com.teamd.taxi.entity.Tariff</class>
-        <class>com.teamd.taxi.entity.TaxiOrder</class>
-        <class>com.teamd.taxi.entity.User</class>
-        <properties>
-            <property name="hibernate.connection.url" value="jdbc:postgresql://localhost:5432/taxiservice"/>
-            <property name="hibernate.connection.driver_class" value="org.postgresql.Driver"/>
-            <property name="hibernate.connection.username"/>
-            <property name="hibernate.connection.password"/>
-        </properties>
-    </persistence-unit>
-</persistence>
+<!--     <persistence-unit name="persistenceUnit"> -->
+<!--         <class>com.teamd.taxi.entity.Car</class> -->
+<!--         <class>com.teamd.taxi.entity.Contact</class> -->
+<!--         <class>com.teamd.taxi.entity.Driver</class> -->
+<!--         <class>com.teamd.taxi.entity.Feature</class> -->
+<!--         <class>com.teamd.taxi.entity.GroupList</class> -->
+<!--         <class>com.teamd.taxi.entity.Group</class> -->
+<!--         <class>com.teamd.taxi.entity.License</class> -->
+<!--         <class>com.teamd.taxi.entity.PaymentType</class> -->
+<!--         <class>com.teamd.taxi.entity.Route</class> -->
+<!--         <class>com.teamd.taxi.entity.ServiceType</class> -->
+<!--         <class>com.teamd.taxi.entity.Tariff</class> -->
+<!--         <class>com.teamd.taxi.entity.TaxiOrder</class> -->
+<!--         <class>com.teamd.taxi.entity.User</class> -->
+<!--         <properties> -->
+<!--             <property name="hibernate.connection.url" value="jdbc:postgresql://localhost:5432/taxiservice"/> -->
+<!--             <property name="hibernate.connection.driver_class" value="org.postgresql.Driver"/> -->
+<!--             <property name="hibernate.connection.username"/> -->
+<!--             <property name="hibernate.connection.password"/> -->
+<!--         </properties> -->
+<!--     </persistence-unit> -->
+<!-- </persistence> -->
