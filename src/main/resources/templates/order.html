@@ -6,5 +6,10 @@
 </head>
 <body>
     <p th:text="'Hello, ' + ${name} + '!'" />
+        <form action="#" th:action="@{/order}" th:object="${order}" method="get">
+    	<p>Source:      <input type="text" th:field="*{source}" /></p>
+        <p>Destination: <input type="text" th:field="*{destination}" /></p>
+        <p><input type="submit" value="Submit" /></p>
+    </form>
 </body>
 </html>
