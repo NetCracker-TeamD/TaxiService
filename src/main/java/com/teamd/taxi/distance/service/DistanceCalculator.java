@@ -14,67 +14,59 @@ import org.json.simple.parser.ParseException;
 
 public final class DistanceCalculator {
 
-    public static void main(String args[]) {
-        System.out.println("distance="
-                + calculateDistance("Khreschatyk Street 1, Kyiv, Kyiv city",
-                "Peremohy Avenue 22, Kyiv, Kyiv city")); //6266
-        System.out
-                .println("distance=" + calculateDistance("50.45,31", "50,30"));//115384
-    }
+	public static int calculateDistance(String a, String b) {
+		String url = null;
+		String json = null;
 
-    public static int calculateDistance(String a, String b) {
-        String url = null;
-        String json = null;
+		try {
+			url = "http://maps.googleapis.com/maps/api/directions/json?origin="
+					+ URLEncoder.encode(a, "UTF-8") + "&destination="
+					+ URLEncoder.encode(b, "UTF-8") + "&region=ua&sensor=false";
+		} catch (UnsupportedEncodingException e2) {
+			System.out.println("something strange with encoding");
+			e2.printStackTrace();
+		}
 
-        try {
-            url = "http://maps.googleapis.com/maps/api/directions/json?origin="
-                    + URLEncoder.encode(a, "UTF-8") + "&destination="
-                    + URLEncoder.encode(b, "UTF-8") + "&region=ua&sensor=false";
-        } catch (UnsupportedEncodingException e2) {
-            System.out.println("something strange with encoding");
-            e2.printStackTrace();
-        }
+		try {
+			json = getJson(url);
+		} catch (Exception e1) {
+			System.out.println("something strange with your json");
+			e1.printStackTrace();
+		}
 
-        try {
-            json = getJson(url);
-        } catch (Exception e1) {
-            System.out.println("something strange with your json");
-            e1.printStackTrace();
-        }
+		JSONParser parser = new JSONParser();
 
-        JSONParser parser = new JSONParser();
+		Object obj = null;
+		try {
+			obj = parser.parse(json);
+		} catch (ParseException e) {
+			System.out.println("error with parsing");
+			e.printStackTrace();
+		}
+		JSONObject jsonObj = (JSONObject) obj;
+		JSONArray ja = (JSONArray) jsonObj.get("routes");
+		jsonObj = (JSONObject) ja.get(0);
+		ja = (JSONArray) jsonObj.get("legs");
+		jsonObj = (JSONObject) ja.get(0);
+		jsonObj = (JSONObject) jsonObj.get("distance");
+		return Integer.parseInt(jsonObj.get("value").toString());
+	}
 
-        Object obj = null;
-        try {
-            obj = parser.parse(json);
-        } catch (ParseException e) {
-            System.out.println("error with parsing");
-            e.printStackTrace();
-        }
-        JSONObject jsonObj = (JSONObject) obj;
-        JSONArray ja = (JSONArray) jsonObj.get("routes");
-        jsonObj = (JSONObject) ja.get(0);
-        ja = (JSONArray) jsonObj.get("legs");
-        jsonObj = (JSONObject) ja.get(0);
-        jsonObj = (JSONObject) jsonObj.get("distance");
-        return Integer.parseInt(jsonObj.get("value").toString());
-    }
-
-    public static String getJson(String pageAddress) throws Exception {
-        StringBuilder sb = new StringBuilder();
-        URL pageURL = new URL(pageAddress);
-        URLConnection uc = pageURL.openConnection();
-        BufferedReader br = new BufferedReader(new InputStreamReader(
-                uc.getInputStream()));
-        try {
-            String inputLine;
-            while ((inputLine = br.readLine()) != null) {
-                sb.append(inputLine);
-            }
-        } finally {
-            br.close();
-        }
-        return sb.toString();
-    }
+	public static String getJson(String pageAddress) throws Exception {
+		StringBuilder sb = new StringBuilder();
+		URL pageURL = new URL(pageAddress);
+		URLConnection uc = pageURL.openConnection();
+		BufferedReader br = new BufferedReader(new InputStreamReader(
+				uc.getInputStream()));
+		try {
+			String inputLine;
+			while ((inputLine = br.readLine()) != null) {
+				sb.append(inputLine);
+			}
+		} finally {
+			br.close();
+		}
+		return sb.toString();
+	}
 
 }
