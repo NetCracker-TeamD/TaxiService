@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class OrderController {
 
 	@RequestMapping("/order")
-	public String greeting(
-			@RequestParam(value = "name", required = false, defaultValue = "Anonymous user") String name,
+	public String order(@RequestParam(value = "name", required = false, defaultValue = "Anonymous") String name,
 			Model model) {
 		model.addAttribute("name", name);
 		return "order";
