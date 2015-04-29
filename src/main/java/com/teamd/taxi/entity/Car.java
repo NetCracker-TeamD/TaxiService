@@ -1,31 +1,82 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.teamd.taxi.entity;
 
-import javax.persistence.*;
-import java.util.Collection;
+import java.io.Serializable;
+import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 /**
- * Created by Slava on 21.04.2015.
+ * @author Олег
  */
 @Entity
-public class Car {
-    private long carId;
-    private String model;
-    private Driver driver;
-    private Collection<Feature> features;
-    private License licence;
-
+@Table(name = "car", schema = "public")
+public class Car implements Serializable {
+    private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "car_id")
-    public long getCarId() {
-        return carId;
+    private Integer carId;
+
+    @Column(name = "model")
+    private String model;
+
+    @Column(name = "car_category")
+    private String category;
+
+    @Column(name = "is_enabled")
+    private boolean isEnabled;
+
+    @JoinTable(name = "car_feature_list",
+            joinColumns = {@JoinColumn(name = "car_id", referencedColumnName = "car_id")},
+            inverseJoinColumns = {@JoinColumn(name = "feature_id", referencedColumnName = "id")}
+    )
+    @ManyToMany
+    private List<Feature> features;
+
+    @JoinColumn(name = "driver_id", referencedColumnName = "id")
+    @OneToOne
+    private Driver driver;
+
+    @JoinColumn(name = "car_class_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private CarClass carClass;
+
+    public Car() {
     }
 
-    public void setCarId(long carId) {
+    public Car(Integer carId) {
         this.carId = carId;
     }
 
-    @Basic
-    @Column(name = "model")
+    public Car(Integer carId, String model, String category, boolean isEnabled) {
+        this.carId = carId;
+        this.model = model;
+        this.category = category;
+        this.isEnabled = isEnabled;
+    }
+
+    public Integer getCarId() {
+        return carId;
+    }
+
+    public void setCarId(Integer carId) {
+        this.carId = carId;
+    }
+
     public String getModel() {
         return model;
     }
@@ -34,28 +85,30 @@ public class Car {
         this.model = model;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Car car = (Car) o;
-
-        if (carId != car.carId) return false;
-        if (model != null ? !model.equals(car.model) : car.model != null) return false;
-
-        return true;
+    public String getCategory() {
+        return category;
     }
 
-    @Override
-    public int hashCode() {
-        int result = (int) (carId ^ (carId >>> 32));
-        result = 31 * result + (model != null ? model.hashCode() : 0);
-        return result;
+    public void setCategory(String carCategory) {
+        this.category = carCategory;
     }
 
-    @OneToOne
-    @JoinColumn(name = "driver_id", referencedColumnName = "id")
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public void setEnabled(boolean isEnabled) {
+        this.isEnabled = isEnabled;
+    }
+
+    public List<Feature> getFeatures() {
+        return features;
+    }
+
+    public void setFeatures(List<Feature> featureList) {
+        this.features = featureList;
+    }
+
     public Driver getDriver() {
         return driver;
     }
@@ -64,22 +117,37 @@ public class Car {
         this.driver = driver;
     }
 
-    @ManyToMany
-    @JoinTable(name = "feature_car_list", catalog = "taxiservice", schema = "taxi", joinColumns = @JoinColumn(name = "car_id", referencedColumnName = "car_id", nullable = false), inverseJoinColumns = @JoinColumn(name = "feature_id", referencedColumnName = "id", nullable = false))
-    public Collection<Feature> getFeatures() {
-        return features;
+    public CarClass getCarClass() {
+        return carClass;
     }
 
-    public void setFeatures(Collection<Feature> features) {
-        this.features = features;
+    public void setCarClass(CarClass carClassId) {
+        this.carClass = carClassId;
     }
 
-    @OneToOne(mappedBy = "driver")
-    public License getLicence() {
-        return licence;
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (carId != null ? carId.hashCode() : 0);
+        return hash;
     }
 
-    public void setLicence(License licence) {
-        this.licence = licence;
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof Car)) {
+            return false;
+        }
+        Car other = (Car) object;
+        if ((this.carId == null && other.carId != null) || (this.carId != null && !this.carId.equals(other.carId))) {
+            return false;
+        }
+        return true;
     }
+
+    @Override
+    public String toString() {
+        return "com.teamd.taxi.entity.Car[ carId=" + carId + " ]";
+    }
+
 }

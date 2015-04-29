@@ -1,34 +1,94 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.teamd.taxi.entity;
 
+import java.io.Serializable;
+import java.util.List;
 import javax.persistence.*;
-import java.util.Collection;
 
 /**
- * Created by Slava on 21.04.2015.
+ * @author Олег
  */
 @Entity
-public class Driver {
-    private long id;
-    private String email;
-    private String firstName;
-    private String lastName;
-    private String driverPassword;
-    private Car car;
-    private Collection<Route> routes;
-    private Collection<Feature> features;
-
+@Table(name = "driver", schema = "public")
+public class Driver implements Serializable {
+    private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    public long getId() {
-        return id;
+    private Integer id;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "driver_password")
+    private String password;
+
+    @Column(name = "sex")
+    @Enumerated(EnumType.STRING)
+    private Sex sex;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Column(name = "license")
+    private String license;
+
+    @Column(name = "is_enabled")
+    private boolean isEnabled;
+
+    @Column(name = "at_work")
+    private boolean atWork;
+
+    @ManyToMany(mappedBy = "drivers")
+    private List<Feature> features;
+
+    @OneToOne(mappedBy = "driver")
+    private Car car;
+
+    @OneToMany(mappedBy = "driver")
+    private List<Route> routes;
+
+    public Driver() {
     }
 
-    public void setId(long id) {
+    public Driver(Integer id) {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "email")
+    public Driver(Integer id, String email, String firstName,
+                  String lastName, String password, Sex sex,
+                  String phoneNumber, String license,
+                  boolean isEnabled, boolean atWork) {
+        this.id = id;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.password = password;
+        this.sex = sex;
+        this.phoneNumber = phoneNumber;
+        this.license = license;
+        this.isEnabled = isEnabled;
+        this.atWork = atWork;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -37,8 +97,6 @@ public class Driver {
         this.email = email;
     }
 
-    @Basic
-    @Column(name = "first_name")
     public String getFirstName() {
         return firstName;
     }
@@ -47,8 +105,6 @@ public class Driver {
         this.firstName = firstName;
     }
 
-    @Basic
-    @Column(name = "last_name")
     public String getLastName() {
         return lastName;
     }
@@ -57,44 +113,62 @@ public class Driver {
         this.lastName = lastName;
     }
 
-    @Basic
-    @Column(name = "driver_password")
-    public String getDriverPassword() {
-        return driverPassword;
+    public String getPassword() {
+        return password;
     }
 
-    public void setDriverPassword(String driverPassword) {
-        this.driverPassword = driverPassword;
+    public void setPassword(String driverPassword) {
+        this.password = driverPassword;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Driver driver = (Driver) o;
-
-        if (id != driver.id) return false;
-        if (email != null ? !email.equals(driver.email) : driver.email != null) return false;
-        if (firstName != null ? !firstName.equals(driver.firstName) : driver.firstName != null) return false;
-        if (lastName != null ? !lastName.equals(driver.lastName) : driver.lastName != null) return false;
-        if (driverPassword != null ? !driverPassword.equals(driver.driverPassword) : driver.driverPassword != null)
-            return false;
-
-        return true;
+    public Sex getSex() {
+        return sex;
     }
 
-    @Override
-    public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + (email != null ? email.hashCode() : 0);
-        result = 31 * result + (firstName != null ? firstName.hashCode() : 0);
-        result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
-        result = 31 * result + (driverPassword != null ? driverPassword.hashCode() : 0);
-        return result;
+    public void setSex(Sex sex) {
+        this.sex = sex;
     }
 
-    @OneToOne(mappedBy = "driver")
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getLicense() {
+        return license;
+    }
+
+    public void setLicense(String license) {
+        this.license = license;
+    }
+
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public void setEnabled(boolean isEnabled) {
+        this.isEnabled = isEnabled;
+    }
+
+    public boolean isAtWork() {
+        return atWork;
+    }
+
+    public void setAtWork(boolean atWork) {
+        this.atWork = atWork;
+    }
+
+    public List<Feature> getFeatures() {
+        return features;
+    }
+
+    public void setFeatures(List<Feature> featureList) {
+        this.features = featureList;
+    }
+
     public Car getCar() {
         return car;
     }
@@ -103,22 +177,37 @@ public class Driver {
         this.car = car;
     }
 
-    @OneToMany(mappedBy = "driver")
-    public Collection<Route> getRoutes() {
+    public List<Route> getRoutes() {
         return routes;
     }
 
-    public void setRoutes(Collection<Route> routes) {
-        this.routes = routes;
+    public void setRoutes(List<Route> routeList) {
+        this.routes = routeList;
     }
 
-    @ManyToMany
-    @JoinTable(name = "feature_driver_list", catalog = "taxiservice", schema = "taxi", joinColumns = @JoinColumn(name = "driver_id", referencedColumnName = "id", nullable = false), inverseJoinColumns = @JoinColumn(name = "driver_id", referencedColumnName = "id", nullable = false))
-    public Collection<Feature> getFeatures() {
-        return features;
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
     }
 
-    public void setFeatures(Collection<Feature> features) {
-        this.features = features;
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof Driver)) {
+            return false;
+        }
+        Driver other = (Driver) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
     }
+
+    @Override
+    public String toString() {
+        return "com.teamd.taxi.entity.Driver[ id=" + id + " ]";
+    }
+
 }

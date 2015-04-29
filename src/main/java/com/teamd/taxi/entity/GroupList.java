@@ -1,85 +1,110 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.teamd.taxi.entity;
 
-import javax.persistence.*;
+import java.io.Serializable;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 /**
- * Created by Slava on 21.04.2015.
+ * @author Олег
  */
 @Entity
-@Table(name = "group_list", schema = "taxi", catalog = "taxiservice")
-@IdClass(GroupListPK.class)
-public class GroupList {
-    private long userId;
-    private long groupId;
-    private Boolean isManager;
-    private Group groups;
-    private User users;
+@Table(name = "group_list", schema = "public")
+public class GroupList implements Serializable {
+    private static final long serialVersionUID = 1L;
+    @EmbeddedId
+    protected GroupListPK groupListPK;
 
-    @Id
-    @Column(name = "user_id")
-    public long getUserId() {
-        return userId;
+    @Column(name = "is_manager")
+    private boolean isManager;
+
+    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @ManyToOne(optional = false)
+    private User user;
+
+    @JoinColumn(name = "group_id", referencedColumnName = "group_id", insertable = false, updatable = false)
+    @ManyToOne(optional = false)
+    private UserGroup userGroup;
+
+    public GroupList() {
     }
 
-    public void setUserId(long userId) {
-        this.userId = userId;
+    public GroupList(GroupListPK groupListPK) {
+        this.groupListPK = groupListPK;
     }
 
-    @Id
-    @Column(name = "group_id")
-    public long getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(long groupId) {
-        this.groupId = groupId;
-    }
-
-    public Boolean isManager() {
-        return isManager;
-    }
-
-    public void setIsManager(Boolean isManager) {
+    public GroupList(GroupListPK groupListPK, boolean isManager) {
+        this.groupListPK = groupListPK;
         this.isManager = isManager;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public GroupList(long userId, int groupId) {
+        this.groupListPK = new GroupListPK(userId, groupId);
+    }
 
-        GroupList groupList = (GroupList) o;
+    public GroupListPK getGroupListPK() {
+        return groupListPK;
+    }
 
-        if (userId != groupList.userId) return false;
-        if (groupId != groupList.groupId) return false;
+    public void setGroupListPK(GroupListPK groupListPK) {
+        this.groupListPK = groupListPK;
+    }
 
-        return true;
+    public boolean isManager() {
+        return isManager;
+    }
+
+    public void setIsManager(boolean isManager) {
+        this.isManager = isManager;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public UserGroup getUserGroup() {
+        return userGroup;
+    }
+
+    public void setUserGroup(UserGroup userGroup) {
+        this.userGroup = userGroup;
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (userId ^ (userId >>> 32));
-        result = 31 * result + (int) (groupId ^ (groupId >>> 32));
-        return result;
+        int hash = 0;
+        hash += (groupListPK != null ? groupListPK.hashCode() : 0);
+        return hash;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "group_id", referencedColumnName = "group_id", nullable = false)
-    public Group getGroups() {
-        return groups;
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof GroupList)) {
+            return false;
+        }
+        GroupList other = (GroupList) object;
+        return !((this.groupListPK == null && other.groupListPK != null) || (this.groupListPK != null && !this.groupListPK.equals(other.groupListPK)));
     }
 
-    public void setGroups(Group groups) {
-        this.groups = groups;
+    @Override
+    public String toString() {
+        return "com.teamd.taxi.entity.GroupList[ groupListPK=" + groupListPK + " ]";
     }
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    public User getUsers() {
-        return users;
-    }
-
-    public void setUsers(User users) {
-        this.users = users;
-    }
 }

@@ -1,18 +1,34 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.teamd.taxi.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
 import java.io.Serializable;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
 
 /**
- * Created by Slava on 21.04.2015.
+ * @author Олег
  */
+@Embeddable
 public class GroupListPK implements Serializable {
-    private long userId;
-    private long groupId;
-
     @Column(name = "user_id")
-    @Id
+    private long userId;
+
+    @Column(name = "group_id")
+    private int groupId;
+
+    public GroupListPK() {
+    }
+
+    public GroupListPK(long userId, int groupId) {
+        this.userId = userId;
+        this.groupId = groupId;
+    }
+
     public long getUserId() {
         return userId;
     }
@@ -21,33 +37,38 @@ public class GroupListPK implements Serializable {
         this.userId = userId;
     }
 
-    @Column(name = "group_id")
-    @Id
-    public long getGroupId() {
+    public int getGroupId() {
         return groupId;
     }
 
-    public void setGroupId(long groupId) {
+    public void setGroupId(int groupId) {
         this.groupId = groupId;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        GroupListPK that = (GroupListPK) o;
-
-        if (userId != that.userId) return false;
-        if (groupId != that.groupId) return false;
-
-        return true;
+    public int hashCode() {
+        int hash = 0;
+        hash += (int) userId;
+        hash += groupId;
+        return hash;
     }
 
     @Override
-    public int hashCode() {
-        int result = (int) (userId ^ (userId >>> 32));
-        result = 31 * result + (int) (groupId ^ (groupId >>> 32));
-        return result;
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof GroupListPK)) {
+            return false;
+        }
+        GroupListPK other = (GroupListPK) object;
+        if (this.userId != other.userId) {
+            return false;
+        }
+        return this.groupId == other.groupId;
     }
+
+    @Override
+    public String toString() {
+        return "com.teamd.taxi.entity.GroupListPK[ userId=" + userId + ", groupId=" + groupId + " ]";
+    }
+
 }

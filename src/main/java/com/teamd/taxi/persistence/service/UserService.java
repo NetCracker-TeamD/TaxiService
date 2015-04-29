@@ -1,10 +1,11 @@
 package com.teamd.taxi.persistence.service;
 
 import com.teamd.taxi.entity.User;
+import org.springframework.stereotype.Service;
 
-/**
- * Created by Slava on 21.04.2015.
- */
+import java.util.List;
+
 public interface UserService {
     User find(long id);
+    List<User> findAll();
 }

@@ -1,87 +1,104 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.teamd.taxi.entity;
 
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 import javax.persistence.*;
-import java.sql.Date;
-import java.util.Collection;
 
 /**
- * Created by Slava on 21.04.2015.
+ * @author Олег
  */
 @Entity
-@Table(name = "taxi_order", schema = "taxi", catalog = "taxiservice")
-public class TaxiOrder {
-    private long trackingNum;
-    private Date execDate;
-    private String comments;
-    private Collection<Route> routes;
-    private PaymentType paymentType;
-    private ServiceType serviceType;
-    private User user;
-    private Collection<Feature> features;
-
+@Table(name = "taxi_order", schema = "public")
+public class TaxiOrder implements Serializable {
+    private static final long serialVersionUID = 1L;
     @Id
-    @Column(name = "tracking_num")
-    public long getTrackingNum() {
-        return trackingNum;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    @Column(name = "registration_date")
+    @Temporal(TemporalType.DATE)
+    private Date registrationDate;
+
+    @Column(name = "execution_date")
+    @Temporal(TemporalType.DATE)
+    private Date executionDate;
+
+    @Column(name = "payment_type")
+    private PaymentType paymentType;
+
+    @Column(name = "music_style")
+    private String musicStyle;
+
+    @Column(name = "driver_sex")
+    @Enumerated(EnumType.STRING)
+    private Sex driverSex;
+
+    @Column(name = "comment")
+    private String comment;
+
+    @ManyToMany(mappedBy = "comprisingOrders")
+    private List<Feature> features;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "order")
+    private List<Route> routes;
+
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private User customer;
+
+    @JoinColumn(name = "service_type", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private ServiceType serviceType;
+
+    @JoinColumn(name = "car_class_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private CarClass carClass;
+
+    public TaxiOrder() {
     }
 
-    public void setTrackingNum(long trackingNum) {
-        this.trackingNum = trackingNum;
+    public TaxiOrder(Long id) {
+        this.id = id;
     }
 
-    @Basic
-    @Column(name = "exec_date")
-    public Date getExecDate() {
-        return execDate;
+    public TaxiOrder(Long id, Date registrationDate, Date executionDate, PaymentType paymentType) {
+        this.id = id;
+        this.registrationDate = registrationDate;
+        this.executionDate = executionDate;
+        this.paymentType = paymentType;
     }
 
-    public void setExecDate(Date execDate) {
-        this.execDate = execDate;
+    public Long getId() {
+        return id;
     }
 
-    @Basic
-    @Column(name = "comments")
-    public String getComments() {
-        return comments;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public void setComments(String comments) {
-        this.comments = comments;
+    public Date getRegistrationDate() {
+        return registrationDate;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        TaxiOrder taxiOrder = (TaxiOrder) o;
-
-        if (trackingNum != taxiOrder.trackingNum) return false;
-        if (execDate != null ? !execDate.equals(taxiOrder.execDate) : taxiOrder.execDate != null) return false;
-        if (comments != null ? !comments.equals(taxiOrder.comments) : taxiOrder.comments != null) return false;
-
-        return true;
+    public void setRegistrationDate(Date registrationDate) {
+        this.registrationDate = registrationDate;
     }
 
-    @Override
-    public int hashCode() {
-        int result = (int) (trackingNum ^ (trackingNum >>> 32));
-        result = 31 * result + (execDate != null ? execDate.hashCode() : 0);
-        result = 31 * result + (comments != null ? comments.hashCode() : 0);
-        return result;
+    public Date getExecutionDate() {
+        return executionDate;
     }
 
-    @OneToMany(mappedBy = "taxiOrder")
-    public Collection<Route> getRoutes() {
-        return routes;
+    public void setExecutionDate(Date executionDate) {
+        this.executionDate = executionDate;
     }
 
-    public void setRoutes(Collection<Route> routes) {
-        this.routes = routes;
-    }
-
-    @ManyToOne
-    @JoinColumn(name = "payment", referencedColumnName = "id", nullable = false)
     public PaymentType getPaymentType() {
         return paymentType;
     }
@@ -90,8 +107,54 @@ public class TaxiOrder {
         this.paymentType = paymentType;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "service_type", referencedColumnName = "id", nullable = false)
+    public String getMusicStyle() {
+        return musicStyle;
+    }
+
+    public void setMusicStyle(String musicStyle) {
+        this.musicStyle = musicStyle;
+    }
+
+    public Sex getDriverSex() {
+        return driverSex;
+    }
+
+    public void setDriverSex(Sex driverSex) {
+        this.driverSex = driverSex;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public List<Feature> getFeatures() {
+        return features;
+    }
+
+    public void setFeatures(List<Feature> featureList) {
+        this.features = featureList;
+    }
+
+    public List<Route> getRoutes() {
+        return routes;
+    }
+
+    public void setRoutes(List<Route> routeList) {
+        this.routes = routeList;
+    }
+
+    public User getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(User userId) {
+        this.customer = userId;
+    }
+
     public ServiceType getServiceType() {
         return serviceType;
     }
@@ -100,23 +163,37 @@ public class TaxiOrder {
         this.serviceType = serviceType;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    public User getUser() {
-        return user;
+    public CarClass getCarClass() {
+        return carClass;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setCarClass(CarClass carClassId) {
+        this.carClass = carClassId;
     }
 
-    @ManyToMany
-    @JoinTable(name = "feature_order_list", catalog = "taxiservice", schema = "taxi", joinColumns = @JoinColumn(name = "order_id", referencedColumnName = "tracking_num", nullable = false), inverseJoinColumns = @JoinColumn(name = "feature_id", referencedColumnName = "id", nullable = false))
-    public Collection<Feature> getFeatures() {
-        return features;
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
     }
 
-    public void setFeatures(Collection<Feature> features) {
-        this.features = features;
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof TaxiOrder)) {
+            return false;
+        }
+        TaxiOrder other = (TaxiOrder) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
     }
+
+    @Override
+    public String toString() {
+        return "com.teamd.taxi.entity.TaxiOrder[ id=" + id + " ]";
+    }
+
 }

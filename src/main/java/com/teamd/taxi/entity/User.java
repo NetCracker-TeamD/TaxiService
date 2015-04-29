@@ -1,37 +1,76 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.teamd.taxi.entity;
 
+import java.io.Serializable;
+import java.util.List;
 import javax.persistence.*;
-import java.util.Collection;
 
 /**
- * Created by Slava on 21.04.2015.
+ * @author Олег
  */
 @Entity
-@Table(name = "users", schema = "taxi", catalog = "taxiservice")
-public class User {
-    private long id;
-    private String email;
-    private String firstName;
-    private String lastName;
-    private String userPassword;
-    private String userRole;
-    private Collection<Contact> contacts;
-    private Collection<GroupList> groupLists;
-    private Collection<TaxiOrder> taxiOrders;
-    private Collection<Group> groups;
-
+@Table(name = "user", schema = "public")
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    public long getId() {
-        return id;
+    private Long id;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "user_password")
+    private String userPassword;
+
+    @Column(name = "user_role")
+    private String userRole;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    private List<GroupList> groups;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    private List<UserAddress> addresses;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "customer")
+    private List<TaxiOrder> orders;
+
+    public User() {
     }
 
-    public void setId(long id) {
+    public User(Long id) {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "email")
+    public User(Long id, String firstName, String lastName, String userRole, String phoneNumber) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.userRole = userRole;
+        this.phoneNumber = phoneNumber;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -40,8 +79,6 @@ public class User {
         this.email = email;
     }
 
-    @Basic
-    @Column(name = "first_name")
     public String getFirstName() {
         return firstName;
     }
@@ -50,8 +87,6 @@ public class User {
         this.firstName = firstName;
     }
 
-    @Basic
-    @Column(name = "last_name")
     public String getLastName() {
         return lastName;
     }
@@ -60,8 +95,6 @@ public class User {
         this.lastName = lastName;
     }
 
-    @Basic
-    @Column(name = "user_password")
     public String getUserPassword() {
         return userPassword;
     }
@@ -70,8 +103,6 @@ public class User {
         this.userPassword = userPassword;
     }
 
-    @Basic
-    @Column(name = "user_role")
     public String getUserRole() {
         return userRole;
     }
@@ -80,68 +111,61 @@ public class User {
         this.userRole = userRole;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
 
-        User user = (User) o;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 
-        if (id != user.id) return false;
-        if (email != null ? !email.equals(user.email) : user.email != null) return false;
-        if (firstName != null ? !firstName.equals(user.firstName) : user.firstName != null) return false;
-        if (lastName != null ? !lastName.equals(user.lastName) : user.lastName != null) return false;
-        if (userPassword != null ? !userPassword.equals(user.userPassword) : user.userPassword != null) return false;
-        if (userRole != null ? !userRole.equals(user.userRole) : user.userRole != null) return false;
+    public List<GroupList> getGroups() {
+        return groups;
+    }
 
-        return true;
+    public void setGroups(List<GroupList> groups) {
+        this.groups = groups;
+    }
+
+    public List<UserAddress> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(List<UserAddress> userAdressList) {
+        this.addresses = userAdressList;
+    }
+
+    public List<TaxiOrder> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<TaxiOrder> orders) {
+        this.orders = orders;
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + (email != null ? email.hashCode() : 0);
-        result = 31 * result + (firstName != null ? firstName.hashCode() : 0);
-        result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
-        result = 31 * result + (userPassword != null ? userPassword.hashCode() : 0);
-        result = 31 * result + (userRole != null ? userRole.hashCode() : 0);
-        return result;
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
     }
 
-    @OneToMany(mappedBy = "user")
-    public Collection<Contact> getContacts() {
-        return contacts;
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof User)) {
+            return false;
+        }
+        User other = (User) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
     }
 
-    public void setContacts(Collection<Contact> contacts) {
-        this.contacts = contacts;
+    @Override
+    public String toString() {
+        return "com.teamd.taxi.entity.User[ id=" + id + " ]";
     }
 
-    @OneToMany(mappedBy = "users")
-    public Collection<GroupList> getGroupLists() {
-        return groupLists;
-    }
-
-    public void setGroupLists(Collection<GroupList> groupLists) {
-        this.groupLists = groupLists;
-    }
-
-    @OneToMany(mappedBy = "user")
-    public Collection<TaxiOrder> getTaxiOrders() {
-        return taxiOrders;
-    }
-
-    public void setTaxiOrders(Collection<TaxiOrder> taxiOrders) {
-        this.taxiOrders = taxiOrders;
-    }
-
-    @ManyToMany
-    @JoinTable(name = "group_list", catalog = "taxiservice", schema = "taxi", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false), inverseJoinColumns = @JoinColumn(name = "group_id", referencedColumnName = "group_id", nullable = false))
-    public Collection<Group> getGroups() {
-        return groups;
-    }
-
-    public void setGroups(Collection<Group> groups) {
-        this.groups = groups;
-    }
 }

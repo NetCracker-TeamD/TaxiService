@@ -19,9 +19,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.logging.Level;
 
-/**
- * Created by Slava on 21.04.2015.
- */
 @Configuration
 
 @EnableTransactionManagement
@@ -60,12 +57,11 @@ public class SpringConfig {
         return new HibernateExceptionTranslator();
     }
 
-    @Autowired
     @Bean
     public EntityManagerFactory entityManagerFactory() {
         java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.INFO);
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        vendorAdapter.setShowSql(false);
+        vendorAdapter.setShowSql(true);
         vendorAdapter.setGenerateDdl(false);
         vendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQLDialect");
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
