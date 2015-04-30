@@ -43,6 +43,9 @@ public class TaxiOrder implements Serializable {
     @Column(name = "comment")
     private String comment;
 
+    @Column(name = "secret_view_key")
+    private String secretViewKey;
+
     @ManyToMany(mappedBy = "comprisingOrders")
     private List<Feature> features;
 
@@ -169,6 +172,14 @@ public class TaxiOrder implements Serializable {
 
     public void setCarClass(CarClass carClassId) {
         this.carClass = carClassId;
+    }
+
+    public String getSecretViewKey() {
+        return this.secretViewKey;
+    }
+
+    public void setSecretViewKey(String key) {
+        this.secretViewKey = key;
     }
 
     @Override

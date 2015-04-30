@@ -42,6 +42,9 @@ public class Route implements Serializable {
     @Column(name = "total_price")
     private Float totalPrice;
 
+    @Column(name = "is_late")
+    private Boolean isLate;
+
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
@@ -150,6 +153,14 @@ public class Route implements Serializable {
 
     public void setDriver(Driver driverId) {
         this.driver = driverId;
+    }
+
+    public Boolean getIsLate() {
+        return isLate;
+    }
+
+    public void setIsLate(Boolean customerIsLate) {
+        this.isLate = customerIsLate;
     }
 
     @Override

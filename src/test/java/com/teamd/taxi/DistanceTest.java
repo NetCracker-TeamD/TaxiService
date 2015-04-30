@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import com.teamd.taxi.distance.service.DistanceCalculator;
+import com.teamd.taxi.service.DistanceCalculator;
 
 public class DistanceTest {
 
