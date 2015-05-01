@@ -6,6 +6,7 @@
 package com.teamd.taxi.entity;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -47,11 +48,11 @@ public class Route implements Serializable {
 
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date startTime;
+    private Calendar startTime;
 
     @Column(name = "completion_time")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date completionTime;
+    private Calendar completionTime;
 
     @JoinColumn(name = "order_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
@@ -123,19 +124,19 @@ public class Route implements Serializable {
         this.totalPrice = totalPrice;
     }
 
-    public Date getStartTime() {
+    public Calendar getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Date startTime) {
+    public void setStartTime(Calendar startTime) {
         this.startTime = startTime;
     }
 
-    public Date getCompletionTime() {
+    public Calendar getCompletionTime() {
         return completionTime;
     }
 
-    public void setCompletionTime(Date completionTime) {
+    public void setCompletionTime(Calendar completionTime) {
         this.completionTime = completionTime;
     }
 
