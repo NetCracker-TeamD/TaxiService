@@ -6,26 +6,25 @@ import com.teamd.taxi.models.RegistrationForm;
 import com.teamd.taxi.service.CustomerUserService;
 import com.teamd.taxi.validation.RegistrationFormPasswordValidator;
 import com.teamd.taxi.validation.UniqueEmailValidator;
-import com.teamd.taxi.validation.UniqueEmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import org.apache.log4j.Logger;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.List;
 
 
 @Controller
-public class IndexController {
+public class IndexAndRegistrationController {
 
-    private static final Logger logger = Logger.getLogger(IndexController.class);
+    private static final Logger logger = Logger.getLogger(IndexAndRegistrationController.class);
 
     @Autowired
     private UniqueEmailValidator uniqueEmailValidator;
@@ -65,5 +64,12 @@ public class IndexController {
             userService.registerNewCustomerUser(user);
         }
         return "coderesolving";
+    }
+
+    @RequestMapping("/confirm/{confirmationCode}")
+    public void confirmUser(@PathVariable("confirmationCode") String code,
+    /*to prevent view resolving*/ HttpServletResponse response) {
+        userService.confirmUser(code);
+        //TODO: generate view and error handling
     }
 }

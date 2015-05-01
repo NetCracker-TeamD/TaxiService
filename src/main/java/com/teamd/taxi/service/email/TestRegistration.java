@@ -24,6 +24,7 @@ public class TestRegistration {
 
         // compose and send message
 
+
         // sending to email
         try {
             // sending to one email adresses

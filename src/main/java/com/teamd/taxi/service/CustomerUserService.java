@@ -3,13 +3,17 @@ package com.teamd.taxi.service;
 import com.teamd.taxi.entity.User;
 import com.teamd.taxi.persistence.repository.UserRepository;
 import com.teamd.taxi.service.email.EmailService;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Random;
 
 @Service
 public class CustomerUserService {
+
+    private static final Logger logger = Logger.getLogger(CustomerUserService.class);
 
     private static int CONFIRMATION_CODE_LENGTH = 60;
 
@@ -31,17 +35,25 @@ public class CustomerUserService {
             confirmationCode = generateConfirmationCode();
         } while (userRepository.findByConfirmationCode(confirmationCode) != null);
         newUser.setConfirmationCode(confirmationCode);
-        //send notification email
+        //TODO:send notification email
         //save it
-        return userRepository.save(newUser);
+        newUser = userRepository.save(newUser);
+        logger.info("User[" + newUser.getId() + "]" +
+                " registered with [" + confirmationCode + "] confirmation code");
+        return newUser;
     }
 
     public boolean confirmUser(String confirmationCode) {
-        User user = userRepository.findByConfirmationCode(confirmationCode);
-        if (user != null) {
+        List<User> userList = userRepository.findByConfirmationCode(confirmationCode);
+        int size = userList.size();
+        if (size == 1) {
+            User user = userList.get(0);
             user.setIsConfirmed(true);
             userRepository.save(user);
+            logger.info("User[" + user.getId() + "] confirmed");
             return true;
+        } else if (size > 1) {
+            logger.error("More than one user have confirmation code: " + confirmationCode);
         }
         return false;
     }

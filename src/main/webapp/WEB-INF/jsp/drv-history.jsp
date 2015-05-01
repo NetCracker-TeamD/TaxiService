@@ -1,10 +1,3 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: Anton
-  Date: 26.04.2015
-  Time: 19:10
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
          pageEncoding="UTF-8" %>
 <%@ taglib prefix="fmt"

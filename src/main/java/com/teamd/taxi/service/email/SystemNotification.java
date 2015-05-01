@@ -28,6 +28,7 @@ public enum SystemNotification {
 	}
 
 	public String getState() {
+		String.format("You order %d is accepted", 456);
 		return state;
 	}
 

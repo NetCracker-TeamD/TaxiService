@@ -8,14 +8,7 @@ package com.teamd.taxi.entity;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.*;
 
 /**
  * @author Олег
@@ -29,7 +22,8 @@ public class Route implements Serializable {
     private Long id;
 
     @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private RouteStatus status;
 
     @Column(name = "source_address")
     private String sourceAddress;
@@ -69,7 +63,7 @@ public class Route implements Serializable {
         this.id = id;
     }
 
-    public Route(Long id, String status, String sourceAddress, String destinationAddress) {
+    public Route(Long id, RouteStatus status, String sourceAddress, String destinationAddress) {
         this.id = id;
         this.status = status;
         this.sourceAddress = sourceAddress;
@@ -84,11 +78,11 @@ public class Route implements Serializable {
         this.id = id;
     }
 
-    public String getStatus() {
+    public RouteStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(RouteStatus status) {
         this.status = status;
     }
 
