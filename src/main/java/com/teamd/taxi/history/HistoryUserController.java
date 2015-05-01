@@ -71,7 +71,6 @@ public class HistoryUserController {
 
             //route
             ArrayList<Route> routeList=new ArrayList<Route>();
-
             route=new Route();
             route.setId((long) i);
             route.setDestinationAddress("бул. Лесі Українки, 14, Київ, Украина");

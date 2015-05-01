@@ -46,7 +46,6 @@
         <li><a href="#">Queue</a></li>
         <li><a href="/driver/history/">History</a></li>
       </ul>
-
       <div class="navbar-form navbar-right">
         <div class="form-group">
           <input type="text" placeholder="Email" class="form-control">

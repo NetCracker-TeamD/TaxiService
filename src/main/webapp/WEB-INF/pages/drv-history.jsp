@@ -92,9 +92,6 @@
       </div>
 
       <div class="panel-body">
-
-
-
         <c:forEach  items="${routesList}" var="route">
           <div id="history_list" class="panel panel-default">
             <div id="history_node" class="panel-heading">
