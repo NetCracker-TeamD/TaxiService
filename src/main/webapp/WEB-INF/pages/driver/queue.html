@@ -4,15 +4,13 @@
     <title>Welcome driwer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="authorisation form">
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="../../../../../../../../Desktop/pages/resources/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="../../../../../../../../Desktop/pages/resources/project/css/welcomeDriver.css">
-    <script src="../../../../../../../../Desktop/pages/resources/jquery/jquery-2.1.3.js"></script>
-    <script src="../../../../../../../../Desktop/pages/resources/bootstrap/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="../resources/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../resources/project/css/welcomeDriver.css">
+    <script src="../resources/jquery/jquery-2.1.3.js"></script>
+    <script src="../resources/bootstrap/js/bootstrap.js"></script>
 
 </head>
 <body>
-<!--common navigation bar for this service -->
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
@@ -71,81 +69,65 @@
              <thead>
              <tr class="info">
              <th>#</th>
+             <th>Service type</th>
              <th>Time</th>
-             <th>Source adress</th>
-             <th>Destination adress</th>
-             <th>Time of trip</th>
+             <th>Payment</th>
+             <th>Class</th>
              <th>Status</th>
              <th>View</th>
-             <th>Add</th>
+
              </tr>
              </thead>
 
             
              <tbody>
-             <tr  class="info">
-             <td>37</td>
-             <td>17.45</td>
-             <td>Glushkova 37 st.</td>
-             <td>Maidan Nezaleczhnosti</td>
-             <td>25 minutes</td>
+             <tr  class="info"  data-toggle="collapse" data-target="#collapseExample"  >
+             <td>3</td>
+             <td>Taxi</td>
+             <td>13.45</td>
+             <td>cesh</td>
+             <td>econom</td>
              <td>In queue</td>
              <td>
                 <button type="button"  data-toggle="modal" data-target="#orderDetail"  data-whatever="ID" class="btn btn-info" title="View details"><i class="glyphicon glyphicon-eye-open"></i></button>
              </td>
-             <td>
-                <div>
-                    <a class="btn btn-success" href="current-order.html"><i class="glyphicon glyphicon-plus"></i></a>
-                </div>
-             </td>
+
              </tr>
 
-             <tr class="info">
-             <td>37</td>
-             <td>17.45</td>
-             <td>Glushkova 37 st.</td>
-             <td>Maidan Nezaleczhnosti</td>
-             <td>25 minutes</td>
+             <tr class="info"  data-toggle="collapse" data-target="#collapseExample" >
+             <td>5</td>
+             <td>Sober driver</td>
+             <td>14.25</td>
+             <td>credit card</td>
+             <td>-</td>
              <td>In queue</td>
              <td>
                 <button type="button"  data-toggle="modal" data-target="#orderDetail"  data-whatever="ID" class="btn btn-info" title="View details"><i class="glyphicon glyphicon-eye-open"></i></button></td>
-             <td>
-                <div>
-                    <a class="btn btn-success" href="current-order.html"><i class="glyphicon glyphicon-plus"></i></a>
-                </div>
-             </td>
+
              </tr>
 
-             <tr class="info">
-             <td>37</td>
-             <td>17.45</td>
-             <td>Glushkova 37 st.</td>
-             <td>Maidan Nezaleczhnosti</td>
-             <td>25 minutes</td>
+             <tr class="info"  data-toggle="collapse" data-target="#collapseExample" >
+             <td>6</td>
+             <td>Celebration</td>
+             <td>14.45</td>
+             <td>credit card</td>
+             <td>business</td>
              <td>In queue</td>
              <td>
                 <button type="button"  data-toggle="modal" data-target="#orderDetail"  data-whatever="ID" class="btn btn-info" title="View details"><i class="glyphicon glyphicon-eye-open"></i></button></td>
-             <td>
-                <div>
-                    <a class="btn btn-success" href="current-order.html"><i class="glyphicon glyphicon-plus"></i></a>
-                </div>
-             </td>
+
              </tr>
 
-             <tr class="info">
-             <td>37</td>
-             <td>17.45</td>
-             <td>Glushkova 37 st.</td>
-             <td>Maidan Nezaleczhnosti</td>
-             <td>25 minutes</td>
+             <tr class="info" data-toggle="collapse" data-target="#collapseExample" >
+             <td>8</td>
+             <td>Sober driver</td>
+             <td>16.25</td>
+             <td>cash</td>
+             <td>-</td>
              <td>In queue</td>
              <td>
-                <button type="button"  data-toggle="modal" data-target="#orderDetail"  data-whatever="ID" class="btn btn-info" title="View details"><i class="glyphicon glyphicon-eye-open"></i></button></td>
-             <td>
-                <div>
-                    <a class="btn btn-success" href="current-order.html"><i class="glyphicon glyphicon-plus"></i></a>
-                </div>
-             </td>
+                <button type="button"  data-toggle="modal" data-target="#orderDetail1"  data-whatever="ID" class="btn btn-info" title="View details"><i class="glyphicon glyphicon-eye-open"></i></button></td>
+
              </tr>
 
              </tbody>
@@ -153,23 +135,50 @@
              </table>
         </div>
 
-        <div class="col-md-2 pull-right">
+        <div class="col-md-3 pull-right">
             <div class="panel panel-primary">
                 <div class="panel-heading"><h3 class="panel-title">Filter</h3></div>
 
                 <div class="panel-body col">
-                    <div class="input-group"><input type="checkbox" aria-label="Taxi asap" active> Taxi asap</div>
-                    <div class="input-group"><input type="checkbox" aria-label="Sober driver"> Sober driver</div>
-                    <div class="input-group"><input type="checkbox" aria-label="Non-smoking"> Non-smoking</div>
-                    <div class="input-group"><input type="checkbox" aria-label="WiFi"> WiFi</div>
-                    <div class="input-group"><input type="checkbox" aria-label="Cargo Taxi"> Cargo Taxi</div>
-                    <div class="input-group"  align="bottom"><input type="checkbox"aria-label="Foodstuff delivery"> Foodstuff</div>
-                    <hr>
-                    <div>
-                        <button type="submit" class="btn btn-info" aria-label="Left Align">
-                            <span class="glyphicon glyphicon-search" aria-hidden="true"> Search</span>
-                        </button>
-                    </div>
+                <div class="input-group">
+                <div>
+                <label class="radio-inline">
+                    <input type="checkbox" name="driver_gender" id="taxi_asap"> Taxi asap
+                </label>
+                </div>
+                <div>
+                <label class="radio-inline">
+                    <input type="checkbox" name="sober_driver" id="sober_driver"> Sober driver
+                </label>
+                </div>
+                <div>
+                <label class="radio-inline">
+                    <input type="checkbox" name="non_smoking" id="non_smoking" value="non_smoking"> Non-smoking
+                </label>
+                </div>
+                <div>
+                <label class="radio-inline">
+                    <input type="checkbox" name="wi_fi" id="wi_fi" value="wi_fi"> WiFi
+                </label>
+                </div>
+                <div>
+                <label class="radio-inline">
+                    <input type="checkbox" name="cargo_taxi" id="cargo_taxi" value="cargo_taxi"> Cargo Taxi
+                </label>
+                </div>
+                <div>
+                <label class="radio-inline">
+                    <input type="checkbox" name="foodstuff_delivery" id="foodstuff_delivery" value="foodstuff_delivery"> Foodstuff delivery
+                </label>
+                </div>
+
+                </div>
+                <hr>
+                <div>
+                    <button type="submit" class="btn btn-info" aria-label="Left Align">
+                        <span class="glyphicon glyphicon-search" aria-hidden="true"> Search</span>
+                    </button>
+                </div>
                 </div>
            </div>
         </div>   
@@ -177,22 +186,128 @@
 
     <hr>
 <!-- Modal -->
+
 <div class="modal fade" id="orderDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="myModalLabel">Order description</h4>
-        </div>
-        <div class="modal-body">
-            <p>Here is a detailed description of the request.</p>
-        </div>
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Order description</h4>
+            </div>
+            <div class="modal-body">
+                <div  class="panel-primary">
+                    <div class="panel-heading">Routes</div>
+                    <table class="table table-hover table-bordered">
+                        <thead>
+                        <tr class="info">
+                            <th>#</th>
+                            <th>Source address</th>
+                            <th>Destination address</th>
+                            <th>Distance</th>
+                            <th>Accept</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="info">
+                                <td>6</td>
+                                <td>Glushkova str</td>
+                                <td>Chevchenka str</td>
+                                <td>15 km</td>
+                                <td>
+                                    <div>
+                                        <a class="btn btn-success" href="current-order.html"><i class="glyphicon glyphicon-plus"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="info">
+                                <td>6</td>
+                                <td>Glushkova str</td>
+                                <td>Maidan Nezaleznosti</td>
+                                <td>17 km</td>
+                                <td>
+                                    <div>
+                                        <a class="btn btn-success" href="current-order.html"><i class="glyphicon glyphicon-plus"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
     </div>
   </div>
 </div>
+
+    <div class="modal fade" id="orderDetail1" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel1">Order description</h4>
+                </div>
+                <div class="modal-body">
+                    <div  class="panel-primary">
+                        <div class="panel-heading">Routes</div>
+                        <table class="table table-hover table-bordered">
+                            <thead>
+                            <tr class="info">
+                                <th>#</th>
+                                <th>Source address</th>
+                                <th>Destination address</th>
+                                <th>Distance</th>
+                                <th>Accept</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="info">
+                                <td>8</td>
+                                <td>Glushkova str</td>
+                                <td>Goncharska str</td>
+                                <td>15 km</td>
+                                <td>
+                                    <div>
+                                        <a class="btn btn-success" href="current-order.html"><i class="glyphicon glyphicon-plus"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="info">
+                                <td>8</td>
+                                <td>Glushkova str</td>
+                                <td>Chevchenka str</td>
+                                <td>15 km</td>
+                                <td>
+                                    <div>
+                                        <a class="btn btn-success" href="current-order.html"><i class="glyphicon glyphicon-plus"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="info">
+                                <td>8</td>
+                                <td>Glushkova str</td>
+                                <td>Maidan Nezaleznosti</td>
+                                <td>17 km</td>
+                                <td>
+                                    <div>
+                                        <a class="btn btn-success" href="current-order.html"><i class="glyphicon glyphicon-plus"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <p>&#169 TeamD 2015</p>

@@ -39,6 +39,12 @@ public class User implements Serializable {
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    @Column(name = "confirmation_code")
+    private String confirmationCode;
+
+    @Column(name = "is_confirmed")
+    private Boolean isConfirmed;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     private List<GroupList> groups;
 
@@ -117,6 +123,22 @@ public class User implements Serializable {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getConfirmationCode() {
+        return confirmationCode;
+    }
+
+    public void setConfirmationCode(String confirmationCode) {
+        this.confirmationCode = confirmationCode;
+    }
+
+    public Boolean isConfirmed() {
+        return isConfirmed;
+    }
+
+    public void setIsConfirmed(Boolean isConfirmed) {
+        this.isConfirmed = isConfirmed;
     }
 
     public List<GroupList> getGroups() {

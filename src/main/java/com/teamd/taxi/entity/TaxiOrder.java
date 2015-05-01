@@ -6,6 +6,7 @@
 package com.teamd.taxi.entity;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
@@ -23,12 +24,12 @@ public class TaxiOrder implements Serializable {
     private Long id;
 
     @Column(name = "registration_date")
-    @Temporal(TemporalType.DATE)
-    private Date registrationDate;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Calendar registrationDate;
 
     @Column(name = "execution_date")
-    @Temporal(TemporalType.DATE)
-    private Date executionDate;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Calendar executionDate;
 
     @Column(name = "payment_type")
     private PaymentType paymentType;
@@ -42,6 +43,9 @@ public class TaxiOrder implements Serializable {
 
     @Column(name = "comment")
     private String comment;
+
+    @Column(name = "secret_view_key")
+    private String secretViewKey;
 
     @ManyToMany(mappedBy = "comprisingOrders")
     private List<Feature> features;
@@ -68,7 +72,7 @@ public class TaxiOrder implements Serializable {
         this.id = id;
     }
 
-    public TaxiOrder(Long id, Date registrationDate, Date executionDate, PaymentType paymentType) {
+    public TaxiOrder(Long id, Calendar registrationDate, Calendar executionDate, PaymentType paymentType) {
         this.id = id;
         this.registrationDate = registrationDate;
         this.executionDate = executionDate;
@@ -83,19 +87,19 @@ public class TaxiOrder implements Serializable {
         this.id = id;
     }
 
-    public Date getRegistrationDate() {
+    public Calendar getRegistrationDate() {
         return registrationDate;
     }
 
-    public void setRegistrationDate(Date registrationDate) {
+    public void setRegistrationDate(Calendar registrationDate) {
         this.registrationDate = registrationDate;
     }
 
-    public Date getExecutionDate() {
+    public Calendar getExecutionDate() {
         return executionDate;
     }
 
-    public void setExecutionDate(Date executionDate) {
+    public void setExecutionDate(Calendar executionDate) {
         this.executionDate = executionDate;
     }
 
@@ -171,6 +175,14 @@ public class TaxiOrder implements Serializable {
         this.carClass = carClassId;
     }
 
+    public String getSecretViewKey() {
+        return this.secretViewKey;
+    }
+
+    public void setSecretViewKey(String key) {
+        this.secretViewKey = key;
+    }
+
     @Override
     public int hashCode() {
         int hash = 0;
@@ -180,15 +192,11 @@ public class TaxiOrder implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof TaxiOrder)) {
             return false;
         }
         TaxiOrder other = (TaxiOrder) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+        return !((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id)));
     }
 
     @Override

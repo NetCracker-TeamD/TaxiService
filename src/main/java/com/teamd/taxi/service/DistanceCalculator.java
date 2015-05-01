@@ -1,4 +1,4 @@
-package com.teamd.taxi.distance.service;
+package com.teamd.taxi.service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
