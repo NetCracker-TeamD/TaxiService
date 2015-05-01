@@ -17,5 +17,4 @@
 
     <mvc:resources mapping="/pages/**" location="WEB-INF/pages/"/>
     <mvc:annotation-driven/>
-
 </beans>

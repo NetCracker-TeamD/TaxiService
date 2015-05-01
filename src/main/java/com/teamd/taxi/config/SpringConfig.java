@@ -1,6 +1,9 @@
 package com.teamd.taxi.config;
 
+import com.teamd.taxi.validation.UniqueEmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +16,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
@@ -71,5 +74,24 @@ public class SpringConfig {
         factory.setDataSource(dataSource());
         factory.afterPropertiesSet();
         return factory.getObject();
+    }
+
+    /* May need for generating JSP with error messages
+    @Bean
+    public MessageSource messageSource() {
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setBasename("messages");
+        return messageSource;
+    }
+    */
+
+    @Bean(name = "validator")
+    public LocalValidatorFactoryBean validator() {
+        return new LocalValidatorFactoryBean();
+    }
+
+    @Bean
+    public UniqueEmailValidator uniqueEmailValidator() {
+        return new UniqueEmailValidator();
     }
 }

@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -110,37 +111,43 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
                 <h2 class="modal-title" id="myModalLabel">Registration</h2>
             </div>
-            <form action="/auth" method="post">
+            <form:form commandName="registrationForm" action="${pageContext.request.contextPath}/register" method="post">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
-                                <input type="text" name="first_name" id="first_name" class="form-control input-lg"
-                                       placeholder="First Name" tabindex="1">
+                                <form:input path="firstName" placeholder="First Name" cssClass="form-control input-lg"
+                                            id="first_name" tabindex="1"/>
                             </div>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
-                                <input type="text" name="last_name" id="last_name" class="form-control input-lg"
-                                       placeholder="Last Name" tabindex="2">
+                                <form:input path="lastName" placeholder="Last Name" cssClass="form-control input-lg"
+                                            id="last_name" tabindex="2"/>
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <input type="email" name="email" id="email" class="form-control input-lg"
-                               placeholder="Email Address" tabindex="4">
+                        <form:input path="email" placeholder="Email Address" id="email" cssClass="form-control input-lg"
+                                    tabindex="3"/>
+                    </div>
+                    <div class="form-group">
+                        <form:input path="phoneNumber" placeholder="Phone Number" id="phoneNumber"
+                                    cssClass="form-control input-lg" tabindex="4"/>
                     </div>
                     <div class="row">
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
-                                <input type="password" name="password" id="password" class="form-control input-lg"
-                                       placeholder="Password" tabindex="5">
+                                <form:password path="password" id="password"
+                                               cssClass="form-control input-lg"
+                                               placeholder="Password" tabindex="5"/>
                             </div>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
-                                <input type="password" name="password_confirmation" id="password_confirmation"
-                                       class="form-control input-lg" placeholder="Confirm Password" tabindex="6">
+                                <form:password path="passwordConfirmation" id="password"
+                                               cssClass="form-control input-lg"
+                                               placeholder="Confirm Password" tabindex="6"/>
                             </div>
                         </div>
                     </div>
@@ -149,11 +156,11 @@
 
                 <div class="modal-footer">
                     <div>
-                        <button id="reg" type="submit" class="btn btn-success" data-dismiss="modal">Register</button>
+                        <button id="reg" type="submit" class="btn btn-success">Register</button>
                         <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
                     </div>
                 </div>
-            </form>
+            </form:form>
 
         </div>
         <!-- /.modal-content -->
