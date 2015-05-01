@@ -1,7 +1,6 @@
 $(document).ready(function() {
     var sort = getUrlParameter('sort');
     var page = getUrlParameter('page');
-    $()
     $('.panel-body #history_node').css({background: '#FFF5EE'});
     $('.panel-body #history_node').mouseenter(function () {
         $(this).css({'background': '#FFFF00'});
