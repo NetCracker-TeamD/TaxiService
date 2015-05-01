@@ -1,13 +1,41 @@
 /**
  * Created by Vika on 4/29/15.
  */
+
+$(function() {
+    $( "#datepicker" ).datepicker();
+});
+$(function() {
+    $( "#datepicker1" ).datepicker();
+});
 $(document).ready(function () {
+        $('ul#my-menu ul').each(function (index) {
+            $(this).prev().addClass('collapsible').click(function () {
+                if ($(this).next().css('display') == 'none') {
+                    $(this).next().slideDown(200, function () {
+                        $(this).prev().removeClass('collapsed').addClass('expanded');
+                    });
+                } else {
+                    $(this).next().slideUp(200, function () {
+                        $(this).prev().removeClass('expanded').addClass('collapsed');
+                        $(this).find('ul').each(function () {
+                            $(this).hide().prev().removeClass('expanded').addClass('collapsed');
+                        });
+                    });
+                }
+                return false;
+            });
+        });
+
     $(".profit_by_period").click(function () {
-        var content='<div class="container">' +
-            ' <h2>Most profitable service</h2> ' +
-            '<form>' +
-            '<input type="radio" name="period" checked>Week</input>' +
-            '<input type="radio" name="period">Month</input>' +
+        $('ul#my-menu li ul').hide();
+        $("#pick_date").hide();
+        var cont='<div class="container">' +
+            ' <h2>Most profitable service</h2> ' ;
+        var content=
+            '<form class="container">' +
+            '<input type="radio" name="period" checked>Week</input><br>' +
+            '<input type="radio" name="period">Month</input><br>' +
             '<input type="radio" name="period">Decade</input>' +
             '</form> ' +
             '<div class="table-responsive"> ' +
@@ -25,11 +53,15 @@ $(document).ready(function () {
             '</table> ' +
             '</div>' +
             '</div>';
+        $("#title").html(cont);
         $("#main_content").html(content);
     });
     $(".popular_car").click(function () {
-        var  content='<div class="container">' +
-            ' <h2>Most popular car</h2> ' +
+        $('ul#my-menu li ul').hide();
+        $("#pick_date").hide();
+        var cont='<div class="container">' +
+            ' <h2>Most popular car</h2> ' ;
+        var  content=
             '<div class="table-responsive"> ' +
             '<table class="table table-striped table-hover"> ' +
             '<thead> ' +
@@ -42,12 +74,16 @@ $(document).ready(function () {
             '</tbody>' +
             '</table>' +
             '</div>' +
-            '</div>'
+            '</div>';
+        $("#title").html(cont);
         $("#main_content").html(content);
     });
     $(".option_for_user").click(function () {
-        var content='<div class="container">' +
-            '<h2>Most popular additional car options for each customer user</h2>' +
+        $('ul#my-menu li ul').hide();
+        $("#pick_date").hide();
+        var cont='<div class="container">' +
+            '<h2>Most popular additional car options for each customer user</h2>';
+        var content=
             '<div class="table-responsive">' +
             '<table class="table table-striped table-hover">' +
             '<thead>' +
@@ -62,12 +98,16 @@ $(document).ready(function () {
             '</tbody>' +
             '</table>' +
             '</div>' +
-            '</div>'
+            '</div>';
+        $("#title").html(cont);
         $("#main_content").html(content);
     });
     $(".options").click(function () {
-        var  content='<div class="container">' +
-            '<h2>Most popular additional car options for each customer user</h2>' +
+        $('ul#my-menu li ul').hide();
+        $("#pick_date").hide();
+        var cont='<div class="container">' +
+            '<h2>Most popular additional car options overall</h2>';
+        var  content=
             '<div class="table-responsive">' +
             '<table class="table table-striped table-hover">' +
             '<thead>' +
@@ -82,16 +122,16 @@ $(document).ready(function () {
             '</tbody>' +
             '</table>' +
             '</div>' +
-            '</div>'
+            '</div>';
+        $("#title").html(cont);
         $("#main_content").html(content);
     });
     $(".new_order").click(function () {
-        var content='<div class="container"> ' +
-            '<h2>New orders per period</h2> ' +
-            '<form>Pick start date <input type="date" id="theStartDate"/>' +
-            '      Pick the end date <input type="date" id="theEndDate"/>' +
-            '</form>' +
-            '<div class="table-responsive"> ' +
+        $('ul#my-menu li ul').hide();
+        var content='<div class="container"> '+'<h2>New orders per period</h2> '
+          ;
+        $("#pick_date").show();
+        var  content2='<div class="table-responsive"> '+
             '<table class="table table-striped table-hover">' +
             '<thead>' +
             '<tr> <th>#</th> <th>Customer name</th><th>Driver name</th> <th>Price</th><th>Service name</th> ' +
@@ -102,12 +142,16 @@ $(document).ready(function () {
             '</tbody>' +
             '</table>' +
             '</div>' +
-            '</div>'
-        $("#main_content").html(content);
+            '</div>';
+        $("#title").html(content);
+        $("#main_content").html(content2);
     });
     $(".month_profit").click(function () {
-        var content='<div class="container">' +
-            '<h2>Service profitability by month</h2> ' +
+        $('ul#my-menu li ul').hide();
+        $("#pick_date").hide();
+        var cont='<div class="container">' +
+            '<h2>Service profitability by month</h2> ';
+        var content=
             '<div class="table-responsive"> ' +
             '<table class="table table-striped table-hover"> ' +
             '<thead> ' +
@@ -122,7 +166,8 @@ $(document).ready(function () {
             '</tbody>' +
             '</table>' +
             '</div> ' +
-            '</div>'
+            '</div>';
+        $("#title").html(cont);
         $("#main_content").html(content);
     });
 
