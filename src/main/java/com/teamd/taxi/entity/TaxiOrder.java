@@ -32,6 +32,7 @@ public class TaxiOrder implements Serializable {
     private Calendar executionDate;
 
     @Column(name = "payment_type")
+    @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
 
     @Column(name = "music_style")
