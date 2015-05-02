@@ -1,4 +1,6 @@
 $(document).ready(function () {
+    //погано - робиш двічі одну й ту саму роботу,
+    //можна один раз розбить і вибрать ті параметри що тобі треба
     var sort = getUrlParameter('sort');
     var page = getUrlParameter('page');
     $('.panel-body #history_node').css({background: '#FFF5EE'});

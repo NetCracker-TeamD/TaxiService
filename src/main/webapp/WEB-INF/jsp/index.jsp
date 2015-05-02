@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/pages/resources/project/css/welcome.css">
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
-
+    <script src="/pages/resources/project/js/common/authentication.js" ></script>
 </head>
 
 <body>
@@ -176,7 +176,7 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
                 <h2 class="modal-title" id="loginModalLabel">Login</h2>
             </div>
-            <form action="${pageContext.request.contextPath}/checkLogin"
+            <form id="login-form" action="${pageContext.request.contextPath}/checkLogin"
                   method="post">
                 <div class="modal-body">
                     <div class="form-group">

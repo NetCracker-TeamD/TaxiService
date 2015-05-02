@@ -1,4 +1,4 @@
-package com.teamd.taxi.controllers.history;
+package com.teamd.taxi.controllers.user;
 
 import com.teamd.taxi.entity.*;
 import org.springframework.stereotype.Controller;

@@ -2,6 +2,7 @@ package com.teamd.taxi.controllers;
 
 
 import com.teamd.taxi.entity.User;
+import com.teamd.taxi.exception.UserAlreadyConfirmedException;
 import com.teamd.taxi.models.RegistrationForm;
 import com.teamd.taxi.service.CustomerUserService;
 import com.teamd.taxi.validation.RegistrationFormPasswordValidator;
@@ -79,7 +80,7 @@ public class IndexAndRegistrationController {
 
     @RequestMapping("/confirm/{confirmationCode}")
     public void confirmUser(@PathVariable("confirmationCode") String code,
-    /*to prevent view resolving*/ HttpServletResponse response) {
+    /*to prevent view resolving*/ HttpServletResponse response) throws UserAlreadyConfirmedException {
         userService.confirmUser(code);
         //TODO: generate view and error handling
     }

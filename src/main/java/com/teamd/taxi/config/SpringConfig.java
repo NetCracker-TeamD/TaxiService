@@ -40,10 +40,6 @@ public class SpringConfig {
     private static final String PROP_DATABASE_URL = "db.url";
     private static final String PROP_DATABASE_USERNAME = "db.username";
 
-    public SpringConfig() {
-        System.out.println(this.getClass() + " created at: " + System.currentTimeMillis());
-    }
-
     @Resource
     private Environment env;
 

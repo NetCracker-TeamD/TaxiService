@@ -44,7 +44,7 @@ public class User implements Serializable {
     private String confirmationCode;
 
     @Column(name = "is_confirmed")
-    private Boolean isConfirmed;
+    private Boolean confirmed;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     private List<GroupList> groups;
@@ -135,11 +135,11 @@ public class User implements Serializable {
     }
 
     public Boolean isConfirmed() {
-        return isConfirmed;
+        return confirmed;
     }
 
-    public void setIsConfirmed(Boolean isConfirmed) {
-        this.isConfirmed = isConfirmed;
+    public void setConfirmed(Boolean isConfirmed) {
+        this.confirmed = isConfirmed;
     }
 
     public List<GroupList> getGroups() {
