@@ -72,7 +72,7 @@ public class HistoryDriverController {
             route.setDistance(1.8F);
             route.setCompletionTime(Calendar.getInstance(Locale.ENGLISH));
             route.setStartTime(Calendar.getInstance(Locale.ENGLISH));
-            route.setStatus("completed");
+            route.setStatus(RouteStatus.COMPLETED);
             route.setOrder(taxiOrder);
             route.setTotalPrice(150F);
             routeList.add(route);

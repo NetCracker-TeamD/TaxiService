@@ -83,7 +83,7 @@ public class HistoryUserController {
             completionTime.add(Calendar.HOUR, 5);
             route.setCompletionTime(completionTime);
 
-            route.setStatus("completed");
+            route.setStatus(RouteStatus.COMPLETED);
             route.setOrder(taxiOrder);
             routeList.add(route);
 
@@ -93,7 +93,7 @@ public class HistoryUserController {
             route.setDistance(5.6F);
             route.setStartTime(Calendar.getInstance(Locale.ENGLISH));
             route.setCompletionTime(Calendar.getInstance(Locale.ENGLISH));
-            route.setStatus("completed");
+            route.setStatus(RouteStatus.COMPLETED);
             routeList.add(route);
             taxiOrder.setRoutes(routeList);
             orderList.add(taxiOrder);
