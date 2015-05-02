@@ -34,7 +34,8 @@ public class User implements Serializable {
     private String userPassword;
 
     @Column(name = "user_role")
-    private String userRole;
+    @Enumerated(EnumType.STRING)
+    private UserRole userRole;
 
     @Column(name = "phone_number")
     private String phoneNumber;
@@ -61,7 +62,7 @@ public class User implements Serializable {
         this.id = id;
     }
 
-    public User(Long id, String firstName, String lastName, String userRole, String phoneNumber) {
+    public User(Long id, String firstName, String lastName, UserRole userRole, String phoneNumber) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -109,11 +110,11 @@ public class User implements Serializable {
         this.userPassword = userPassword;
     }
 
-    public String getUserRole() {
+    public UserRole getUserRole() {
         return userRole;
     }
 
-    public void setUserRole(String userRole) {
+    public void setUserRole(UserRole userRole) {
         this.userRole = userRole;
     }
 

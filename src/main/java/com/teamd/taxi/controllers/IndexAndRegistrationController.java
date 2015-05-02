@@ -7,8 +7,10 @@ import com.teamd.taxi.service.CustomerUserService;
 import com.teamd.taxi.validation.RegistrationFormPasswordValidator;
 import com.teamd.taxi.validation.UniqueEmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,7 @@ import org.apache.log4j.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.List;
 
 
 @Controller
@@ -42,6 +45,8 @@ public class IndexAndRegistrationController {
 
     @RequestMapping("/index")
     public ModelAndView index() {
+        logger.info("Auth status: " + SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+
         ModelAndView mav = new ModelAndView();
         mav.setViewName("index");
         mav.addObject("registrationForm", new RegistrationForm());
@@ -52,7 +57,12 @@ public class IndexAndRegistrationController {
     public String registerNewCustomer(
             @Valid RegistrationForm form, BindingResult errors) {
         if (errors.hasErrors()) {
-            //report errors
+            List<ObjectError> errorList = errors.getAllErrors();
+            logger.info("RegisterForm validation errors:");
+            for (ObjectError objectError : errorList) {
+                logger.info(objectError.toString());
+            }
+            //TODO: report errors
         } else {
             User user = new User();
             user.setFirstName(form.getFirstName());
@@ -63,6 +73,7 @@ public class IndexAndRegistrationController {
 
             userService.registerNewCustomerUser(user);
         }
+        //TODO: return something normal
         return "coderesolving";
     }
 

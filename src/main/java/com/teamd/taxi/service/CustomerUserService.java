@@ -1,6 +1,7 @@
 package com.teamd.taxi.service;
 
 import com.teamd.taxi.entity.User;
+import com.teamd.taxi.entity.UserRole;
 import com.teamd.taxi.persistence.repository.UserRepository;
 import com.teamd.taxi.service.email.EmailService;
 import org.apache.log4j.Logger;
@@ -30,11 +31,13 @@ public class CustomerUserService {
         newUser.setIsConfirmed(false);
         String confirmationCode = null;
         //we have to generate unique code
-        //probably, only one generation will be performed
+        //probably, only one generation will be performed,
+        //because of huge amount (36^60 ~ 2 ^ 310) of possible codes
         do {
             confirmationCode = generateConfirmationCode();
-        } while (userRepository.findByConfirmationCode(confirmationCode) != null);
+        } while (userRepository.findByConfirmationCode(confirmationCode).size() > 0);
         newUser.setConfirmationCode(confirmationCode);
+        newUser.setUserRole(UserRole.ROLE_CUSTOMER);
         //TODO:send notification email
         //save it
         newUser = userRepository.save(newUser);

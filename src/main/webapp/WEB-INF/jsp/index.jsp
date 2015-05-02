@@ -50,13 +50,8 @@
             </ul>
 
             <div class="navbar-form navbar-right">
-                <div class="form-group">
-                    <input type="text" placeholder="Email" class="form-control">
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="Password" class="form-control">
-                </div>
-                <button type="button" class="btn btn-success">Sign in</button>
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#login_modal">Log in
+                </button>
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#t_and_c_m">Sign up
                 </button>
             </div>
@@ -102,7 +97,7 @@
     </footer>
 </div>
 
-<!-- Modal -->
+<!-- Registratin Modal -->
 <div class="modal fade" id="t_and_c_m" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -111,7 +106,8 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
                 <h2 class="modal-title" id="myModalLabel">Registration</h2>
             </div>
-            <form:form commandName="registrationForm" action="${pageContext.request.contextPath}/register" method="post">
+            <form:form commandName="registrationForm" action="${pageContext.request.contextPath}/register"
+                       method="post">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-xs-12 col-sm-6 col-md-6">
@@ -161,6 +157,45 @@
                     </div>
                 </div>
             </form:form>
+
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+
+<!-- Login Modal -->
+<div class="modal fade" id="login_modal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                <h2 class="modal-title" id="loginModalLabel">Login</h2>
+            </div>
+            <form action="${pageContext.request.contextPath}/checkLogin"
+                  method="post">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <input type="text" placeholder="Email" name="username" class="form-control input-lg"
+                               tabindex="1">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" name="password" class="form-control input-lg"
+                               tabindex="2">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div>
+                        <button id="login-submit" type="submit" class="btn btn-success">Log in</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </form>
 
         </div>
         <!-- /.modal-content -->
