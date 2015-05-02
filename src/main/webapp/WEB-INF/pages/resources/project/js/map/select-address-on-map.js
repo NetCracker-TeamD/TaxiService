@@ -40,10 +40,8 @@ function codeLatLng(location) {
                     position: latlng,
                     map: map
                 });
-
                 routesArray.push(latlng);
                 infowindow.setContent(results[1].formatted_address);
-
                 infowindow.open(map, marker);
             } else {
                 alert('No results found');

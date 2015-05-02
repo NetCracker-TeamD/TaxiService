@@ -11,7 +11,7 @@ var componentForm = {
     postal_code: 'short_name'
 };
 
-function initializeAutoComplete() {
+function initialize() {
     // Create the autocomplete object, restricting the search
     // to geographical location types.
     autocomplete = new google.maps.places.Autocomplete(

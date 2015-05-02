@@ -25,6 +25,7 @@ function calcRoute() {
     var start = document.getElementById('autocomplete').value;
     var end = document.getElementById('destLocation').value;
     var waypts = [];
+
     var checkboxArray = document.getElementById('waypoints');
     for (var i = 0; i < checkboxArray.length; i++) {
         if (checkboxArray.options[i].selected == true) {
