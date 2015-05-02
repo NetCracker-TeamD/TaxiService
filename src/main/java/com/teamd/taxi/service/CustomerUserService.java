@@ -1,6 +1,8 @@
 package com.teamd.taxi.service;
 
 import com.teamd.taxi.entity.User;
+import com.teamd.taxi.entity.UserRole;
+import com.teamd.taxi.exception.UserAlreadyConfirmedException;
 import com.teamd.taxi.persistence.repository.UserRepository;
 import com.teamd.taxi.service.email.EmailService;
 import org.apache.log4j.Logger;
@@ -27,14 +29,16 @@ public class CustomerUserService {
 
     public User registerNewCustomerUser(User newUser) {
         //create confirmation code for user and attach it to the entity
-        newUser.setIsConfirmed(false);
+        newUser.setConfirmed(false);
         String confirmationCode = null;
         //we have to generate unique code
-        //probably, only one generation will be performed
+        //probably, only one generation will be performed,
+        //because of huge amount (36^60 ~ 2 ^ 310) of possible codes
         do {
             confirmationCode = generateConfirmationCode();
-        } while (userRepository.findByConfirmationCode(confirmationCode) != null);
+        } while (userRepository.findByConfirmationCode(confirmationCode).size() > 0);
         newUser.setConfirmationCode(confirmationCode);
+        newUser.setUserRole(UserRole.ROLE_CUSTOMER);
         //TODO:send notification email
         //save it
         newUser = userRepository.save(newUser);
@@ -43,12 +47,15 @@ public class CustomerUserService {
         return newUser;
     }
 
-    public boolean confirmUser(String confirmationCode) {
+    public boolean confirmUser(String confirmationCode) throws UserAlreadyConfirmedException {
         List<User> userList = userRepository.findByConfirmationCode(confirmationCode);
         int size = userList.size();
         if (size == 1) {
             User user = userList.get(0);
-            user.setIsConfirmed(true);
+            if (user.isConfirmed()) {
+                throw new UserAlreadyConfirmedException();
+            }
+            user.setConfirmed(true);
             userRepository.save(user);
             logger.info("User[" + user.getId() + "] confirmed");
             return true;

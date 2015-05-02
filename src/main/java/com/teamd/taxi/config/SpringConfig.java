@@ -9,14 +9,20 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
 import org.springframework.orm.hibernate4.HibernateExceptionTranslator;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
@@ -24,11 +30,10 @@ import javax.sql.DataSource;
 import java.util.logging.Level;
 
 @Configuration
-
+@EnableWebMvc
 @EnableTransactionManagement
 @PropertySource("classpath:app.properties")
 @EnableJpaRepositories("com.teamd.taxi.persistence.repository")
-@ComponentScan(basePackages = {"com.teamd.taxi.persistence.service"})
 public class SpringConfig {
     private static final String PROP_DATABASE_DRIVER = "db.driver";
     private static final String PROP_DATABASE_PASSWORD = "db.password";
@@ -76,6 +81,19 @@ public class SpringConfig {
         return factory.getObject();
     }
 
+
+    @Bean
+    public InternalResourceViewResolver getInternalResourceViewResolver() {
+        InternalResourceViewResolver resolver = new InternalResourceViewResolver();
+        resolver.setPrefix("/WEB-INF/jsp/");
+        resolver.setSuffix(".jsp");
+        return resolver;
+    }
+
+    @Bean
+    public UserDetailsService jpaUserService() {
+        return new com.teamd.taxi.service.CustomerUserAuthenticationService();
+    }
     /* May need for generating JSP with error messages
     @Bean
     public MessageSource messageSource() {
