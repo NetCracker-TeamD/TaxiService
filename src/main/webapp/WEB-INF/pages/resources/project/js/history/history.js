@@ -16,6 +16,18 @@ $(document).ready(function () {
             .stop()
             .slideToggle();
     });
+    $('#viewType button').click(function(){
+        $('#viewType button').removeClass();
+        $('#viewType button').addClass("btn btn-primary");
+        $(this).removeClass();
+        $(this).addClass("btn btn-primary active");
+        if($(this).val()=="detailed"){
+            $('.panel-body #history_details').show();
+        }
+        if($(this).val()=="list"){
+            $('.panel-body #history_details').hide();
+        }
+    });
 });
 function getUrlParameter(sParam) {
     var sPageURL = window.location.search.substring(1);

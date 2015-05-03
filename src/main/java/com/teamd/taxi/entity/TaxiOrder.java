@@ -48,10 +48,10 @@ public class TaxiOrder implements Serializable {
     @Column(name = "secret_view_key")
     private String secretViewKey;
 
-    @ManyToMany(mappedBy = "comprisingOrders")
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "comprisingOrders")
     private List<Feature> features;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "order")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "order")
     private List<Route> routes;
 
     @JoinColumn(name = "user_id", referencedColumnName = "id")

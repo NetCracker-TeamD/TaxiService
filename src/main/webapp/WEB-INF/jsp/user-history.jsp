@@ -1,3 +1,4 @@
+<%@ page import="com.teamd.taxi.entity.Route" %>
 <%--
   Created by IntelliJ IDEA.
   User: Anton
@@ -19,12 +20,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="authorisation form">
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/pages/resources/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="/pages/resources/bootstrap/css/bootstrap-theme.css">
-    <link rel="stylesheet" href="/pages/resources/project/css/welcome.css">
-    <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
-    <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
-    <script src="/pages/resources/project/js/history/history.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../pages/resources/project/css/welcome.css">
+    <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
+    <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
+    <script src="../../pages/resources/project/js/history/history.js" type="text/javascript"></script>
 </head>
 <body>
 <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -44,7 +45,7 @@
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Home</a></li>
                 <li><a href="#">Queue</a></li>
-                <li><a href="/driver/history/">History</a></li>
+                <li><a href="#">History</a></li>
             </ul>
             <div class="navbar-form navbar-right">
                 <div class="form-group">
@@ -57,7 +58,6 @@
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#t_and_c_m">Sign up
                 </button>
             </div>
-
         </div>
         <!--/.navbar-collapse -->
     </div>
@@ -82,27 +82,43 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li><a href="${page}sort=id">ID Order</a></li>
-                            <li><a href="${page}sort=time">Delivery time car</a></li>
-                            <li><a href="${page}sort=price">Cost of payment</a></li>
-                            <li><a href="${page}sort=routes">Number of routes</a></li>
+                            <li><a href="${page}sort=date">Pick-up date</a></li>
                         </ul>
+                    </div>
+                </div>
+                <div class="col-sm-9"></div>
+                <div class="col-sm-2">
+                    <div class="btn-group" id="viewType">
+                        <button type="button" class="btn btn-primary" value="detailed">detailed</button>
+                        <button type="button" class="btn btn-primary" value="list">list</button>
                     </div>
                 </div>
             </div>
             <div class="panel-body">
 
-                <c:forEach items="${orderList}" var="route">
+                <c:forEach items="${orderList}" var="order">
+                    <c:set var="price" value="0"/>
+                    <c:forEach items="${order.routes}" var="route">
+                        <%
+                            Route route= (Route)pageContext.getAttribute("route");
+                            float price=Float.parseFloat(pageContext.getAttribute("price").toString());
+                            if(route.getTotalPrice()!=null){
+                                price+=route.getTotalPrice();
+                            }
+                            pageContext.setAttribute("price",price);
+                        %>
+                    </c:forEach>
                     <div id="history_list" class="panel panel-default">
                         <div id="history_node" class="panel-heading">
                             <div class="row">
-                                <div class="col-sm-3">
+
+                                <div class="col-sm-4">
                                     <a><span class="glyphicon glyphicon-chevron-down"> </span>
-                                        <b>№${route.id}</b></a>
+                                        <b>№${order.id}</b></a>
                                 </div>
-                                <div class="col-sm-3"><fmt:formatDate pattern="MMM dd, yyyy k:mm"
-                                                                      value="${route.executionDate.time}"/></div>
-                                <div class="col-sm-3"><%--${route.price}--%> UAH</div>
-                                <div class="col-sm-3"><%--${route.status}--%></div>
+                                <div class="col-sm-4"><fmt:formatDate pattern="dd/MM/yyyy kk:mm"
+                                                                      value="${order.executionDate.time}"/></div>
+                                <div class="col-sm-4">${price} UAH</div>
                             </div>
                         </div>
                         <div id="history_details" style="display:none;" class="panel-body">
@@ -114,16 +130,17 @@
                                         <div class="panel-heading">Information</div>
                                         <div class="panel-body">
                                             <ul class="list-group">
-                                                <li class="list-group-item"><b>Tracking num:</b> ${route.id}</li>
-                                                <li class="list-group-item"><b>Date:</b> <fmt:formatDate type="date"
-                                                                                                         value="${route.executionDate.time}"/>
+                                                <li class="list-group-item"><b>ID Order:</b> ${order.id}</li>
+                                                <fmt:setLocale value="en"/>
+                                                <li class="list-group-item"><b>Date:</b>
+                                                    <fmt:formatDate  type="date"
+                                                                     value="${order.executionDate.time}"/>
                                                 </li>
-                                                <li class="list-group-item"><b>Service type:</b> Cargo taxi</li>
-                                                <li class="list-group-item"><b>Method of
-                                                    payment:</b> ${route.paymentType.name()}</li>
-                                                <li class="list-group-item"><b>Cost of payment:</b> <%--${route}--%> UAH
+                                                <li class="list-group-item"><b>Service type:</b> ${order.serviceType.name}</li>
+                                                <li class="list-group-item"><b>Method of payment:</b> ${order.paymentType.name()}</li>
+                                                <li class="list-group-item"><b>Cost of payment:</b> ${price} UAH
                                                 </li>
-                                                <li class="list-group-item"><b>Comment:</b> ${route.comment}</li>
+                                                <li class="list-group-item"><b>Comment:</b> ${order.comment}</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -135,9 +152,7 @@
                                         <div class="panel-heading">Additional options:</div>
                                         <div class="panel-body">
                                             <ul class="list-group">
-                                                <li class="list-group-item"><b>Car category: </b> Vans</li>
-                                                <li class="list-group-item"><b>Sex of driver:</b> Male</li>
-                                                <c:forEach items="${route.features}" var="feature">
+                                                <c:forEach items="${order.features}" var="feature">
                                                     <li class="list-group-item"><b>${feature.name}: </b><span
                                                             class="glyphicon glyphicon-ok-sign"></span></li>
                                                 </c:forEach>
@@ -149,29 +164,34 @@
                                     <div class="panel panel-info">
                                         <div class="panel-heading">Routes</div>
                                         <div class="panel-body">
-                                            <table class="table table-striped">
+                                            <table class="table table-bordered">
                                                 <thead>
                                                 <tr>
                                                     <th>Date and time</th>
                                                     <th>Pick-up address</th>
                                                     <th>Destination address</th>
                                                     <th>Distance</th>
-                                                    <th>Time of trip</th>
+                                                    <th>Completion Time</th>
                                                     <th>Status</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
-                                                <c:forEach var="r" items="${route.routes}">
+                                                <c:forEach var="route" items="${order.routes}">
                                                     <tr>
-                                                        <td><fmt:formatDate pattern="MMM dd, yyyy k:m"
-                                                                            value="${r.startTime.time}"/></td>
-                                                        <td>${r.sourceAddress}</td>
-                                                        <td>${r.destinationAddress}</td>
-                                                        <td>${r.distance} km</td>
-                                                        <td><%--${r.completionTime-r.startTime}--%></td>
-                                                        <td>${r.status}</td>
+                                                        <td><fmt:formatDate pattern="dd/MM/yyyy kk:mm"
+                                                                            value="${route.startTime.time}"/></td>
+                                                        <td>${route.sourceAddress}</td>
+                                                        <td>${route.destinationAddress}</td>
+                                                        <td>
+                                                            <fmt:formatNumber type="number"
+                                                                              maxFractionDigits="2" value="${route.distance}" /> km
+                                                        </td>
+                                                        <td>
+                                                            <fmt:formatDate pattern="dd/MM/yyyy kk:mm"
+                                                                            value="${route.completionTime.time}"/>
+                                                        </td>
+                                                        <td>${route.status}</td>
                                                     </tr>
-
                                                 </c:forEach>
                                                 </tbody>
                                             </table>
@@ -218,6 +238,5 @@
 </div>
 <hr>
 <p>&#169 TeamD 2015</p>
-</div>
 </body>
 </html>
