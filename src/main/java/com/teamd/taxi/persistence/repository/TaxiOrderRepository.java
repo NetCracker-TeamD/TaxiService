@@ -12,12 +12,12 @@ import org.springframework.stereotype.Repository;
  */
 
 @Repository
-public interface TaxiOrderRepository extends PagingAndSortingRepository<TaxiOrder,Long>{
+public interface TaxiOrderRepository extends PagingAndSortingRepository<TaxiOrder, Long> {
     @Query("SELECT t FROM TaxiOrder t WHERE t.customer.id=?1")
     Page<TaxiOrder> findByUser_Id(long id, Pageable pageable);
 
     @Query("select t from TaxiOrder t " +
             "inner join t.routes r " +
             "where r.driver.id=?1")
-    Page<TaxiOrder> findByDriver_id(int id,Pageable pageable);
+    Page<TaxiOrder> findByDriver_id(int id, Pageable pageable);
 }

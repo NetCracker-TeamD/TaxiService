@@ -10,6 +10,7 @@ import com.google.maps.*;
 import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsRoute;
 import com.google.maps.model.TravelMode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,7 +18,9 @@ public class DistanceCalculator {
 
     private String apiKey;
 
-    public DistanceCalculator(String apiKey) {
+
+    @Autowired
+    public DistanceCalculator(String googleApiKey) {
         this.apiKey = apiKey;
     }
 

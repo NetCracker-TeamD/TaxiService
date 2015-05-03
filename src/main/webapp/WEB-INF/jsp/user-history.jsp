@@ -100,12 +100,12 @@
                     <c:set var="price" value="0"/>
                     <c:forEach items="${order.routes}" var="route">
                         <%
-                            Route route= (Route)pageContext.getAttribute("route");
-                            float price=Float.parseFloat(pageContext.getAttribute("price").toString());
-                            if(route.getTotalPrice()!=null){
-                                price+=route.getTotalPrice();
+                            Route route = (Route) pageContext.getAttribute("route");
+                            float price = Float.parseFloat(pageContext.getAttribute("price").toString());
+                            if (route.getTotalPrice() != null) {
+                                price += route.getTotalPrice();
                             }
-                            pageContext.setAttribute("price",price);
+                            pageContext.setAttribute("price", price);
                         %>
                     </c:forEach>
                     <div id="history_list" class="panel panel-default">
@@ -133,11 +133,13 @@
                                                 <li class="list-group-item"><b>ID Order:</b> ${order.id}</li>
                                                 <fmt:setLocale value="en"/>
                                                 <li class="list-group-item"><b>Date:</b>
-                                                    <fmt:formatDate  type="date"
-                                                                     value="${order.executionDate.time}"/>
+                                                    <fmt:formatDate type="date"
+                                                                    value="${order.executionDate.time}"/>
                                                 </li>
-                                                <li class="list-group-item"><b>Service type:</b> ${order.serviceType.name}</li>
-                                                <li class="list-group-item"><b>Method of payment:</b> ${order.paymentType.name()}</li>
+                                                <li class="list-group-item"><b>Service
+                                                    type:</b> ${order.serviceType.name}</li>
+                                                <li class="list-group-item"><b>Method of
+                                                    payment:</b> ${order.paymentType.name()}</li>
                                                 <li class="list-group-item"><b>Cost of payment:</b> ${price} UAH
                                                 </li>
                                                 <li class="list-group-item"><b>Comment:</b> ${order.comment}</li>
@@ -182,7 +184,8 @@
                                                         <td>${route.destinationAddress}</td>
                                                         <td>
                                                             <fmt:formatNumber type="number"
-                                                                              maxFractionDigits="2" value="${route.distance}" /> km
+                                                                              maxFractionDigits="2"
+                                                                              value="${route.distance}"/> km
                                                         </td>
                                                         <td>
                                                             <fmt:formatDate pattern="dd/MM/yyyy kk:mm"

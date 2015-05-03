@@ -26,17 +26,18 @@ import java.util.Locale;
 public class HistoryUserController {
     @Autowired
     TaxiOrderService orderService;
+
     @RequestMapping(value = "/history", method = RequestMethod.GET)
     public String viewHistory(Model model, HttpServletRequest request) {
-        int page=0;
-        if(request.getParameter("page")!=null){
-            page=Integer.parseInt(request.getParameter("page"))-1;
+        int page = 0;
+        if (request.getParameter("page") != null) {
+            page = Integer.parseInt(request.getParameter("page")) - 1;
         }
-        int idUser=1;
+        int idUser = 1;
         int numberOfRows = 7;
-        String sort="id";
-        if(request.getParameter("sort")!=null){
-            switch (request.getParameter("sort")){
+        String sort = "id";
+        if (request.getParameter("sort") != null) {
+            switch (request.getParameter("sort")) {
                 case "date":
                     sort = "executionDate";
                     break;
@@ -45,9 +46,9 @@ public class HistoryUserController {
                     break;
             }
         }
-        Pageable pageable=new PageRequest(page,numberOfRows, Sort.Direction.ASC, sort);
-        Page<TaxiOrder> orderList= orderService.findTaxiOrderByUser(idUser, pageable);
-        if(orderList==null){
+        Pageable pageable = new PageRequest(page, numberOfRows, Sort.Direction.ASC, sort);
+        Page<TaxiOrder> orderList = orderService.findTaxiOrderByUser(idUser, pageable);
+        if (orderList == null) {
             //redirect error page
         }
         model.addAttribute("orderList", orderList.getContent());
