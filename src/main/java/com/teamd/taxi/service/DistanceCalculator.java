@@ -37,6 +37,7 @@ public class DistanceCalculator {
             for (DirectionsLeg leg : route.legs) {
                 distance += leg.distance.inMeters;
             }
+            return distance;
         }
         return null;
     }
