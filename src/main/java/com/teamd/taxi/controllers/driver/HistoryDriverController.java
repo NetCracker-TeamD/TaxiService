@@ -13,6 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Controller
 @RequestMapping("/driver")
 public class HistoryDriverController {
@@ -42,7 +45,19 @@ public class HistoryDriverController {
         if(orderList==null){
             //redirect error page
         }
+        List<TaxiOrder> orders = orderList.getContent();
+        List<Float> prices = new ArrayList<Float>();
+        for (TaxiOrder order : orders) {
+            float price = 0.0f;
+            for (Route route : order.getRoutes()) {
+                if(route.getTotalPrice()!=null) {
+                    price += route.getTotalPrice();
+                }
+            }
+            prices.add(price);
+        }
         model.addAttribute("orderList", orderList.getContent());
+        model.addAttribute("prices",prices);
         model.addAttribute("pages", orderList.getTotalPages());
         return "driver/drv-history";
     }

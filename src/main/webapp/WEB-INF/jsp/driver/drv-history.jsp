@@ -94,18 +94,7 @@
             </div>
 
             <div class="panel-body">
-                <c:forEach items="${orderList}" var="order">
-                    <c:set var="price" value="0"/>
-                    <c:forEach items="${order.routes}" var="ord">
-                        <%
-                            Route route= (Route)pageContext.getAttribute("ord");
-                            float price=Float.parseFloat(pageContext.getAttribute("price").toString());
-                            if(route.getTotalPrice()!=null){
-                                price+=route.getTotalPrice();
-                            }
-                            pageContext.setAttribute("price",price);
-                        %>
-                    </c:forEach>
+                <c:forEach items="${orderList}" var="order" varStatus="i">
                     <div id="history_list" class="panel panel-default">
                         <div id="history_node" class="panel-heading">
                             <div class="row">
@@ -136,7 +125,7 @@
                                                 <li class="list-group-item"><b>Method of
                                                     payment:</b> ${order.paymentType.name()}</li>
                                                 <li class="list-group-item"><b>Cost of
-                                                    payment:</b> ${price} UAH
+                                                    payment:</b> ${prices.get(i.index)} UAH
                                                 </li>
                                                 <li class="list-group-item"><b>Comment:</b> ${order.comment}</li>
                                             </ul>
