@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/pages/resources/project/css/welcome.css">
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
-    <script src="/pages/resources/project/js/common/authentication.js" ></script>
+    <script src="/pages/resources/project/js/common/authentication.js"></script>
 </head>
 
 <body>
@@ -187,8 +187,20 @@
                         <input type="password" placeholder="Password" name="password" class="form-control input-lg"
                                tabindex="2">
                     </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="radioAuthenticationType" id="userRadioButton" value="user"
+                                   checked>
+                            User
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="radioAuthenticationType" id="driverRadioButton" value="driver">
+                            Driver
+                        </label>
+                    </div>
                 </div>
-
                 <div class="modal-footer">
                     <div>
                         <button id="login-submit" type="submit" class="btn btn-success">Log in</button>

@@ -27,7 +27,7 @@ public class QueueController {
     private TaxiOrderRepository taxiOrderRepository;
 
 
-    @RequestMapping(value ="/queue", method = RequestMethod.GET)
+    @RequestMapping(value = "/queue", method = RequestMethod.GET)
     public String viewCurrentOrder(Model model, HttpServletRequest request) {
         Object filter = new Object();
         List<TaxiOrder> orders = getListOrders(filter);
@@ -36,9 +36,9 @@ public class QueueController {
     }
 
     List<TaxiOrder> getListOrders(Object filter) {
-        List<TaxiOrder> orders =new ArrayList<TaxiOrder>();
-        for (int i = 0; i<20; i++ ){
-            TaxiOrder order = taxiOrderRepository.findOne((long)i);
+        List<TaxiOrder> orders = new ArrayList<TaxiOrder>();
+        for (int i = 0; i < 20; i++) {
+            TaxiOrder order = taxiOrderRepository.findOne((long) i);
             orders.add(order);
         }
         return orders;

@@ -1,4 +1,4 @@
-package com.teamd.taxi.models;
+package com.teamd.taxi.authentication;
 
 import com.teamd.taxi.entity.Driver;
 import com.teamd.taxi.entity.User;

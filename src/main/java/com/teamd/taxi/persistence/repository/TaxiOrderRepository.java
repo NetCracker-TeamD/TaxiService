@@ -9,5 +9,4 @@ import java.util.List;
 
 public interface TaxiOrderRepository extends PagingAndSortingRepository<TaxiOrder, Long> {
 
-
 }
