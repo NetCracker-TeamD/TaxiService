@@ -1,7 +1,6 @@
 package com.teamd.taxi.controllers.driver;
 
 import javax.servlet.http.HttpServletRequest;
-
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.service.TaxiOrderService;
 import org.springframework.beans.factory.annotation.Autowired;

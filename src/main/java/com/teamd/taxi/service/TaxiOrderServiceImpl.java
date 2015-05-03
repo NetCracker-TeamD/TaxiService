@@ -3,12 +3,15 @@ package com.teamd.taxi.service;
 import com.teamd.taxi.entity.TaxiOrder;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import org.apache.log4j.Logger;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
+import java.util.List;
+
 /**
  * Created by Anton on 02.05.2015.
  */
@@ -26,7 +29,12 @@ public class TaxiOrderServiceImpl implements TaxiOrderService{
         if (orderRepository == null) {
             logger.error("orderRepository is null");
         }
-        return orderRepository.findByUser_Id(id, pageable);
+        Page<TaxiOrder> to= orderRepository.findByUser_Id(id, pageable);
+        for(TaxiOrder order:to.getContent()){
+            Hibernate.initialize(order.getFeatures());
+            Hibernate.initialize(order.getRoutes());
+        }
+        return to;
     }
     @Override
     @Transactional
@@ -34,6 +42,11 @@ public class TaxiOrderServiceImpl implements TaxiOrderService{
         if (orderRepository == null) {
             logger.error("orderRepository is null");
         }
-        return orderRepository.findByDriver_id(id,pageable);
+        Page<TaxiOrder> to=orderRepository.findByDriver_id(id, pageable);
+        for(TaxiOrder order:to.getContent()){
+            Hibernate.initialize(order.getFeatures());
+            Hibernate.initialize(order.getRoutes());
+        }
+        return to;
     }
 }
