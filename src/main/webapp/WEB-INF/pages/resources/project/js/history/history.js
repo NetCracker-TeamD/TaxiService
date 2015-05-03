@@ -16,6 +16,7 @@ $(document).ready(function () {
             .stop()
             .slideToggle();
     });
+
     $('#viewType button').click(function(){
         $('#viewType button').removeClass();
         $('#viewType button').addClass("btn btn-primary");

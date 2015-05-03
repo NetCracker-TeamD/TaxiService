@@ -51,7 +51,7 @@ public class TaxiOrder implements Serializable {
     @ManyToMany(fetch = FetchType.EAGER, mappedBy = "comprisingOrders")
     private List<Feature> features;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "order")
+    @OneToMany( fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "order")
     private List<Route> routes;
 
     @JoinColumn(name = "user_id", referencedColumnName = "id")
