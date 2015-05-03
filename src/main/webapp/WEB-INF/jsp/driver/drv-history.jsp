@@ -104,7 +104,7 @@
                                 </div>
                                 <div class="col-sm-4"><fmt:formatDate pattern="dd/MM/yyyy kk:mm"
                                                                       value="${order.executionDate.time}"/></div>
-                                <div class="col-sm-4">${price} UAH</div>
+                                <div class="col-sm-4">${prices.get(i.index)}  UAH</div>
                             </div>
                         </div>
                         <div id="history_details" style="display:none;" class="panel-body">

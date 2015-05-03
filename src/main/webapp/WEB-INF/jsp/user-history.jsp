@@ -129,7 +129,7 @@
                                                     type:</b> ${order.serviceType.name}</li>
                                                 <li class="list-group-item"><b>Method of
                                                     payment:</b> ${order.paymentType.name()}</li>
-                                                <li class="list-group-item"><b>Cost of payment:</b> ${price} UAH
+                                                <li class="list-group-item"><b>Cost of payment:</b> ${prices.get(i.index)} UAH
                                                 </li>
                                                 <li class="list-group-item"><b>Comment:</b> ${order.comment}</li>
                                             </ul>
