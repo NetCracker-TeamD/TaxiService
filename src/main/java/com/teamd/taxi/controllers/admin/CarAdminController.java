@@ -1,6 +1,8 @@
 package com.teamd.taxi.controllers.admin;
 
+import com.teamd.taxi.controllers.admin.orders.CarOrder;
 import com.teamd.taxi.entity.Car;
+import com.teamd.taxi.models.admin.CarsPageModel;
 import com.teamd.taxi.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -8,9 +10,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.validation.Valid;
 
 /**
  * Created on 02-May-15.
@@ -26,23 +30,21 @@ public class CarAdminController {
     @Autowired
     private CarService carService;
 
-    //URL example: cars?page=1&order=byCarModel
+    //URL example: cars?page=1&order=model
     @RequestMapping(value = "/cars", method = RequestMethod.GET)
-    public String viewCars(@RequestParam(value = "page", required = false, defaultValue = "0") String page,
-                           @RequestParam(value = "order", required = false, defaultValue = "model") String order,
-                           Model model) {
+    public String viewCars(@Valid CarsPageModel pageModel, BindingResult bindingResult, Model model) {
 
+        if (bindingResult.hasErrors()) {
+            //TODO: Return 404 here
+            return "404";
+        }
 
-        Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, CarOrder.MODEL.toString().toLowerCase()));
+        //System.out.println(pageModel);
+        Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, pageModel.getOrder()));
 
-
-        Page<Car> cars = carService.getCars(new PageRequest(0, DEFAULT_NUM_OF_RECORDS_ON_PAGE, sort));
+        Page<Car> cars = carService.getCars(new PageRequest(pageModel.getPage(), DEFAULT_NUM_OF_RECORDS_ON_PAGE, sort));
         model.addAttribute("page", cars);
         return "admin/cars";
-    }
-
-    private enum CarOrder {
-        MODEL
     }
 
 }
