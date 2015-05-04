@@ -1,8 +1,8 @@
 package com.teamd.taxi.controllers.admin;
 
-import com.teamd.taxi.controllers.admin.orders.CarOrder;
 import com.teamd.taxi.entity.Car;
 import com.teamd.taxi.models.admin.CarsPageModel;
+import com.teamd.taxi.service.AdminPagesUtil;
 import com.teamd.taxi.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 
 /**
  * Created on 02-May-15.
@@ -26,24 +27,32 @@ import javax.validation.Valid;
 public class CarAdminController {
 
     public static final int DEFAULT_NUM_OF_RECORDS_ON_PAGE = 20;
+    public static final Sort.Direction DEFAULT_SORT_DIRECTION = Sort.Direction.ASC;
 
     @Autowired
     private CarService carService;
+
+    @Autowired
+    private AdminPagesUtil pagesUtil;
 
     //URL example: cars?page=1&order=model
     @RequestMapping(value = "/cars", method = RequestMethod.GET)
     public String viewCars(@Valid CarsPageModel pageModel, BindingResult bindingResult, Model model) {
 
         if (bindingResult.hasErrors()) {
-            //TODO: Return 404 here
+            //TODO: Return 404 here or other error page
             return "404";
         }
 
         //System.out.println(pageModel);
-        Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, pageModel.getOrder()));
+        Sort sort = new Sort(new Sort.Order(DEFAULT_SORT_DIRECTION, pageModel.getOrder()));
 
         Page<Car> cars = carService.getCars(new PageRequest(pageModel.getPage(), DEFAULT_NUM_OF_RECORDS_ON_PAGE, sort));
         model.addAttribute("page", cars);
+
+        ArrayList<Integer> scrollList = pagesUtil.getPagination(pageModel.getPage(), cars.getTotalPages());
+        model.addAttribute("scrollList", scrollList);
+
         return "admin/cars";
     }
 

@@ -1,3 +1,4 @@
+<%@ page import="org.springframework.data.domain.Page" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -190,9 +191,12 @@
             </tr>
             </thead>
             <tbody>
+            <%int num = ((Page) request.getAttribute("page")).getSize() * ((Page) request.getAttribute("page")).getNumber();%>
             <c:forEach var="car" items="${page.content}">
                 <tr>
-                    <td>1</td>
+                    <td>
+                        <%=++num%>
+                    </td>
                     <td>${car.model}</td>
                     <td>${car.category}</td>
                     <td>${car.carClass.className}</td>
@@ -223,13 +227,21 @@
         <!--Pagination start-->
         <nav align="center">
             <ul class="pagination">
-                <li class="disabled"><a href="#" title="Previous"><span aria-hidden="true">&laquo;</span></a></li>
-                <li class="active"><a href="#">1</a></li>
-                <li><a href="#">2</a></li>
-                <li><a href="#">3</a></li>
-                <li><a href="#">4</a></li>
-                <li><a href="#">5</a></li>
-                <li><a href="#" title="Next"><span aria-hidden="true">&raquo;</span></a></li>
+                <li <c:if test="${page.first}">class="disabled" onclick="return false"</c:if>>
+                    <a href="/admin/cars?page=${page.number-1}" title="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <c:forEach var="elem" items="${scrollList}">
+                    <li <c:if test="${page.number == elem}">class="active"</c:if>>
+                        <a href="/admin/cars?page=${elem}">${elem+1}</a>
+                    </li>
+                </c:forEach>
+                <li <c:if test="${page.last}">class="disabled" onclick="return false"</c:if>>
+                    <a href="/admin/cars?page=${page.number+1}" title="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
             </ul>
         </nav>
         <!--Pagination end-->
