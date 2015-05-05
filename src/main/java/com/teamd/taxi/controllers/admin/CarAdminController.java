@@ -1,6 +1,7 @@
 package com.teamd.taxi.controllers.admin;
 
 import com.teamd.taxi.entity.Car;
+import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.models.admin.CarsPageModel;
 import com.teamd.taxi.service.AdminPagesUtil;
 import com.teamd.taxi.service.CarService;
@@ -26,8 +27,8 @@ import java.util.ArrayList;
 @RequestMapping("/admin")
 public class CarAdminController {
 
-    public static final int DEFAULT_NUM_OF_RECORDS_ON_PAGE = 20;
-    public static final Sort.Direction DEFAULT_SORT_DIRECTION = Sort.Direction.ASC;
+    private static final int DEFAULT_NUM_OF_RECORDS_ON_PAGE = 20;
+    private static final Sort.Direction DEFAULT_SORT_DIRECTION = Sort.Direction.ASC;
 
     @Autowired
     private CarService carService;
@@ -38,7 +39,6 @@ public class CarAdminController {
     //URL example: cars?page=1&order=model
     @RequestMapping(value = "/cars", method = RequestMethod.GET)
     public String viewCars(@Valid CarsPageModel pageModel, BindingResult bindingResult, Model model) {
-
         if (bindingResult.hasErrors()) {
             //TODO: Return 404 here or other error page
             return "404";
@@ -46,12 +46,14 @@ public class CarAdminController {
 
         //System.out.println(pageModel);
         Sort sort = new Sort(new Sort.Order(DEFAULT_SORT_DIRECTION, pageModel.getOrder()));
-
         Page<Car> cars = carService.getCars(new PageRequest(pageModel.getPage(), DEFAULT_NUM_OF_RECORDS_ON_PAGE, sort));
         model.addAttribute("page", cars);
 
-        ArrayList<Integer> scrollList = pagesUtil.getPagination(pageModel.getPage(), cars.getTotalPages());
-        model.addAttribute("scrollList", scrollList);
+        ArrayList<Integer> pagination = pagesUtil.getPagination(pageModel.getPage(), cars.getTotalPages());
+        model.addAttribute("pagination", pagination);
+
+
+        model.addAttribute("carFeatures", carService.getCarFeatures());
 
         return "admin/cars";
     }

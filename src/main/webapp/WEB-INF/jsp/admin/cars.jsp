@@ -180,11 +180,11 @@
                 <th>Model</th>
                 <th>Category</th>
                 <th>Class</th>
-                <th>Wi-Fi</th>
-                <th>Animal</th>
-                <th>Cond</th>
-                <!--<th>Conditioner</th>-->
-                <th>Smoke</th>
+                <%--Car features start--%>
+                <c:forEach var="feauture" items="${carFeatures}">
+                    <th>${feauture.name}</th>
+                </c:forEach>
+                <%--Car features end--%>
                 <th>Enabled</th>
                 <th>Driver</th>
                 <th>Manage</th>
@@ -194,21 +194,21 @@
             <%int num = ((Page) request.getAttribute("page")).getSize() * ((Page) request.getAttribute("page")).getNumber();%>
             <c:forEach var="car" items="${page.content}">
                 <tr>
-                    <td>
-                        <%=++num%>
-                    </td>
-                    <td>${car.model}</td>
+                    <td><%=++num%></td>
+                    <td car-id="${car.carId}">${car.model}</td>
                     <td>${car.category}</td>
                     <td>${car.carClass.className}</td>
-                    <td><span class="glyphicon glyphicon-ok glyphicon-yes" aria-hidden="true"></span></td>
-                    <td><span class="glyphicon glyphicon-remove glyphicon-no" aria-hidden="true"></span></td>
-                    <td><span class="glyphicon glyphicon-ok glyphicon-yes" aria-hidden="true"></span></td>
-                    <td><span class="glyphicon glyphicon-ok glyphicon-yes" aria-hidden="true"></span></td>
+                    <c:forEach var="feature1" items="${carFeatures}">
+                        <td>
+                        <span class="glyphicon <c:choose><c:when test="${car.features.contains(feature1)}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
+                              aria-hidden="true"></span>
+                        </td>
+                    </c:forEach>
                     <td>
                         <span class="glyphicon <c:choose><c:when test="${car.isEnabled()}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
                               aria-hidden="true"></span>
                     </td>
-                    <td><a href="">${car.driver.lastName} ${car.driver.firstName}</a></td>
+                    <td driver-id="${car.driver.id}"><a href="">${car.driver.lastName} ${car.driver.firstName}</a></td>
                     <td>
                         <button title="Edit" type="button" onclick="startEditCar(event)" data-toggle="modal"
                                 data-target="#"
@@ -232,7 +232,7 @@
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
-                <c:forEach var="elem" items="${scrollList}">
+                <c:forEach var="elem" items="${pagination}">
                     <li <c:if test="${page.number == elem}">class="active"</c:if>>
                         <a href="/admin/cars?page=${elem}">${elem+1}</a>
                     </li>
