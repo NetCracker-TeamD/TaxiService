@@ -15,18 +15,6 @@ var hiddenDiv = '<div class="hidden"></div>';
 
 var createCarModal = $('#create_car');
 
-var showCarsUrl = '/admin/cars';
-var showAddFormCarUrl = '/admin/getForm_add_car';
-var divIdForGeneratedFeatures = '#car_features_generated';
-var classInternalDivs = 'checkbox';
-var arrayIdFeaturesInHTML = null;
-
-var createCarUrl = '/admin/create_car';
-var carModelIdIntoHTML = 'car_model';
-var carClassIdIntoHTML = 'car_class';
-var carDriverIdIntoHTML = 'car_driver';
-
-
 function startEditCar(node) {
     var record = $(node.target).closest('tr');
 
@@ -95,55 +83,8 @@ function updateCar(value) {
 }
 
 function createCar() {
-
-    var car_model = $('#'+carModelIdIntoHTML).val();
-    var car_class = $('#'+carClassIdIntoHTML).val();
-    var car_driver = $('#'+carDriverIdIntoHTML).val();
-
-
-    var mapFeatures = new Object();
-
-    for(var i=0; i<arrayIdFeaturesInHTML.length; i++){
-        var value = $('#'+arrayIdFeaturesInHTML[i]).val();
-        mapFeatures[arrayIdFeaturesInHTML[i]] = value;
-    }
-
-    var JSONPostData = new Object();
-    JSONPostData[carModelIdIntoHTML] = car_model;
-    JSONPostData[carClassIdIntoHTML] = car_class;
-    JSONPostData[carDriverIdIntoHTML] = car_driver;
-    JSONPostData['mapFeatures'] = mapFeatures;
-
-    $.ajax({
-        type: 'POST',
-        url:  createCarUrl,
-        contentType: 'application/json; charset=utf-8',
-        data: JSON.stringify(JSONPostData),
-        dataType: 'json',
-        async: false,
-        success: function(result) {
-                alert(result);
-
-
-
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            alert(jqXHR.status + ' ' + jqXHR.responseText);
-        }
-    });
-
-    $.ajax({
-        type: 'GET',
-        url: showCarsUrl,
-        dataType: 'html',
-        async: false,
-        success: function(result){
-            //alert(result);
-        },
-        error: function(jqXHR, textStatus, errorThrown){
-            alert(jqXHR.status+' '+jqXHR.responseText);
-        }
-    });
+    alert("createCar");
+    //TODO Ajax here
 }
 
 function cancelEdit(node) {
@@ -157,56 +98,8 @@ createCarModal.on('shown.bs.modal', function () {
 });
 
 createCarModal.on('show.bs.modal', function () {
-
-    showAddFormCar();
-
     $('#car_model').val('');
-    //$('#car_wifi').removeAttr('checked');
-    //$('#car_animal').removeAttr('checked');
+    $('#car_wifi').removeAttr('checked');
+    $('#car_animal').removeAttr('checked');
 });
 
-function showAddFormCar(){
-    $.ajax({
-        type: 'GET',
-        url: showAddFormCarUrl,
-        dataType: 'json',
-        async: false,
-        success: function(result){
-            arrayIdFeaturesInHTML = result;
-            generateFeaturesInAddFormCar(result,divIdForGeneratedFeatures,classInternalDivs);
-        },
-        error: function(jqXHR, textStatus, errorThrown){
-            alert(jqXHR.status+' '+jqXHR.responseText);
-        }
-    });
-}
-
-function generateFeaturesInAddFormCar(array, divId, classInternalDiv){
-
-    $(divId+' div.' + classInternalDiv).remove();
-
-    var startTag = '<div class="'+classInternalDiv+'"><label>';
-    var endTag = '</label></div>';
-
-    var stringBuffer = null;
-
-    for(var i=0; i<array.length; i++){
-        if(stringBuffer==null){
-            stringBuffer=startTag;
-        }else {
-            stringBuffer = stringBuffer + startTag;
-        }
-        stringBuffer=stringBuffer + '<input id="'+array[i]+'" type="checkbox" onclick="switcherFeatures(this)" value="off">'+array[i];
-        stringBuffer=stringBuffer+endTag;
-    }
-
-    $(divId).append(stringBuffer);
-}
-
-function switcherFeatures(checkbox){
-    if(!checkbox.checked){
-        $(checkbox).val('off');
-    }else{
-        $(checkbox).val('on');
-    }
-}

@@ -120,7 +120,7 @@
                 <h4 class="modal-title">Remove car</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger alert-dismissible modal-error hidden">
+                <div class="alert alert-danger alert-dismissible modal-error">
                     <p>Error-Message</p>
                 </div>
                 <form>
@@ -131,8 +131,26 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger"
-                        onclick="">Remove Car
+                        onclick="removeCar($('#remove_car').find('[name=\'car_id\']').val())">Remove Car
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade centered-modal" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Success</h4>
+            </div>
+            <div class="modal-body">
+                <p class="lead">Successful operation</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Ok</button>
             </div>
         </div>
     </div>
@@ -180,7 +198,8 @@
             <%int num = ((Page) request.getAttribute("page")).getSize() * ((Page) request.getAttribute("page")).getNumber();%>
             <c:forEach var="car" items="${page.content}">
                 <tr>
-                    <td><%=++num%></td>
+                    <td><%=++num%>
+                    </td>
                     <td car-id="${car.carId}">${car.model}</td>
                     <td>${car.category}</td>
                     <td>${car.carClass.className}</td>
@@ -198,11 +217,11 @@
                     <td>
                         <button title="Edit" type="button" onclick="startEditCar(event)" data-toggle="modal"
                                 data-target="#"
-                                data-car-id="" class="btn btn-default btn-xs" aria-label="Left Align">
+                                data-car-id="${car.carId}" class="btn btn-default btn-xs" aria-label="Left Align">
                             <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                         </button>
                         <button title="Remove" type="button" data-toggle="modal" data-target="#remove_car"
-                                data-car-id="" class="btn btn-default btn-xs" aria-label="Left Align">
+                                data-car-id="${car.carId}" class="btn btn-default btn-xs" aria-label="Left Align">
                             <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                         </button>
                     </td>
@@ -213,7 +232,7 @@
         <!--Pagination start-->
         <nav align="center">
             <ul class="pagination">
-                <li <c:if test="${page.first}">class="disabled" onclick="return false"</c:if>>
+                <li <c:if test="${page.isFirst()}">class="disabled" onclick="return false"</c:if>>
                     <a href="/admin/cars?page=${page.number-1}" title="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
@@ -223,7 +242,7 @@
                         <a href="/admin/cars?page=${elem}">${elem+1}</a>
                     </li>
                 </c:forEach>
-                <li <c:if test="${page.last}">class="disabled" onclick="return false"</c:if>>
+                <li <c:if test="${page.isLast()}">class="disabled" onclick="return false"</c:if>>
                     <a href="/admin/cars?page=${page.number+1}" title="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>

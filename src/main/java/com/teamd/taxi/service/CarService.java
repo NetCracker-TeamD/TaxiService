@@ -35,4 +35,8 @@ public class CarService {
         return featureRepository.findAllByFeatureType(FeatureType.CAR_FEATURE);
     }
 
+    public void removeCar(int id) {
+        carRepository.delete(id);
+    }
+
 }

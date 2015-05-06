@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.security.web.util.UrlUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
@@ -27,9 +28,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
+import sun.net.util.URLUtil;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -44,6 +49,7 @@ public class UserHistoryController {
     @Autowired
     private PagingLinksGenerator linksGenerator;
 
+    private static final int PAGE_SIZE = 20;
 
     @Autowired
     @Qualifier("dateFormatter")
@@ -76,19 +82,30 @@ public class UserHistoryController {
         }
     }
 
-    private List<String> allowedSortProperties() {
-        return Arrays.asList("registrationDate");
+    private Map<String, String> allowedSortProperties;
+
+    private Map<String, String> allowedSortProperties() {
+        if (allowedSortProperties == null) {
+            allowedSortProperties = new TreeMap<>();
+            allowedSortProperties.put("registrationDate", "Registration Date");
+            allowedSortProperties.put("serviceType.name", "Service");
+            allowedSortProperties.put("paymentType", "Payment Type");
+            allowedSortProperties.put("driverSex", "Driver Sex");
+        }
+        return allowedSortProperties;
     }
 
     @RequestMapping(value = "/loadHistory", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String loadHistory(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
-        logger.info(pageable);
-        logger.info(params);
+    public String loadHistory(Pageable pageable, Sort sort, @RequestParam MultiValueMap<String, String> params) {
+        logger.info("pageable = " + pageable);
+        logger.info("All params = " + params);
         //retrieving data from database
-        Page<TaxiOrder> page = orderService.findAll(pageable);
-        //assembling orders
+        Page<TaxiOrder> page = orderService.findAll(
+                new PageRequest(pageable.getPageNumber(), PAGE_SIZE, pageable.getSort())
+        );
         List<TaxiOrder> content = page.getContent();
+        //assembling orders
         List<AssembledOrder> assembledOrders = new ArrayList<>(content.size());
         for (TaxiOrder taxiOrder : content) {
             assembledOrders.add(AssembledOrder.assembleOrder(taxiOrder));
@@ -103,6 +120,7 @@ public class UserHistoryController {
         returnValue.put("pageDetails", new PageDetails(page));
         returnValue.put("links", links);
         returnValue.put("status", "OK");
+
         return getGson().toJson(returnValue);
     }
 
@@ -201,7 +219,6 @@ public class UserHistoryController {
             return to;
         }
     }
-
 
     private static class AssembledRouteSerializer implements JsonSerializer<AssembledRoute> {
 

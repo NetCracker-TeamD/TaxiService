@@ -9,19 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.validation.Valid;
-import java.util.*;
+import java.util.ArrayList;
 
 /**
  * Created on 02-May-15.
@@ -61,28 +56,6 @@ public class CarAdminController {
         model.addAttribute("carFeatures", carService.getCarFeatures());
 
         return "admin/cars";
-    }
-
-    @RequestMapping(value = "/getForm_add_car", method = RequestMethod.GET, produces = "application/json")
-    @ResponseBody
-    public Set<String> showAddFormCar() {
-        Set<String> featureNames = new HashSet<>();
-
-        List<Feature> features = new ArrayList<>();
-        features = carService.getCarFeatures();
-        for(Feature f : features){
-            featureNames.add(f.getName());
-        }
-
-        return featureNames;
-    }
-
-    @RequestMapping(value = "/create_car", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> createNewCar(@RequestBody String jsonBody,Model model){
-
-        System.out.println(jsonBody);
-
-        return new ResponseEntity<Object>(new String("+++"), HttpStatus.OK);
     }
 
 }
