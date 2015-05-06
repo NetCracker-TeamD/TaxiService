@@ -7,12 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-/**
- * Created on 05-May-15.
- *
- * @author Nazar Dub
- */
-@Repository
 public interface FeatureRepository extends JpaRepository<Feature, Integer> {
 
     List<Feature> findAllByFeatureType(FeatureType type);
