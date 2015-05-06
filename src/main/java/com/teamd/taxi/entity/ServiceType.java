@@ -45,6 +45,30 @@ public class ServiceType implements Serializable {
     @Column(name = "min_price")
     private Float minPrice;
 
+    @Column(name = "multiple_destination_locations")
+    private Boolean multipleDestinationLocations;
+
+    @Column(name = "multiple_source_locations")
+    private Boolean multipleSourceLocations;
+
+    @Column(name = "destination_locations_chain")
+    private Boolean destinationLocationsChain;
+
+    @Column(name = "destination_required")
+    private Boolean destinationRequired;
+
+    @Column(name = "timing_now")
+    private Boolean timingNow;
+
+    @Column(name = "timing_specified")
+    private Boolean timingSpecified;
+
+    @Column(name = "specify_car_numbers")
+    private Boolean specifyCarNumbers;
+
+    @Column(name = "min_car_number")
+    private Integer minCarNumber;
+
     @ManyToMany(mappedBy = "serviceTypeList")
     private List<CarClass> allowedCarClasses;
 
@@ -55,15 +79,6 @@ public class ServiceType implements Serializable {
     private List<TaxiOrder> taxiOrderList;
 
     public ServiceType() {
-    }
-
-    public ServiceType(Integer id) {
-        this.id = id;
-    }
-
-    public ServiceType(Integer id, String name) {
-        this.id = id;
-        this.name = name;
     }
 
     public Integer getId() {
@@ -104,6 +119,70 @@ public class ServiceType implements Serializable {
 
     public void setMinPrice(Float minPrice) {
         this.minPrice = minPrice;
+    }
+
+    public Boolean isMultipleDestinationLocations() {
+        return multipleDestinationLocations;
+    }
+
+    public void setMultipleDestinationLocations(Boolean multipleDestinationLocations) {
+        this.multipleDestinationLocations = multipleDestinationLocations;
+    }
+
+    public Boolean isMultipleSourceLocations() {
+        return multipleSourceLocations;
+    }
+
+    public void setMultipleSourceLocations(Boolean multipleSourceLocations) {
+        this.multipleSourceLocations = multipleSourceLocations;
+    }
+
+    public Boolean isDestinationLocationsChain() {
+        return destinationLocationsChain;
+    }
+
+    public void setDestinationLocationsChain(Boolean destinationLocationsChain) {
+        this.destinationLocationsChain = destinationLocationsChain;
+    }
+
+    public Boolean isDestinationRequired() {
+        return destinationRequired;
+    }
+
+    public void setDestinationRequired(Boolean destinationRequired) {
+        this.destinationRequired = destinationRequired;
+    }
+
+    public Boolean isTimingNow() {
+        return timingNow;
+    }
+
+    public void setTimingNow(Boolean timingNow) {
+        this.timingNow = timingNow;
+    }
+
+    public Boolean isTimingSpecified() {
+        return timingSpecified;
+    }
+
+    public void setTimingSpecified(Boolean timingSpecified) {
+        this.timingSpecified = timingSpecified;
+    }
+
+    public Boolean isSpecifyCarNumbers() {
+        return specifyCarNumbers;
+    }
+
+    public void setSpecifyCarNumbers(Boolean specifyCarNumbers) {
+        this.specifyCarNumbers = specifyCarNumbers;
+    }
+
+    public Integer getMinCarNumber() {
+        return minCarNumber;
+    }
+
+    public void setMinCarNumber(Integer minCarNumber) {
+        this.minCarNumber = minCarNumber;
     }
 
     public List<CarClass> getAllowedCarClasses() {

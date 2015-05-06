@@ -130,7 +130,7 @@
                 <h4 class="modal-title">Remove car</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger alert-dismissible modal-error hidden">
+                <div class="alert alert-danger alert-dismissible modal-error">
                     <p>Error-Message</p>
                 </div>
                 <form>
@@ -141,7 +141,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger"
-                        onclick="">Remove Car
+                        onclick="removeCar($('#remove_car').find('[name=\'car_id\']').val())">Remove Car
                 </button>
             </div>
         </div>
@@ -174,12 +174,15 @@
             <tr>
                 <th>#</th>
                 <th>Model</th>
+                <th>Category</th>
                 <th>Class</th>
+                <!--Car features start-->
                 <th>Wi-Fi</th>
                 <th>Animal</th>
-                <th>Cond</th>
-                <!--<th>Conditioner</th>-->
+                <th>Conditioner</th>
                 <th>Smoke</th>
+                <!--Car features end-->
+                <th>Enabled</th>
                 <th>Driver</th>
                 <th>Manage</th>
             </tr>
@@ -188,19 +191,21 @@
             <tr>
                 <td>1</td>
                 <td>Aston Martin DB9</td>
-                <td>Premium</td>
+                <td>A</td>
+                <td>Business</td>
                 <td><span class="glyphicon glyphicon-ok glyphicon-yes" aria-hidden="true"></span></td>
                 <td><span class="glyphicon glyphicon-remove glyphicon-no" aria-hidden="true"></span></td>
                 <td><span class="glyphicon glyphicon-ok glyphicon-yes" aria-hidden="true"></span></td>
                 <td><span class="glyphicon glyphicon-remove glyphicon-no" aria-hidden="true"></span></td>
-                <td><a href="">Ivan Ivanov</a></td>
+                <td><span class="glyphicon glyphicon-remove glyphicon-no" aria-hidden="true"></span></td>
+                <td driver-id="15"><a href="">Ivan Ivanov</a></td>
                 <td>
                     <button title="Edit" type="button" onclick="startEditCar(event)" data-toggle="modal" data-target="#"
                             data-car-id="" class="btn btn-default btn-xs" aria-label="Left Align">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </button>
                     <button title="Remove" type="button" data-toggle="modal" data-target="#remove_car"
-                            data-car-id="" class="btn btn-default btn-xs" aria-label="Left Align">
+                            data-car-id="55" class="btn btn-default btn-xs" aria-label="Left Align">
                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                     </button>
                 </td>
@@ -208,19 +213,21 @@
             <tr>
                 <td>2</td>
                 <td>Audi A3 3.2 quattro</td>
+                <td>B</td>
                 <td>Standard</td>
                 <td><span class="glyphicon glyphicon-ok glyphicon-yes" aria-hidden="true"></span></td>
                 <td><span class="glyphicon glyphicon-remove glyphicon-no" aria-hidden="true"></span></td>
-                <td><span class="glyphicon glyphicon-ok glyphicon-yes" aria-hidden="true"></span></td>
                 <td><span class="glyphicon glyphicon-remove glyphicon-no" aria-hidden="true"></span></td>
-                <td><a href="">Petro Petrov</a></td>
+                <td><span class="glyphicon glyphicon-ok glyphicon-yes" aria-hidden="true"></span></td>
+                <td><span class="glyphicon glyphicon-ok glyphicon-yes" aria-hidden="true"></span></td>
+                <td driver-id="15"><a href="">Petro Petrov</a></td>
                 <td>
                     <button title="Edit" type="button" onclick="startEditCar(event)" data-toggle="modal" data-target="#"
                             data-car-id="" class="btn btn-default btn-xs" aria-label="Left Align">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </button>
-                    <button title="Remove" type="button" data-toggle="modal" data-target="#"
-                            data-car-id="" class="btn btn-default btn-xs" aria-label="Left Align">
+                    <button title="Remove" type="button" data-toggle="modal" data-target="#remove_car"
+                            data-car-id="6" class="btn btn-default btn-xs" aria-label="Left Align">
                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                     </button>
                 </td>
@@ -590,13 +597,15 @@
         <!--Pagination start-->
         <nav align="center">
             <ul class="pagination">
-                <li class="disabled"><a href="#" title="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+                <li class="disabled" onclick="return false">
+                    <a  href="#" title="Previous"><span aria-hidden="true">&laquo;</span></a>
+                </li>
                 <li class="active"><a href="#">1</a></li>
                 <li><a href="#">2</a></li>
                 <li><a href="#">3</a></li>
                 <li><a href="#">4</a></li>
                 <li><a href="#">5</a></li>
-                <li><a href="#" title="Next"><span aria-hidden="true">&raquo;</span></a></li>
+                <li ><a  style="cursor: not-allowed;" href="#" title="Next"><span aria-hidden="true">&raquo;</span></a></li>
             </ul>
         </nav>
         <!--Pagination end-->

@@ -1,6 +1,6 @@
 $(document).ready(function () {
-    //погано - робиш двічі одну й ту саму роботу,
-    //можна один раз розбить і вибрать ті параметри що тобі треба
+    //пїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ,
+    //пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     var sort = getUrlParameter('sort');
     var page = getUrlParameter('page');
     $('.panel-body #history_node').css({background: '#FFF5EE'});
@@ -15,6 +15,19 @@ $(document).ready(function () {
             .children('#history_details')
             .stop()
             .slideToggle();
+    });
+
+    $('#viewType button').click(function () {
+        $('#viewType button').removeClass();
+        $('#viewType button').addClass("btn btn-primary");
+        $(this).removeClass();
+        $(this).addClass("btn btn-primary active");
+        if ($(this).val() == "detailed") {
+            $('.panel-body #history_details').show();
+        }
+        if ($(this).val() == "list") {
+            $('.panel-body #history_details').hide();
+        }
     });
 });
 function getUrlParameter(sParam) {

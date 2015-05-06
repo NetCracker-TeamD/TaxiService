@@ -1,19 +1,23 @@
 $(document).ready(function () {
     $('#login-form').on('submit', function (event) {
         var form = event.target;
-        var email = $("input[name='username']", form).val();
-        var password = $("input[name='password']", form).val();
+        var data = {
+            username: $("input[name='username']", form).val(),
+            password: $("input[name='password']", form).val(),
+            radioAuthenticationType: $("input:radio[name='radioAuthenticationType']:checked", form).val()
+        };
 
-        console.log('Before send');
+        console.log('Data to send: ' + data.username + ', ' + data.password + ', ' + data.radioAuthenticationType);
         $.ajax({
-            url: '/ajax',
+            url: $(form).attr('action'),
             method: 'POST',
-            data: {
-                username: email,
-                password: password
-            },
-            success: function (data) {
-                console.log(data);
+            data: data,
+            success: function (responseData) {
+                if (responseData.authenticationStatus === true) {
+                    location.reload();
+                } else {
+                    alert('Authentication failed');
+                }
             }
         });
         event.preventDefault();

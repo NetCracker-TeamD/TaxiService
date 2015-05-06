@@ -7,7 +7,12 @@ import com.teamd.taxi.models.RegistrationForm;
 import com.teamd.taxi.service.CustomerUserService;
 import com.teamd.taxi.validation.RegistrationFormPasswordValidator;
 import com.teamd.taxi.validation.UniqueEmailValidator;
+import org.apache.log4j.Level;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -46,7 +51,9 @@ public class IndexAndRegistrationController {
 
     @RequestMapping("/index")
     public ModelAndView index() {
-        logger.info("Auth status: " + SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        AbstractAuthenticationToken auth = (AbstractAuthenticationToken)
+                SecurityContextHolder.getContext().getAuthentication();
+        logger.info("Auth status: " + auth.getPrincipal() + ", " + auth.getCredentials() + ", " + auth.getAuthorities());
 
         ModelAndView mav = new ModelAndView();
         mav.setViewName("index");

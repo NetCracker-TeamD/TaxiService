@@ -5,6 +5,8 @@
  */
 package com.teamd.taxi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 import java.util.List;
 import javax.persistence.*;
@@ -32,7 +34,7 @@ public class Feature implements Serializable {
     private FeatureType featureType;
 
     @JoinTable(name = "order_features",
-            joinColumns = {@JoinColumn (name = "feature_id", referencedColumnName = "id")},
+            joinColumns = {@JoinColumn(name = "feature_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "order_id", referencedColumnName = "id")})
     @ManyToMany
     private List<TaxiOrder> comprisingOrders;

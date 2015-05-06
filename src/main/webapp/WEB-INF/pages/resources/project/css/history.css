@@ -1,0 +1,7 @@
+.history_node {
+    cursor: pointer;
+}
+
+.history_node:hover {
+    background: #dadada;
+}
