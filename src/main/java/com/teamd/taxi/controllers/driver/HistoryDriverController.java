@@ -25,7 +25,7 @@ public class HistoryDriverController {
         routeList = getListRoute(1, "filter");
         model.addAttribute("routesList", routeList);
         model.addAttribute("pages", 2);
-        return "drv-history";
+        return "driver/drv-history";
     }
 
     @SuppressWarnings("deprecation")

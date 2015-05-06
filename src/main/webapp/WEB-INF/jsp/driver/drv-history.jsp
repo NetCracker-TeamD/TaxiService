@@ -35,9 +35,10 @@
 
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
-                <li><a href="#">Queue</a></li>
-                <li><a href="/driver/history/">History</a></li>
+                <%--<li><a href="#">Home</a></li>--%>
+                <li><a href="queue">Queue</a></li>
+                <li class="active"><a href="#">History</a></li>
+                <li><a href="order">Current order</a></li>
             </ul>
 
             <div class="navbar-form navbar-right">
