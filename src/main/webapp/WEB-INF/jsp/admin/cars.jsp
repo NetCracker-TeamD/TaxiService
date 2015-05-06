@@ -134,7 +134,7 @@
                 <h4 class="modal-title">Remove car</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger alert-dismissible modal-error hidden">
+                <div class="alert alert-danger alert-dismissible modal-error">
                     <p>Error-Message</p>
                 </div>
                 <form>
@@ -145,8 +145,26 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger"
-                        onclick="">Remove Car
+                        onclick="removeCar($('#remove_car').find('[name=\'car_id\']').val())">Remove Car
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade centered-modal" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Success</h4>
+            </div>
+            <div class="modal-body">
+                <p class="lead">Successful operation</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Ok</button>
             </div>
         </div>
     </div>
@@ -212,11 +230,11 @@
                     <td>
                         <button title="Edit" type="button" onclick="startEditCar(event)" data-toggle="modal"
                                 data-target="#"
-                                data-car-id="" class="btn btn-default btn-xs" aria-label="Left Align">
+                                data-car-id="${car.carId}" class="btn btn-default btn-xs" aria-label="Left Align">
                             <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                         </button>
                         <button title="Remove" type="button" data-toggle="modal" data-target="#remove_car"
-                                data-car-id="" class="btn btn-default btn-xs" aria-label="Left Align">
+                                data-car-id="${car.carId}" class="btn btn-default btn-xs" aria-label="Left Align">
                             <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                         </button>
                     </td>

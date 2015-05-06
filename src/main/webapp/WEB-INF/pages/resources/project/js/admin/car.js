@@ -14,6 +14,8 @@ var hiddenDiv = '<div class="hidden"></div>';
 
 
 var createCarModal = $('#create_car');
+var removeCarModal = $('#remove_car');
+var successModal = $('#successModal');
 
 function startEditCar(node) {
     var record = $(node.target).closest('tr');
@@ -55,7 +57,6 @@ function startEditCar(node) {
         featureElem = featureElem.next();
     }
 
-
     var driver = featureElem;
     var manage = driver.next();
 
@@ -75,6 +76,32 @@ function startEditCar(node) {
     manage.append(cancelButton);
     manage.find(':nth-child(2)').attr('onclick', 'cancelEdit(event);');
 
+}
+
+function removeCar(id) {
+    //alert(id);
+    $.ajax('admin/car-delete', {
+        type: 'post',
+        dataType: 'json',
+        data: {id: 1},
+        success: function (response) {
+            alert("Succes");
+            if (response.result == "success") {
+                showSuccess(response.content);
+                removeCarModal.modal('hide');
+            } else {
+                if (response.result == "failure") {
+                    showError(removeCarModal, response.content);
+                } else {
+                    showError(removeCarModal, "Something went wrong... Try again later");
+                }
+            }
+        },
+        error: function () {
+            alert("Error");
+            showError(removeCarModal, "Something went wrong... Try again later");
+        }
+    });
 }
 
 function updateCar(value) {
@@ -102,4 +129,32 @@ createCarModal.on('show.bs.modal', function () {
     $('#car_wifi').removeAttr('checked');
     $('#car_animal').removeAttr('checked');
 });
+
+removeCarModal.on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var modal = $(this);
+    modal.find("[name='car_id']").val(button.data('car-id'));
+    removeCarModal.find('.modal-error').hide();
+});
+
+
+function showSuccess(message) {
+    successModal.find('.lead').html(message);
+    successModal.modal('show');
+}
+
+
+function showError(modalId, message) {
+    var errorAlert = modalId.find('.modal-error').eq(0);
+    errorAlert.find('p').html("<strong>Error!</strong> " + message);
+    errorAlert.show(1000);
+}
+function hideError(modalId) {
+    $(modalId).hide('normal');
+}
+
+successModal.on('hidden.bs.modal', function (event) {
+    location.reload(true);
+});
+
 
