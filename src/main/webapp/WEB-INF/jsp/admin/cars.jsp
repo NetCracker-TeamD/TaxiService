@@ -71,7 +71,7 @@
                 <form>
                     <div class="form-group">
                         <label for="car_model" class="control-label">Model:</label>
-                        <input type="text" class="form-control" id="car_model">
+                        <input onclick="" type="text" class="form-control" id="car_model">
                     </div>
                     <div class="form-group">
                         <label for="car_class" class="control-label">Class:</label>
@@ -81,36 +81,22 @@
                             <option>Cheep</option>
                         </select>
                     </div>
-                    <div class="checkbox">
-                        <label>
-                            <input id="car_wifi" type="checkbox" value="">
-                            Wi-fi
-                        </label>
+
+                    <div id="car_features_generated">
                     </div>
-                    <div class="checkbox">
-                        <label>
-                            <input id="car_animal" type="checkbox" value="">
-                            Transportation of animals
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <label>
-                            <input id="car_cond" type="checkbox" value="">
-                            Conditioner
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <label>
-                            <input id="car_smoke" type="checkbox" value="">
-                            Smoking in car
-                        </label>
-                    </div>
+
+                    <%--<div class="checkbox">--%>
+                        <%--<label>--%>
+                            <%--<input id="car_smoke" type="checkbox" value="">--%>
+                            <%--Smoking in car--%>
+                        <%--</label>--%>
+                    <%--</div>--%>
                     <div class="form-group">
                         <label for="car_driver" class="control-label">Driver:</label>
                         <select id="car_driver" class="form-control">
                             <option>No driver</option>
                             <option>Igor Ivan</option>
-                            <option>Vasil Vasil</option>
+                            <option>Vasil Vasil </option>
                         </select>
                     </div>
                 </form>

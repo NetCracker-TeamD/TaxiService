@@ -17,4 +17,6 @@ public interface CarRepository extends JpaRepository<Car, Integer> {
 
     Page<Car> findAll(Pageable pageable);
 
+
+
 }
