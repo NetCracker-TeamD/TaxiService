@@ -24,10 +24,7 @@
     <script src="/pages/resources/project/js/user/user-history.js" type="text/javascript"></script>
     <script>
         var initState = {
-            paging: {
-                pageNum: ${pageable.pageNumber + 1},
-                pageSize: ${pageable.pageSize}
-            },
+            pageNum: ${pageable.pageNumber + 1},
             sort: [<c:forEach var="sort" items="${sorts}" varStatus="status">'${sort}'${!status.last ? "," : ""}</c:forEach>]
         };
     </script>
@@ -136,6 +133,16 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
     </script>
 </head>
 <body>
@@ -181,6 +188,21 @@
 <div class="container">
     <div class="jumbotron">
         <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-1">
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Sort by
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="1?sort=id">ID Order</a></li>
+                                <li><a href="1?sort=date">Pick-up date</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="panel-body">
                 <div id="items-container"></div>
                 <ul id="pagination" class="pagination">

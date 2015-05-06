@@ -28,7 +28,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
-import sun.net.util.URLUtil;
+
+import static org.springframework.data.domain.Sort.Order;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
@@ -95,14 +96,33 @@ public class UserHistoryController {
         return allowedSortProperties;
     }
 
+    //filtering sorting parameters
+    private Sort filterSort(Sort raw) {
+        List<Order> filtered = new ArrayList<>();
+        if (raw != null) {
+            Map<String, String> allowed = allowedSortProperties();
+            for (Iterator<Order> it = raw.iterator(); it.hasNext(); ) {
+                Order next = it.next();
+                if (allowed.containsKey(next.getProperty())) {
+                    filtered.add(next);
+                }
+            }
+        }
+        //default sort order
+        if (filtered.isEmpty()) {
+            filtered.add(new Order(Sort.Direction.DESC, "registrationDate"));
+        }
+        return new Sort(filtered);
+    }
+
     @RequestMapping(value = "/loadHistory", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String loadHistory(Pageable pageable, Sort sort, @RequestParam MultiValueMap<String, String> params) {
+    public String loadHistory(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
         logger.info("pageable = " + pageable);
         logger.info("All params = " + params);
         //retrieving data from database
         Page<TaxiOrder> page = orderService.findAll(
-                new PageRequest(pageable.getPageNumber(), PAGE_SIZE, pageable.getSort())
+                new PageRequest(pageable.getPageNumber(), PAGE_SIZE, filterSort(pageable.getSort()))
         );
         List<TaxiOrder> content = page.getContent();
         //assembling orders
@@ -111,7 +131,9 @@ public class UserHistoryController {
             assembledOrders.add(AssembledOrder.assembleOrder(taxiOrder));
         }
         //generating links for paging
-        UriComponentsBuilder builder = MvcUriComponentsBuilder.fromMethodName(UserHistoryController.class, "viewHistory", null, null);
+        UriComponentsBuilder builder = MvcUriComponentsBuilder.fromMethodName(
+                UserHistoryController.class, "viewHistory", null, null
+        );
         addSortingParams(builder, params);
         List<PagingLink> links = linksGenerator.generateLinks(page, builder);
         //send data to the receiver
