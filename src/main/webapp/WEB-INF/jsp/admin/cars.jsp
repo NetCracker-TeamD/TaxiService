@@ -212,7 +212,8 @@
             <%int num = ((Page) request.getAttribute("page")).getSize() * ((Page) request.getAttribute("page")).getNumber();%>
             <c:forEach var="car" items="${page.content}">
                 <tr>
-                    <td><%=++num%></td>
+                    <td><%=++num%>
+                    </td>
                     <td car-id="${car.carId}">${car.model}</td>
                     <td>${car.category}</td>
                     <td>${car.carClass.className}</td>
@@ -245,7 +246,7 @@
         <!--Pagination start-->
         <nav align="center">
             <ul class="pagination">
-                <li <c:if test="${page.first}">class="disabled" onclick="return false"</c:if>>
+                <li <c:if test="${page.isFirst()}">class="disabled" onclick="return false"</c:if>>
                     <a href="/admin/cars?page=${page.number-1}" title="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
@@ -255,7 +256,7 @@
                         <a href="/admin/cars?page=${elem}">${elem+1}</a>
                     </li>
                 </c:forEach>
-                <li <c:if test="${page.last}">class="disabled" onclick="return false"</c:if>>
+                <li <c:if test="${page.isLast()}">class="disabled" onclick="return false"</c:if>>
                     <a href="/admin/cars?page=${page.number+1}" title="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
