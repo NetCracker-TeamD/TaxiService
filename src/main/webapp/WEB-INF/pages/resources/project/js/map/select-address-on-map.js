@@ -19,7 +19,7 @@ function initialize() {
     }
     map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
-    google.maps.event.addListener(map, 'click', function(event) {
+    google.maps.event.addListener(map, 'click', function (event) {
         codeLatLng(event.latLng);
     });
     directionsDisplay.setMap(map);
@@ -31,7 +31,7 @@ function codeLatLng(location) {
     var lng = location.lng();
     var latlng = new google.maps.LatLng(lat, lng);
 
-    geocoder.geocode({'latLng': latlng}, function(results, status) {
+    geocoder.geocode({'latLng': latlng}, function (results, status) {
         if (status == google.maps.GeocoderStatus.OK) {
             if (results[1]) {
                 map.setZoom(12);
@@ -55,13 +55,13 @@ function codeLatLng(location) {
 function calcRoute() {
     wayp = [];
     var start = routesArray[0];
-    var end = routesArray[routesArray.length-1];
-    for( var i = 0; i < routesArray.length; i++){
+    var end = routesArray[routesArray.length - 1];
+    for (var i = 0; i < routesArray.length; i++) {
         wayp.push({location: routesArray[i], stopover: true});
     }
     var request = {
         origin: start,
-        destination:  end,
+        destination: end,
         waypoints: wayp,
         optimizeWaypoints: true,
         travelMode: google.maps.TravelMode.DRIVING

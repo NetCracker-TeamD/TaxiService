@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
  * Created by Anton on 02.05.2015.
  */
 
-@Repository
 public interface TaxiOrderRepository extends PagingAndSortingRepository<TaxiOrder, Long> {
     @Query("SELECT t FROM TaxiOrder t WHERE t.customer.id=?1")
     Page<TaxiOrder> findByUser_Id(long id, Pageable pageable);

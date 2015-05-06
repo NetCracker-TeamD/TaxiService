@@ -18,7 +18,6 @@ public class DistanceCalculator {
 
     private String apiKey;
 
-
     @Autowired
     public DistanceCalculator(String googleApiKey) {
         this.apiKey = apiKey;

@@ -74,23 +74,26 @@
 <div class="container">
     <div class="jumbotron">
         <div class="panel panel-default">
-            <div class="row">
-                <div class="col-sm-1">
-                    <div class="dropdown">
-                        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Sort by
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a href="${page}sort=id">ID Order</a></li>
-                            <li><a href="${page}sort=date">Pick-up date</a></li>
-                        </ul>
+
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-1">
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Sort by
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="${page}sort=id">ID Order</a></li>
+                                <li><a href="${page}sort=date">Pick-up date</a></li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
-                <div class="col-sm-9"></div>
-                <div class="col-sm-2">
-                    <div class="btn-group" id="viewType">
-                        <button type="button" class="btn btn-primary" value="detailed">detailed</button>
-                        <button type="button" class="btn btn-primary" value="list">list</button>
+                    <div class="col-sm-9"></div>
+                    <div class="col-sm-2 pull-right">
+                        <div class="btn-group" id="viewType">
+                            <button type="button" class="btn btn-primary" value="detailed">detailed</button>
+                            <button type="button" class="btn btn-primary" value="list">list</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -129,7 +132,8 @@
                                                     type:</b> ${order.serviceType.name}</li>
                                                 <li class="list-group-item"><b>Method of
                                                     payment:</b> ${order.paymentType.name()}</li>
-                                                <li class="list-group-item"><b>Cost of payment:</b> ${prices.get(i.index)} UAH
+                                                <li class="list-group-item"><b>Cost of
+                                                    payment:</b> ${prices.get(i.index)} UAH
                                                 </li>
                                                 <li class="list-group-item"><b>Comment:</b> ${order.comment}</li>
                                             </ul>

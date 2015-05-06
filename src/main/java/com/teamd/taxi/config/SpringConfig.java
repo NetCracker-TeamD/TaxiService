@@ -6,9 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.env.Environment;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.data.web.config.SpringDataWebConfiguration;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.format.datetime.DateFormatterRegistrar;
 import org.springframework.format.number.NumberFormatAnnotationFormatterFactory;
@@ -23,12 +28,20 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
+import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.logging.Level;
 
 @Configuration
@@ -36,7 +49,7 @@ import java.util.logging.Level;
 @EnableTransactionManagement
 @PropertySource("classpath:app.properties")
 @EnableJpaRepositories("com.teamd.taxi.persistence.repository")
-public class SpringConfig {
+public class SpringConfig extends SpringDataWebConfiguration {
     private static final String PROP_DATABASE_DRIVER = "db.driver";
     private static final String PROP_DATABASE_PASSWORD = "db.password";
     private static final String PROP_DATABASE_URL = "db.url";
@@ -72,7 +85,7 @@ public class SpringConfig {
     public EntityManagerFactory entityManagerFactory() {
         java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.INFO);
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        vendorAdapter.setShowSql(true);
+        vendorAdapter.setShowSql(false);
         vendorAdapter.setGenerateDdl(false);
         vendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQLDialect");
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
@@ -81,6 +94,13 @@ public class SpringConfig {
         factory.setDataSource(dataSource());
         factory.afterPropertiesSet();
         return factory.getObject();
+    }
+
+    @Override
+    public PageableHandlerMethodArgumentResolver pageableResolver() {
+        PageableHandlerMethodArgumentResolver resolver = new PageableHandlerMethodArgumentResolver(sortResolver());
+        resolver.setOneIndexedParameters(true);
+        return resolver;
     }
 
     @Bean
@@ -94,7 +114,7 @@ public class SpringConfig {
 
         // Register date conversion with a specific global format
         DateFormatterRegistrar registrar = new DateFormatterRegistrar();
-        registrar.setFormatter(new DateFormatter("yyyy/MM/dd"));
+        registrar.setFormatter(new DateFormatter(globalDateFormat()));
         registrar.registerFormatters(conversionService);
 
         return conversionService;
@@ -130,5 +150,15 @@ public class SpringConfig {
     @Bean
     public String googleApiKey() {
         return "AIzaSyApu75sD5ZG17luxoAOsZZtstiLnRe8f-0";
+    }
+
+    @Bean
+    public String globalDateFormat() {
+        return "dd.MM.yyyy HH:mm:ss";
+    }
+
+    @Bean
+    public SimpleDateFormat dateFormatter() {
+        return new SimpleDateFormat(globalDateFormat());
     }
 }

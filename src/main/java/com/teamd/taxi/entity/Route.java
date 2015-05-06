@@ -5,6 +5,8 @@
  */
 package com.teamd.taxi.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
