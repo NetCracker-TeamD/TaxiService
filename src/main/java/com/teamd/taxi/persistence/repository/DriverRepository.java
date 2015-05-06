@@ -6,4 +6,6 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 public interface DriverRepository extends PagingAndSortingRepository<Driver, Integer> {
 
     Driver findByEmail(String email);
+
+    public Driver findById(int id);
 }
