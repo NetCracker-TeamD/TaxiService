@@ -95,7 +95,7 @@ public class CarAdminController {
 
         List<Feature> features = new ArrayList<>();
         features = carService.getCarFeatures();
-        for(Feature f : features){
+        for (Feature f : features) {
             featureNames.add(f.getName());
         }
 
@@ -103,7 +103,7 @@ public class CarAdminController {
     }
 
     @RequestMapping(value = "/create_car", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> createNewCar(@RequestBody String jsonBody,Model model){
+    public ResponseEntity<Object> createNewCar(@RequestBody String jsonBody, Model model) {
 
         System.out.println(jsonBody);
 

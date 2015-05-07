@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Created by Іван on 02.05.2015.
  */
-@SessionAttributes( types = Driver.class)
+@SessionAttributes(types = Driver.class)
 @Controller
 @RequestMapping("/driver")
 public class QueueController {
@@ -34,9 +34,9 @@ public class QueueController {
     private List<ServiceType> serviceTypes;
     private static final Logger logger = Logger.getLogger(QueueController.class);
     //  RouteStatus.COMPLETED видалити, в базі не було даних з RouteStatus.QUEUED, RouteStatus.UPDATED
-    private  List<RouteStatus> statusList = Arrays.asList(RouteStatus.COMPLETED,
-                                                          RouteStatus.QUEUED,
-                                                          RouteStatus.UPDATED);
+    private List<RouteStatus> statusList = Arrays.asList(RouteStatus.COMPLETED,
+            RouteStatus.QUEUED,
+            RouteStatus.UPDATED);
 
     @Autowired
     private TaxiOrderService1 taxiOrderService1;
@@ -47,17 +47,17 @@ public class QueueController {
     @Autowired
     private DriverService driverService;
 
-    @RequestMapping(value ="/queue", method = RequestMethod.GET)
+    @RequestMapping(value = "/queue", method = RequestMethod.GET)
     public String viewCurrentOrder(Model model, HttpServletRequest request) {
 
         Driver registerDriver = driverService.getDriver(1);
 
-        if(request.getParameter("curPage") != null){
-            curPage = Integer.parseInt(request.getParameter("curPage"))-1;
+        if (request.getParameter("curPage") != null) {
+            curPage = Integer.parseInt(request.getParameter("curPage")) - 1;
         }
-        pageableOrder = new PageRequest(curPage,PAGE_SIZE, Sort.Direction.ASC, SORT_BY);
+        pageableOrder = new PageRequest(curPage, PAGE_SIZE, Sort.Direction.ASC, SORT_BY);
         serviceTypes = serviceTypeService.getAllService();
-        Page<TaxiOrder> orders= taxiOrderService1.getFreeOrder(statusList, pageableOrder);
+        Page<TaxiOrder> orders = taxiOrderService1.getFreeOrder(statusList, pageableOrder);
 
         model.addAttribute("services", serviceTypes);
         model.addAttribute("orders", orders.getContent());
@@ -65,19 +65,19 @@ public class QueueController {
         return "driver/drv-queue";
     }
 
-    @RequestMapping(value ="/queue", method = RequestMethod.POST)
+    @RequestMapping(value = "/queue", method = RequestMethod.POST)
     public String viewFilterSrviceOrder(Model model, HttpServletRequest request) {
         List<Integer> idService = new ArrayList<>();
 
-        for (ServiceType service: serviceTypes){
-            if(request.getParameter(service.getId().toString()) != null){
+        for (ServiceType service : serviceTypes) {
+            if (request.getParameter(service.getId().toString()) != null) {
                 idService.add(service.getId());
             }
         }
-        if(idService.size() == 0){
+        if (idService.size() == 0) {
 //            redirect error page
         }
-        Page<TaxiOrder> orders= taxiOrderService1.getFilterServiceFreeOrders(statusList, idService, pageableOrder);
+        Page<TaxiOrder> orders = taxiOrderService1.getFilterServiceFreeOrders(statusList, idService, pageableOrder);
         model.addAttribute("services", serviceTypes);
         model.addAttribute("selectServices", idService);
         model.addAttribute("orders", orders.getContent());

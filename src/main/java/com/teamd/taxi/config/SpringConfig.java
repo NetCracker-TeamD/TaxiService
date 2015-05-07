@@ -49,7 +49,7 @@ import java.util.logging.Level;
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement
-@PropertySource({"classpath:app.properties","classpath:messages.properties"})
+@PropertySource({"classpath:app.properties", "classpath:messages.properties"})
 @EnableJpaRepositories("com.teamd.taxi.persistence.repository")
 public class SpringConfig extends SpringDataWebConfiguration {
     private static final String PROP_DATABASE_DRIVER = "db.driver";
@@ -87,7 +87,7 @@ public class SpringConfig extends SpringDataWebConfiguration {
     public EntityManagerFactory entityManagerFactory() {
         java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.INFO);
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        vendorAdapter.setShowSql(true);
+        vendorAdapter.setShowSql(false);
         vendorAdapter.setGenerateDdl(false);
         vendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQLDialect");
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
@@ -139,11 +139,12 @@ public class SpringConfig extends SpringDataWebConfiguration {
     }
     */
 
-    @Bean(name = "validator")
-    public LocalValidatorFactoryBean validator() {
-        return new LocalValidatorFactoryBean();
-    }
-
+    /* Unnecessary just now
+        @Bean(name = "validator")
+        public LocalValidatorFactoryBean validator() {
+            return new LocalValidatorFactoryBean();
+        }
+    */
     @Bean
     public UniqueEmailValidator uniqueEmailValidator() {
         return new UniqueEmailValidator();
