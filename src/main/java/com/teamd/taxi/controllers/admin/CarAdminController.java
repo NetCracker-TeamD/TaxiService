@@ -6,14 +6,20 @@ import com.teamd.taxi.models.admin.CarsPageModel;
 import com.teamd.taxi.service.AdminPagesUtil;
 import com.teamd.taxi.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.ArrayList;
 
@@ -29,6 +35,12 @@ public class CarAdminController {
     private static final int DEFAULT_NUM_OF_RECORDS_ON_PAGE = 20;
     private static final Sort.Direction DEFAULT_SORT_DIRECTION = Sort.Direction.ASC;
 
+    private static final String MESSAGE_CAR_ID_NOT_EXIST = "admin.car.delete.nonexistent";
+    private static final String MESSAGE_SUCCESS_DELETE = "admin.car.delete.success";
+
+    @Resource
+    private Environment env;
+
     @Autowired
     private CarService carService;
 
@@ -43,7 +55,6 @@ public class CarAdminController {
             return "404";
         }
 
-        //System.out.println(pageModel);
         Sort sort = new Sort(new Sort.Order(DEFAULT_SORT_DIRECTION, pageModel.getOrder()));
         Page<Car> cars = carService.getCars(new PageRequest(pageModel.getPage(), DEFAULT_NUM_OF_RECORDS_ON_PAGE, sort));
         model.addAttribute("page", cars);
@@ -51,24 +62,25 @@ public class CarAdminController {
         ArrayList<Integer> pagination = pagesUtil.getPagination(pageModel.getPage(), cars.getTotalPages());
         model.addAttribute("pagination", pagination);
 
-
         model.addAttribute("carFeatures", carService.getCarFeatures());
-
         return "admin/cars";
     }
 
     //URL example: car-delete?id=5
     @RequestMapping(value = "/car-delete", method = RequestMethod.POST)
     @ResponseBody
-    public AdminResponseModel<String> removeCar(@RequestParam("id") Integer id) {
-        //carService.removeCar(id);
-//        if (bindingResult.hasErrors()) {
-//            System.out.println("Error!");
-//        }
-        System.out.println("In car delete with id = " + id);
+    public AdminResponseModel<String> removeCar(@RequestParam(value = "id") Integer id) {
         AdminResponseModel<String> response = new AdminResponseModel<>();
-        response.setResult(AdminResponseModel.RESULT_SUCCESS);
-        response.setContent("No content");
+        System.out.println("In car delete with id = " + id);
+        try {
+            carService.removeCar(id);
+            response.setResult(AdminResponseModel.RESULT_SUCCESS);
+            response.setContent(env.getRequiredProperty(MESSAGE_SUCCESS_DELETE));
+        } catch (EmptyResultDataAccessException e) {
+            //Error
+            response.setResult(AdminResponseModel.RESULT_FAILURE);
+            response.setContent(env.getRequiredProperty(MESSAGE_CAR_ID_NOT_EXIST));
+        }
         return response;
     }
 

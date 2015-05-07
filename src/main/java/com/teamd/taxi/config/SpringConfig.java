@@ -44,10 +44,12 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.logging.Level;
 
+
+// Added 'classpath:messages.properties' into @PropertySource annotation 07.05.2015 by Nazar Dub
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement
-@PropertySource("classpath:app.properties")
+@PropertySource({"classpath:app.properties","classpath:messages.properties"})
 @EnableJpaRepositories("com.teamd.taxi.persistence.repository")
 public class SpringConfig extends SpringDataWebConfiguration {
     private static final String PROP_DATABASE_DRIVER = "db.driver";

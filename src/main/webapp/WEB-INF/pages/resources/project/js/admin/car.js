@@ -4,7 +4,6 @@
 var checkedInput = '<input type="checkbox" checked="checked" value="true"/>';
 var uncheckedInput = '<input type="checkbox"  value="false"/>';
 var textInput = '<input class="form-control-auto-size" type="text" value="Hello"/>';
-//var selectInput = '<select class="form-control-auto-size"><option>Anton Antonov</option><option>Vladimid Vald</option><option>Ivan Ivamov</option><option>Petrov petrov</option></select>';
 var selectInput = '<select class="form-control-auto-size"></select>';
 var selectClassInput = '<select class="form-control-auto-size"><option>Business</option><option>Standard</option><option>Economy</option></select>';
 var selectCategoryInput = '<select class="form-control-auto-size"><option>A</option><option>B</option><option>C</option><option>D</option></select>';
@@ -80,12 +79,12 @@ function startEditCar(node) {
 
 function removeCar(id) {
     //alert(id);
-    $.ajax('admin/car-delete', {
+    $.ajax('/admin/car-delete', {
         type: 'post',
         dataType: 'json',
-        data: {id: 1},
+        data: {id: id},
         success: function (response) {
-            alert("Succes");
+            //alert("Success");
             if (response.result == "success") {
                 showSuccess(response.content);
                 removeCarModal.modal('hide');
@@ -98,7 +97,7 @@ function removeCar(id) {
             }
         },
         error: function () {
-            alert("Error");
+            //alert("Error");
             showError(removeCarModal, "Something went wrong... Try again later");
         }
     });
@@ -137,24 +136,18 @@ removeCarModal.on('show.bs.modal', function (event) {
     removeCarModal.find('.modal-error').hide();
 });
 
+successModal.on('hidden.bs.modal', function (event) {
+    location.reload(true);
+});
 
 function showSuccess(message) {
     successModal.find('.lead').html(message);
     successModal.modal('show');
 }
 
-
 function showError(modalId, message) {
     var errorAlert = modalId.find('.modal-error').eq(0);
     errorAlert.find('p').html("<strong>Error!</strong> " + message);
     errorAlert.show(1000);
 }
-function hideError(modalId) {
-    $(modalId).hide('normal');
-}
-
-successModal.on('hidden.bs.modal', function (event) {
-    location.reload(true);
-});
-
 
