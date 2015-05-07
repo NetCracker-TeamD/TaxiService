@@ -16,7 +16,9 @@ public class CurrentOrderController {
 
     @RequestMapping(value = "/order", method = RequestMethod.GET)
     public String viewQueue(Model model, HttpServletRequest request) {
+
         return "driver/drv-current-order";
     }
+
 
 }

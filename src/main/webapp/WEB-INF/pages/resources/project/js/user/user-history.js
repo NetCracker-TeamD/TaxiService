@@ -32,11 +32,8 @@ var PagingUtils = (function () {
     //підготовка даних до відправки у такі формі, якій їх чекає сервер
     function prepareDataForSending(state) {
         var dataToSend = {};
-        dataToSend.page = state.paging.pageNum;
-        dataToSend.size = state.paging.pageSize;
-        if (state.sort.length !== 0) {
-            dataToSend.sort = state.sort;
-        }
+        dataToSend.page = state.pageNum;
+        dataToSend.sort = state.sort;
         //prepare filtration data
         return dataToSend;
     }
@@ -51,7 +48,7 @@ var PagingUtils = (function () {
 
     function loadNewContent(page, callback) {
         var collectedData = collectDataCallback();
-        collectedData.paging.pageNum = page;
+        collectedData.pageNum = page;
         reloadContent(collectedData, callback);
     }
 
@@ -117,9 +114,8 @@ $(function () {
         dataStoreUrl: '/user/loadHistory',
         collectDataCallback: function collectData() {
             //all necessary data except page number
-            var data = {paging: {}};
-            data.paging.pageSize = 20;
-            data.sort = ['id,ASC']; //має збиратись зі сторінки
+            var data = {};
+            data.sort = ['registrationDate,ASC']; //має збиратись зі сторінки
             //add data filtration
             return data;
         },

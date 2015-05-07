@@ -47,8 +47,8 @@
 
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li><a href="queue.html">Queue</a></li>
-                <li><a href="#history">History</a></li>
+                <li><a href="queue">Queue</a></li>
+                <li><a href="history">History</a></li>
                 <li  class="active"><a href="drv-current-order.jsp">Current order</a></li>
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown

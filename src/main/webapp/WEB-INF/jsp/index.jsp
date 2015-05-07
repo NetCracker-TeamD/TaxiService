@@ -171,11 +171,10 @@
      aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
-
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-                <h2 class="modal-title" id="loginModalLabel">Login</h2>
-            </div>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+            <h2 class="modal-title" id="loginModalLabel">Login</h2>
+        </div>
             <form id="login-form" action="${pageContext.request.contextPath}/checkLogin"
                   method="post">
                 <div class="modal-body">

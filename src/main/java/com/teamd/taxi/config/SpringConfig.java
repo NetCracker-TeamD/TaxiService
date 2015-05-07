@@ -44,10 +44,12 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.logging.Level;
 
+
+// Added 'classpath:messages.properties' into @PropertySource annotation 07.05.2015 by Nazar Dub
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement
-@PropertySource("classpath:app.properties")
+@PropertySource({"classpath:app.properties","classpath:messages.properties"})
 @EnableJpaRepositories("com.teamd.taxi.persistence.repository")
 public class SpringConfig extends SpringDataWebConfiguration {
     private static final String PROP_DATABASE_DRIVER = "db.driver";
@@ -85,7 +87,7 @@ public class SpringConfig extends SpringDataWebConfiguration {
     public EntityManagerFactory entityManagerFactory() {
         java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.INFO);
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        vendorAdapter.setShowSql(false);
+        vendorAdapter.setShowSql(true);
         vendorAdapter.setGenerateDdl(false);
         vendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQLDialect");
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();

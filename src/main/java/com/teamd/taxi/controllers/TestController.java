@@ -1,12 +1,10 @@
 package com.teamd.taxi.controllers;
 
-import com.teamd.taxi.entity.Info;
-import com.teamd.taxi.entity.User;
-import com.teamd.taxi.entity.UserAddress;
-import com.teamd.taxi.entity.UserRole;
+import com.teamd.taxi.entity.*;
 import com.teamd.taxi.models.RegistrationForm;
 import com.teamd.taxi.persistence.repository.InfoRepository;
 import com.teamd.taxi.persistence.repository.ReportsRepository;
+import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import com.teamd.taxi.persistence.repository.UserRepository;
 
 import com.teamd.taxi.validation.RegistrationFormPasswordValidator;
@@ -17,6 +15,7 @@ import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Controller;
@@ -98,11 +97,16 @@ public class TestController {
     @Autowired
     private InfoRepository infoRepository;
 
+    @Autowired
+    private TaxiOrderRepository orderRepository;
+
     @RequestMapping(value = "/testInfo")
-    public void testInfo(String name, HttpServletResponse response) throws IOException {
+    public void testInfo(HttpServletResponse response, @RequestParam("page") int page) throws IOException {
         try (Writer writer = response.getWriter()) {
-            Info info = infoRepository.findOne(name);
-            writer.append(info == null ? "not found" : info.getValue());
+            List<TaxiOrder> ords = orderRepository.findBySomething(Arrays.asList(1, 5), new PageRequest(page, 20));
+            for (TaxiOrder ord : ords) {
+                writer.append("" + ord.getId()).append("\n");
+            }
         }
     }
 
