@@ -1,6 +1,7 @@
 package com.teamd.taxi.controllers.admin;
 
 import com.teamd.taxi.entity.Car;
+import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.models.admin.AdminResponseModel;
 import com.teamd.taxi.models.admin.CarsPageModel;
 import com.teamd.taxi.service.AdminPagesUtil;
@@ -11,17 +12,20 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created on 02-May-15.
@@ -82,6 +86,28 @@ public class CarAdminController {
             response.setContent(env.getRequiredProperty(MESSAGE_CAR_ID_NOT_EXIST));
         }
         return response;
+    }
+
+    @RequestMapping(value = "/getForm_add_car", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public Set<String> showAddFormCar() {
+        Set<String> featureNames = new HashSet<>();
+
+        List<Feature> features = new ArrayList<>();
+        features = carService.getCarFeatures();
+        for(Feature f : features){
+            featureNames.add(f.getName());
+        }
+
+        return featureNames;
+    }
+
+    @RequestMapping(value = "/create_car", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> createNewCar(@RequestBody String jsonBody,Model model){
+
+        System.out.println(jsonBody);
+
+        return new ResponseEntity<Object>(new String("+++"), HttpStatus.OK);
     }
 
 }
