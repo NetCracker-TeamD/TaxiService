@@ -4,7 +4,6 @@
 var checkedInput = '<input type="checkbox" checked="checked" value="true"/>';
 var uncheckedInput = '<input type="checkbox"  value="false"/>';
 var textInput = '<input class="form-control-auto-size" type="text" value="Hello"/>';
-//var selectInput = '<select class="form-control-auto-size"><option>Anton Antonov</option><option>Vladimid Vald</option><option>Ivan Ivamov</option><option>Petrov petrov</option></select>';
 var selectInput = '<select class="form-control-auto-size"></select>';
 var selectClassInput = '<select class="form-control-auto-size"><option>Business</option><option>Standard</option><option>Economy</option></select>';
 var selectCategoryInput = '<select class="form-control-auto-size"><option>A</option><option>B</option><option>C</option><option>D</option></select>';
@@ -16,6 +15,17 @@ var hiddenDiv = '<div class="hidden"></div>';
 var createCarModal = $('#create_car');
 var removeCarModal = $('#remove_car');
 var successModal = $('#successModal');
+
+var showCarsUrl = '/admin/cars';
+var showAddFormCarUrl = '/admin/getForm_add_car';
+var divIdForGeneratedFeatures = '#car_features_generated';
+var classInternalDivs = 'checkbox';
+var arrayIdFeaturesInHTML = null;
+
+var createCarUrl = '/admin/create_car';
+var carModelIdIntoHTML = 'car_model';
+var carClassIdIntoHTML = 'car_class';
+var carDriverIdIntoHTML = 'car_driver';
 
 function startEditCar(node) {
     var record = $(node.target).closest('tr');
@@ -80,12 +90,12 @@ function startEditCar(node) {
 
 function removeCar(id) {
     //alert(id);
-    $.ajax('admin/car-delete', {
+    $.ajax('/admin/car-delete', {
         type: 'post',
         dataType: 'json',
-        data: {id: 1},
+        data: {id: id},
         success: function (response) {
-            alert("Succes");
+            //alert("Success");
             if (response.result == "success") {
                 showSuccess(response.content);
                 removeCarModal.modal('hide');
@@ -98,7 +108,7 @@ function removeCar(id) {
             }
         },
         error: function () {
-            alert("Error");
+            //alert("Error");
             showError(removeCarModal, "Something went wrong... Try again later");
         }
     });
@@ -110,8 +120,55 @@ function updateCar(value) {
 }
 
 function createCar() {
-    alert("createCar");
-    //TODO Ajax here
+
+    var car_model = $('#'+carModelIdIntoHTML).val();
+    var car_class = $('#'+carClassIdIntoHTML).val();
+    var car_driver = $('#'+carDriverIdIntoHTML).val();
+
+
+    var mapFeatures = new Object();
+
+    for(var i=0; i<arrayIdFeaturesInHTML.length; i++){
+        var value = $('#'+arrayIdFeaturesInHTML[i]).val();
+        mapFeatures[arrayIdFeaturesInHTML[i]] = value;
+    }
+
+    var JSONPostData = new Object();
+    JSONPostData[carModelIdIntoHTML] = car_model;
+    JSONPostData[carClassIdIntoHTML] = car_class;
+    JSONPostData[carDriverIdIntoHTML] = car_driver;
+    JSONPostData['mapFeatures'] = mapFeatures;
+
+    $.ajax({
+        type: 'POST',
+        url:  createCarUrl,
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify(JSONPostData),
+        dataType: 'json',
+        async: false,
+        success: function(result) {
+            alert(result);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert(jqXHR.status + ' ' + jqXHR.responseText);
+        }
+    });
+
+    $.ajax({
+        type: 'GET',
+        url: showCarsUrl,
+        dataType: 'html',
+        async: false,
+        success: function(result){
+            //alert(result);
+            //$(this).html(result);
+            location.reload(true);
+
+        },
+        error: function(jqXHR, textStatus, errorThrown){
+            alert(jqXHR.status+' '+jqXHR.responseText);
+        }
+    });
 }
 
 function cancelEdit(node) {
@@ -124,12 +181,6 @@ createCarModal.on('shown.bs.modal', function () {
     $('#car_model').focus();
 });
 
-createCarModal.on('show.bs.modal', function () {
-    $('#car_model').val('');
-    $('#car_wifi').removeAttr('checked');
-    $('#car_animal').removeAttr('checked');
-});
-
 removeCarModal.on('show.bs.modal', function (event) {
     var button = $(event.relatedTarget);
     var modal = $(this);
@@ -137,24 +188,72 @@ removeCarModal.on('show.bs.modal', function (event) {
     removeCarModal.find('.modal-error').hide();
 });
 
+successModal.on('hidden.bs.modal', function (event) {
+    location.reload(true);
+});
 
 function showSuccess(message) {
     successModal.find('.lead').html(message);
     successModal.modal('show');
 }
 
-
 function showError(modalId, message) {
     var errorAlert = modalId.find('.modal-error').eq(0);
     errorAlert.find('p').html("<strong>Error!</strong> " + message);
     errorAlert.show(1000);
 }
-function hideError(modalId) {
-    $(modalId).hide('normal');
-}
 
-successModal.on('hidden.bs.modal', function (event) {
-    location.reload(true);
+createCarModal.on('show.bs.modal', function () {
+
+    showAddFormCar();
+
+    $('#car_model').val('');
+    //$('#car_wifi').removeAttr('checked');
+    //$('#car_animal').removeAttr('checked');
 });
 
+function showAddFormCar(){
+    $.ajax({
+        type: 'GET',
+        url: showAddFormCarUrl,
+        dataType: 'json',
+        async: false,
+        success: function(result){
+            arrayIdFeaturesInHTML = result;
+            generateFeaturesInAddFormCar(result,divIdForGeneratedFeatures,classInternalDivs);
+        },
+        error: function(jqXHR, textStatus, errorThrown){
+            alert(jqXHR.status+' '+jqXHR.responseText);
+        }
+    });
+}
 
+function generateFeaturesInAddFormCar(array, divId, classInternalDiv){
+
+    $(divId+' div.' + classInternalDiv).remove();
+
+    var startTag = '<div class="'+classInternalDiv+'"><label>';
+    var endTag = '</label></div>';
+
+    var stringBuffer = null;
+
+    for(var i=0; i<array.length; i++){
+        if(stringBuffer==null){
+            stringBuffer=startTag;
+        }else {
+            stringBuffer = stringBuffer + startTag;
+        }
+        stringBuffer=stringBuffer + '<input id="'+array[i]+'" type="checkbox" onclick="switcherFeatures(this)" value="off">'+array[i];
+        stringBuffer=stringBuffer+endTag;
+    }
+
+    $(divId).append(stringBuffer);
+}
+
+function switcherFeatures(checkbox){
+    if(!checkbox.checked){
+        $(checkbox).val('off');
+    }else{
+        $(checkbox).val('on');
+    }
+}

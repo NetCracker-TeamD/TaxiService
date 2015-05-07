@@ -15,4 +15,6 @@ import org.springframework.stereotype.Repository;
  */
 public interface CarRepository extends PagingAndSortingRepository<Car, Integer> {
 
+
+
 }

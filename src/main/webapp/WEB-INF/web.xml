@@ -32,7 +32,7 @@
         <servlet-name>dispatcher</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
-    <!-- ENCODING FILTER -->
+     <!-- ENCODING FILTER -->
     <filter>
         <filter-name>encoding-filter</filter-name>
         <filter-class>
