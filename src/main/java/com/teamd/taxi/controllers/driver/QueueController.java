@@ -4,6 +4,7 @@ import com.teamd.taxi.entity.*;
 import com.teamd.taxi.service.DriverService;
 import com.teamd.taxi.service.ServiceTypeService;
 import com.teamd.taxi.service.TaxiOrderService1;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +32,7 @@ public class QueueController {
     private static Pageable pageableOrder;
     private int curPage = 0;
     private List<ServiceType> serviceTypes;
+    private static final Logger logger = Logger.getLogger(QueueController.class);
     //  RouteStatus.COMPLETED видалити, в базі не було даних з RouteStatus.QUEUED, RouteStatus.UPDATED
     private  List<RouteStatus> statusList = Arrays.asList(RouteStatus.COMPLETED,
                                                           RouteStatus.QUEUED,
@@ -77,6 +79,7 @@ public class QueueController {
         }
         Page<TaxiOrder> orders= taxiOrderService1.getFilterServiceFreeOrders(statusList, idService, pageableOrder);
         model.addAttribute("services", serviceTypes);
+        model.addAttribute("selectServices", idService);
         model.addAttribute("orders", orders.getContent());
         model.addAttribute("countPage", orders.getTotalPages());
         return "driver/drv-queue";

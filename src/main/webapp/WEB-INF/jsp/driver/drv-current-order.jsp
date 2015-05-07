@@ -18,16 +18,139 @@
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
 
+    <%--<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>--%>
 
 
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=places"></script>
     <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
-    <script src="/pages/resources/project/js/driver/poliline-route.js"></script>
-    <script src="/pages/resources/project/js/map/geolocation.js"></script>
-    <script src="/pages/resources/project/js/driver/auto-complete-search.js"></script>
-    <script src="/pages/resources/project/js/driver/auto-complete-search1.js"></script>
-    <script src="/pages/resources/project/js/driver/auto-complete-search2.js"></script>
 
+    <%--<script src="/pages/resources/project/js/map/geolocation.js"></script>--%>
+    <%--<script src="/pages/resources/project/js/map/auto-complete.js"></script>--%>
+    <%--<script src="/pages/resources/project/js/map/select-address-on-map"></script>--%>
+
+    <script>
+
+        <%--var directionsDisplay;--%>
+        <%--var directionsService = new google.maps.DirectionsService();--%>
+        <%--var geocoder;--%>
+        <%--var map;--%>
+        <%--var infowindow = new google.maps.InfoWindow();--%>
+        <%--var marker;--%>
+        <%--var routesArray = [];--%>
+        <%--var geolocLatLng;--%>
+
+        <%--function initialize(canvas) {--%>
+            <%--geocoder = new google.maps.Geocoder();--%>
+            <%--directionsDisplay = new google.maps.DirectionsRenderer();--%>
+            <%--var centerkiev = new google.maps.LatLng(50.582603899999995, 30.490284199999998);--%>
+            <%--var mapOptions = {--%>
+                <%--zoom: 12,--%>
+                <%--center: centerkiev--%>
+            <%--}--%>
+
+            <%--// When the user selects an address from the dropdown,--%>
+            <%--// populate the address fields in the form.--%>
+            <%--destinationLoc = new google.maps.places.Autocomplete(--%>
+                    <%--/** @type {HTMLInputElement} */--%>
+                    <%--(document.getElementById('destinationLoc')),--%>
+                    <%--{ types: ['geocode'] });--%>
+            <%--google.maps.event.addListener(destinationLoc, 'place_changed', function() {fillInAddress(); });--%>
+
+<%--//            'map-canvas'--%>
+            <%--map = new google.maps.Map(document.getElementById(canvas), mapOptions);--%>
+
+            <%--google.maps.event.addListener(map, 'click', function (event) {--%>
+                <%--codeLatLng(event.latLng);--%>
+            <%--});--%>
+            <%--directionsDisplay.setMap(map);--%>
+        <%--}--%>
+
+
+        <%--function codeLatLng(location) {--%>
+            <%--var lat = location.lat();--%>
+            <%--var lng = location.lng();--%>
+            <%--var latlng = new google.maps.LatLng(lat, lng);--%>
+
+            <%--geocoder.geocode({'latLng': latlng}, function (results, status) {--%>
+                <%--if (status == google.maps.GeocoderStatus.OK) {--%>
+                    <%--if (results[1]) {--%>
+                        <%--map.setZoom(12);--%>
+                        <%--map.setCenter(location);--%>
+                        <%--marker = new google.maps.Marker({--%>
+                            <%--position: latlng,--%>
+                            <%--map: map--%>
+                        <%--});--%>
+                        <%--routesArray.push(latlng);--%>
+                        <%--infowindow.setContent(results[1].formatted_address);--%>
+                        <%--infowindow.open(map, marker);--%>
+                    <%--} else {--%>
+                        <%--alert('No results found');--%>
+                    <%--}--%>
+                <%--} else {--%>
+                    <%--alert('Geocoder failed due to: ' + status);--%>
+                <%--}--%>
+            <%--});--%>
+        <%--}--%>
+
+        <%--function getLocation() {--%>
+            <%--if (navigator.geolocation) {--%>
+                <%--navigator.geolocation.getCurrentPosition(showPosition);--%>
+            <%--} else {--%>
+                <%--alert("Geolocation is not supported by this browser.");--%>
+            <%--}--%>
+        <%--}--%>
+
+        <%--function showPosition(position) {--%>
+            <%--geolocLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);--%>
+            <%--geocoder.geocode({'latLng': geolocLatLng}, function (results, status) {--%>
+                <%--if (status == google.maps.GeocoderStatus.OK) {--%>
+                    <%--if (results[1]) {--%>
+                        <%--map.setZoom(12);--%>
+                        <%--marker = new google.maps.Marker({--%>
+                            <%--position: geolocLatLng,--%>
+                            <%--map: map--%>
+                        <%--});--%>
+                        <%--infowindow.setContent(results[1].formatted_address);--%>
+                        <%--infowindow.open(map, marker);--%>
+                    <%--} else {--%>
+                        <%--alert('No results found');--%>
+                    <%--}--%>
+                <%--} else {--%>
+                    <%--alert('Geocoder failed due to: ' + status);--%>
+                <%--}--%>
+            <%--});--%>
+            <%--alert("Latitude:" + geolocLatLng.lat());--%>
+<%--//            alert("Latitude:" + position.coords.latitude +--%>
+<%--//            " Longitude: " + position.coords.longitude);--%>
+        <%--}--%>
+
+        <%--function calcRoute() {--%>
+            <%--wayp = [];--%>
+            <%--alert(routesArray[0]);--%>
+            <%--var start = routesArray[0];--%>
+            <%--var end = routesArray[routesArray.length - 1];--%>
+            <%--for (var i = 0; i < routesArray.length; i++) {--%>
+                <%--wayp.push({location: routesArray[i], stopover: true});--%>
+            <%--}--%>
+            <%--var request = {--%>
+                <%--origin: start,--%>
+                <%--destination: end,--%>
+                <%--waypoints: wayp,--%>
+                <%--optimizeWaypoints: true,--%>
+                <%--travelMode: google.maps.TravelMode.DRIVING--%>
+            <%--};--%>
+            <%--directionsService.route(request, function (response, status) {--%>
+                <%--if (status == google.maps.DirectionsStatus.OK) {--%>
+                    <%--directionsDisplay.setDirections(response);--%>
+                    <%--var route = response.routes[0];--%>
+                <%--}--%>
+            <%--});--%>
+        <%--}--%>
+        <%--google.maps.event.addDomListener(window, 'load', initialize);--%>
+
+    </script>
+
+    <script src="/pages/resources/project/js/driver/drv-order.js" type="text/javascript"></script>
 </head>
 
 <body>
@@ -74,9 +197,6 @@
 
 <div class="jumbotron welcome">
     <div class="container">
-        <br>
-        <br>
-        <br>
         <h2>Current order</h2>
     </div>
 </div>
@@ -84,106 +204,72 @@
     <div class="jumbotron col">
         <div class="row">
             <div class="col">
-                <div class="col-md-5" >
+                <div class="col-md-4" >
 
                     <div style="margin:20px;border-width:2px;">
                         <div class="form-group">
-                            <label for="autocomplete" class="control-label">Current location</label>
-                            <input  onFocus="geolocate()"  id="autocomplete"  class="form-control" name="adress" placeholder="Enter your address" type="text">
-                            <script>initialize1()</script>
+                            <label for="curLoc" class="control-label">Current location</label>
+                            <div>
+                                <button type="button" id="curLoc" class="btn btn-primary">
+                                <span class="glyphicon glyphicon-send" aria-hidden="true"></span>
+                                </button>
+                            </div>
+
                         </div>
-                        <div>
-                            <br>
-                            <b>Midlle points:</b> <br>
-
-                            <select multiple id="waypoints">
-                                <option value="lutsk">Lutsk, Volyns'ka oblast, Ukraine</option>
-                                <option value="berdichev">Berdichev, Zhytomyrs'ka oblast, Ukraine</option>
-                                <option value="rivne">Rivne, Ukraine</option>
-                                <option value="zitomir">Žitomir, Žytomyrská, Ukrajina</option>+
-                            </select>
-                            <br>
-                        </div>
-
-
-
                         <div class="form-group">
-                            <label for="destLocation" class="control-label">Destination</label>
-                            <input onFocus="geolocate()" type="text" class="form-control" id="destLocation"  >
-                            <script>initialize3()</script>
+                            <label for="sourceLoc" class="control-label">Source location</label>
+                            <input id="sourceLoc"  class="form-control" name="source" value="ololo" type="text" placeholder="Enter your address" readonly="readonly">
+                        </div>
+                        <div class="form-group">
+                            <label for="destinationLoc" class="control-label">Destination</label>
+                            <input onFocus="geolocate()" id="destinationLoc" class="form-control" name="destination" value="tratata" type="text" placeholder="Enter your address" readonly="readonly">
+                            <%--<script>initializeAuto()</script>--%>
+                        </div>
+                        <div class="form-group row">
+                            <div class="pull-left">
+                                <input type="submit" id="newRoute" class="btn btn-warning" value="New route" >
+                            </div>
+                            <div class="pull-right">
+                                <input type="submit" id="acceptNewRoute" class="disabled btn btn-success" value="Accept route">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="input-group pull-right">
+                                <input type="text" class="form-control" id="price" placeholder="mileage">
+                                <span class="input-group-addon">km</span>
+                            </div>
+                            <div id="timer" class="pull-left" style="margin-bottom: 5px">
+                                <input type="submit" id="inPlace" class="btn btn-info" value="In place">
+                                <span id="countdown" class="timer"></span>
+                            </div>
                         </div>
 
-                        <input type="submit" class="btn btn-info" value="Way" onclick="calcRoute();">
-
-                        <!--<button class="btn btn-info" onclick="getLocation()">Geolocation</button>-->
-                        <!--<p id="demo"></p>-->
+                        <div class="form-group row" style="margin-bottom: 5px">
+                            <div class="pull-left">
+                                <input type="submit" id="start" class="btn btn-primary" value="Start" >
+                            </div>
+                            <div class="pull-right">
+                                <input type="submit" id="stop" class="btn btn-primary" value="Stop">
+                            </div>
+                        </div>
                     </div>
-
-                        <!--<div class="form-group">-->
-                    <!--<div id="control_panel" class="list-inline">-->
-                            <!--<label for="autocomplete" class="control-label">Current location</label>-->
-                            <!--<input  onFocus="geolocate()"  id="autocomplete"  class="form-control" name="adress" placeholder="Enter your address" type="text">-->
-                            <!--<script>initialize1()</script>-->
-                            <!--<p id="demo"></p>-->
-                            <!--<button class="btn btn-info" type="button" onclick="getLocation()" id="search">Search</button>-->
-                        <!--</div>-->
-
-                        <!--<div class="form-group">-->
-                            <!--<br>-->
-                            <!--<b>Midlle points:</b> <br>-->
-
-                            <!--<select multiple id="waypoints">-->
-                                <!--<option value="lutsk">Lutsk</option>-->
-                                <!--<option value="berdichev">Berdichev</option>-->
-                                <!--<option value="rivne">Rivne</option>-->
-                            <!--</select>-->
-                            <!--<br>-->
-                            <!--&lt;!&ndash;<label for="sourceLocation" class="control-label">Source location</label>&ndash;&gt;-->
-                            <!--&lt;!&ndash;<input onFocus="geolocate()"  type="text" class="form-control" id="sourceLocation" >&ndash;&gt;-->
-                            <!--&lt;!&ndash;<script>initialize2()</script>&ndash;&gt;-->
-
-                        <!--</div>-->
-                        <!--<div class="form-group">-->
-                            <!--<label for="destLocation" class="control-label">Destination</label>-->
-                            <!--<input onFocus="geolocate()" type="text" class="form-control" id="destLocation"  >-->
-                            <!--<script>initialize3()</script>-->
-
-                        <!--</div>-->
-                        <!--<button class="btn btn-info" type="submit" onclick="calcRoute()" id="way">Way</button>-->
-
-                        <!--&lt;!&ndash;<input type="submit" onclick="calcRoute();">&ndash;&gt;-->
-                   <!---->
-                    <!--</div>-->
-                    <div class="input-group col-md-5">
-                        <span class="input-group-addon">$</span>
-                        <input type="text" class="form-control" id="price" placeholder="Price">
-                        <span class="input-group-addon">.00</span>
-                    </div>
-                    <br>
-
                 </div>
 
-
-                    <!--<div id="map-canvas" style="float:left;width:70%;height:100%;"></div>-->
                 <div class="col">
                     <div class="col-md-7 pull-right">
                         <div class="panel panel-primary"  >
                             <div class="panel-heading"><h3 class="panel-title">Map</h3></div>
-                            <div class="panel-body"  id="map-canvas" style="width:580px;height:350px;">
-                                <!--id="google-map"-->
-
+                            <div class="panel-body"  id="map-canvas" style="width:580px;height:450px;">
+                                <script>initialize("map-canvas")</script>
                             </div>
-                            <script>initialize()</script>
 
                        </div>
                     </div>
-                     <div class="col-md-3 pull-left">
-
-                        <div><i class="glyphicon glyphicon-ok-sign"> Non smoking</i></div>
-                        <div><i class="glyphicon glyphicon-ok-sign"> WiFI</i></div>
-                        <div><i class="glyphicon glyphicon-ok-sign"> Male</i></div>
-
-                    </div>
+                    <%--<div class="col-md-3 pull-left">--%>
+                         <%--<c:forEach items="${features}" var="feature">--%>
+                            <%--<div><i class="glyphicon glyphicon-ok-sign"> feature.name</i></div>--%>
+                        <%--</c:forEach>--%>
+                    <%--</div>--%>
                 </div>
                 <div id="directions_panel" style="margin:20px;background-color:#FFEE77;"></div>
             </div>
@@ -192,12 +278,12 @@
         <div class="row">
             <div class="col-md-3 pull-left">
                 <button type="submit" class="btn btn-success" aria-label="Left Align">
-                    <span class="glyphicon glyphicon-ok"> Accept</span>
+                    <span class="glyphicon glyphicon-ok"> Complete</span>
                 </button>
                
             </div>
             <div class="col-md-3 pull-midlle">
-                <a class="btn btn-danger" href="queue.html"><span class="glyphicon glyphicon-remove" aria-hidden="true"> Close</span></a>
+                <a class="btn btn-danger" href="queue"><span class="glyphicon glyphicon-remove" aria-hidden="true"> Close</span></a>
             </div>
         </div>
     </div>

@@ -11,4 +11,6 @@ public interface FeatureRepository extends JpaRepository<Feature, Integer> {
 
     List<Feature> findAllByFeatureType(FeatureType type);
 
+
+
 }

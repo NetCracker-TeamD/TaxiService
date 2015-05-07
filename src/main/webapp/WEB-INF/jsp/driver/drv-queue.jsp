@@ -175,7 +175,7 @@
                         <div class="panel-body col">
                             <form:form method="POST" action="queue?">
                                 <c:forEach items="${services}" var="service">
-                                    <input type="checkbox" name="${service.id}" id="${service.id}" checked>
+                                    <input type="checkbox" name="${service.id}" id="${service.id}" ${selectServices.contains(service.id)} ? checked="\on\">
                                     <label for="${service.id}" class="control-label">${service.name}</label><br>
                                 </c:forEach>
 
