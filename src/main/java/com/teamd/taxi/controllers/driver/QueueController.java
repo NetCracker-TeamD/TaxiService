@@ -56,7 +56,7 @@ public class QueueController {
             curPage = Integer.parseInt(request.getParameter("curPage")) - 1;
         }
         pageableOrder = new PageRequest(curPage, PAGE_SIZE, Sort.Direction.ASC, SORT_BY);
-        serviceTypes = serviceTypeService.getAllService();
+        serviceTypes = serviceTypeService.findAll();
         Page<TaxiOrder> orders = taxiOrderService1.getFreeOrder(statusList, pageableOrder);
 
         model.addAttribute("services", serviceTypes);

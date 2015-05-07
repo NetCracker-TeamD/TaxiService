@@ -15,9 +15,11 @@
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="/pages/resources/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="/pages/resources/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="/pages/resources/jquery/css/jquery-ui.css">
     <link rel="stylesheet" href="/pages/resources/project/css/welcome.css">
     <link rel="stylesheet" href="/pages/resources/project/css/history.css">
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
+    <script src="/pages/resources/jquery/jquery-ui.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
     <script src="/pages/resources/project/js/history/history.js" type="text/javascript"></script>
     <script src="/pages/resources/jsrenderer/jsrender.min.js/"></script>
@@ -25,107 +27,127 @@
     <script>
         var startState = {
             pageNum: ${pageable.pageNumber + 1},
-            sort: [<c:forEach var="sort" items="${sorts}" varStatus="status">'${sort}'${!status.last ? "," : ""}</c:forEach>]
+            sort: [<c:forEach var="sort" items="${sorts}" varStatus="status">'${sort}'${!status.last ? "," : ""}</c:forEach>],
+            additional: {
+                <c:forEach var="entry" items="${additionalParams}">
+                "${entry.key}": ${entry.value},
+                </c:forEach>
+            }
         };
     </script>
     <script id="orderItemTemplate" type="text/x-jsrender">
-<div class="history_list panel panel-default">
-    <div class="history_node panel-heading">
-        <div class="row">
-            <div class="col-sm-4">
-                <a><span class="glyphicon glyphicon-chevron-down"> </span>
-                    <b>№{{:order.id}}</b></a>
+        <div class="history_list panel panel-default">
+            <div class="history_node panel-heading">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <a><span class="glyphicon glyphicon-chevron-down"> </span>
+                            <b>№{{:order.id}}</b></a>
+                    </div>
+                    <div class="col-sm-8 text-right">{{:order.registrationDate}}</div>
+                </div>
             </div>
-            <div class="col-sm-8 text-right">{{:order.registrationDate}}</div>
+            <div style="display:none;" class="history_details panel-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="panel panel-info">
+                            <div class="panel-heading">Information</div>
+                            <div class="panel-body">
+                                <ul class="list-group">
+                                    <li class="list-group-item"><b>Order ID:</b>{{:order.id}}
+                                        </li>
+                                    <li class="list-group-item"><b>Date:</b>{{:order.executionDate}}
+                                        </li>
+                                    <li class="list-group-item"><b>Service
+                                        type:</b> {{:order.serviceType.name}}</li>
+                                    <li class="list-group-item"><b>Car class:</b> {{:order.carClass}}
+                                        </li>
+                                    <li class="list-group-item"><b>Driver sex:</b> {{:order.driverSex}}
+                                        </li>
+                                    <li class="list-group-item"><b>Method of
+                                        payment:</b> {{:order.paymentType}}</li>
+                                    <li class="list-group-item"><b>Cost of
+                                        payment:</b> {{:order.totalPrice}} UAH
+                                        </li>
+                                    <li class="list-group-item"><b>Comment:</b> {{:order.comment}}
+                                        </li>
+                                    <li class="list-group-item"><b>Complete:</b> {{:complete}}
+                                        </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="panel panel-info">
+                            <div class="panel-heading">Additional options:</div>
+                            <div class="panel-body">
+                                <ul class="list-group">
+                                    {{for order.features}}
+                                        <li class="list-group-item"><b>{{:featureName}}: </b>
+                                            <span class="glyphicon glyphicon-ok-sign"></span>
+                                        </li>
+                                    {{/for}}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="panel panel-info">
+                            <div class="panel-heading">Routes</div>
+                            <div class="panel-body">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Pick-up address</th>
+                                            <th>Destination address</th>
+                                            {{if order.serviceType.isDestinationRequired === true}}
+                                                <th>Distance</th>
+                                            {{/if}}
+                                            <th>Price</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{for assembledRoutes}}
+                                        <tr>
+                                            <td>{{:sourceAddress}}</td>
+                                            <td>{{:destinationAddress}}</td>
+                                            {{if #parent.parent.data.order.serviceType.isDestinationRequired === true}}
+                                                <td>{{:distance}}</td>
+                                            {{/if}}
+                                            <td>{{:totalPrice}}</td>
+                                            <td>{{:finishedCars}}/{{:totalCars}}</td>
+                                        </tr>
+                                    {{/for}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="panel panel-info">
+                            <div class="panel-heading">Map</div>
+                            <div class="panel-body">
+                                <!--<iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d5081.08804691991!2d30.4596392!3d50.4495934!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0000000000000000%3A0xbc67207d8e291fd0!2z0L_QsNGA0Log0JrQuNGX0LLRgdGM0LrQvtCz0L4g0L_QvtC70ZbRgtC10YXQvdGW0YfQvdC-0LPQviDRltC90YHRgtC40YLRg9GC0YM!5e0!3m2!1sru!2sua!4v1430052929432"
+                                        width="430" height="280" frameborder="0" style="border:0;"></iframe>-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div style="display:none;" class="history_details panel-body">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="panel panel-info">
-                    <div class="panel-heading">Information</div>
-                    <div class="panel-body">
-                        <ul class="list-group">
-                            <li class="list-group-item"><b>Order ID:</b>{{:order.id}}
-                                </li>
-                            <li class="list-group-item"><b>Date:</b>{{:order.executionDate}}
-                                </li>
-                            <li class="list-group-item"><b>Service
-                                type:</b> {{:order.serviceType.name}}</li>
-                            <li class="list-group-item"><b>Car class:</b> {{:order.carClass}}
-                                </li>
-                            <li class="list-group-item"><b>Method of
-                                payment:</b> {{:order.paymentType}}</li>
-                            <li class="list-group-item"><b>Cost of
-                                payment:</b> {{:order.totalPrice}} UAH
-                                </li>
-                            <li class="list-group-item"><b>Comment:</b> {{:order.comment}}
-                                </li>
-                            <li class="list-group-item"><b>Complete:</b> {{:complete}}
-                                </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="panel panel-info">
-                    <div class="panel-heading">Additional options:</div>
-                    <div class="panel-body">
-                        <ul class="list-group">
-                            {{for order.features}}
-                                <li class="list-group-item"><b>{{:featureName}}: </b>
-                                    <span class="glyphicon glyphicon-ok-sign"></span>
-                                </li>
-                            {{/for}}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div class="panel panel-info">
-                    <div class="panel-heading">Routes</div>
-                    <div class="panel-body">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Pick-up address</th>
-                                    <th>Destination address</th>
-                                    {{if order.serviceType.isDestinationRequired === true}}
-                                        <th>Distance</th>
-                                    {{/if}}
-                                    <th>Price</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            {{for assembledRoutes}}
-                                <tr>
-                                    <td>{{:sourceAddress}}</td>
-                                    <td>{{:destinationAddress}}</td>
-                                    {{if #parent.parent.data.order.serviceType.isDestinationRequired === true}}
-                                        <td>{{:distance}}</td>
-                                    {{/if}}
-                                    <td>{{:totalPrice}}</td>
-                                    <td>{{:finishedCars}}/{{:totalCars}}</td>
-                                </tr>
-                            {{/for}}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="panel panel-info">
-                    <div class="panel-heading">Map</div>
-                    <div class="panel-body">
-                        <!--<iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d5081.08804691991!2d30.4596392!3d50.4495934!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0000000000000000%3A0xbc67207d8e291fd0!2z0L_QsNGA0Log0JrQuNGX0LLRgdGM0LrQvtCz0L4g0L_QvtC70ZbRgtC10YXQvdGW0YfQvdC-0LPQviDRltC90YHRgtC40YLRg9GC0YM!5e0!3m2!1sru!2sua!4v1430052929432"
-                                width="430" height="280" frameborder="0" style="border:0;"></iframe>-->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
     </script>
 </head>
 <body>
@@ -193,6 +215,31 @@
                             </ul>
                         </div>
                     </div>
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-4 col-sm-offset-1">
+                                <div class="input-group">
+                            <span class="input-group-addon" id="basic-addon1">
+                                <span class="glyphicon glyphicon glyphicon-calendar"></span>
+                            </span>
+                                    <input id="date-from" type="text" class="form-control" placeholder="From"
+                                           aria-describedby="basic-addon1">
+                                </div>
+                            </div>
+                            <div class="col-sm-4 col-sm-offset-1">
+                                <div class="input-group">
+                            <span class="input-group-addon" id="basic-addon2">
+                                <span class="glyphicon glyphicon glyphicon-calendar"></span>
+                            </span>
+                                    <input id="date-to" type="text" class="form-control" placeholder="To"
+                                           aria-describedby="basic-addon2">
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <button id="date-apply-button" class="btn btn-default" type="submit">Apply</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="panel-body">
@@ -205,6 +252,6 @@
 </div>
 <hr>
 
-<p>&#169 TeamD 20157</p>
+<p>&#169 TeamD 201</p>
 </body>
 </html>

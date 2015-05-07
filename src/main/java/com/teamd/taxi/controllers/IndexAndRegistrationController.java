@@ -53,8 +53,8 @@ public class IndexAndRegistrationController {
     public ModelAndView index() {
         AbstractAuthenticationToken auth = (AbstractAuthenticationToken)
                 SecurityContextHolder.getContext().getAuthentication();
-        logger.info("Auth status: " + auth.getPrincipal() + ", " + auth.getCredentials() + ", " + auth.getAuthorities());
-
+        logger.info("Auth status: " + auth.getPrincipal()
+                + ", " + auth.getCredentials() + ", " + auth.getAuthorities() + ", " + auth.isAuthenticated());
         ModelAndView mav = new ModelAndView();
         mav.setViewName("index");
         mav.addObject("registrationForm", new RegistrationForm());

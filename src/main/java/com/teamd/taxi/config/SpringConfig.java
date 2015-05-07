@@ -87,7 +87,7 @@ public class SpringConfig extends SpringDataWebConfiguration {
     public EntityManagerFactory entityManagerFactory() {
         java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.INFO);
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        vendorAdapter.setShowSql(false);
+        vendorAdapter.setShowSql(true);
         vendorAdapter.setGenerateDdl(false);
         vendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQLDialect");
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();

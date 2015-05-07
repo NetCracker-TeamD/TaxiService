@@ -4,6 +4,7 @@ import com.teamd.taxi.entity.TaxiOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -16,4 +17,6 @@ public interface TaxiOrderService {
     Page<TaxiOrder> findTaxiOrderByDriver(int id, Pageable pageable);
 
     Page<TaxiOrder> findAll(Pageable pageable);
+
+    Page<TaxiOrder> findAll(Specification<TaxiOrder> spec, Pageable pageable);
 }

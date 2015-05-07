@@ -9,6 +9,9 @@ var PagingUtils = (function () {
     function updatePagination(links) {
         var pagination = $('#' + paginationId);
         pagination.empty();
+        if (!links || links.length === 0) {
+            return;
+        }
         for (var i = 0; i < links.length; i++) {
             var link = links[i];
             console.log(link);
@@ -35,6 +38,11 @@ var PagingUtils = (function () {
         dataToSend.page = state.pageNum;
         if (state.sort) {
             dataToSend.sort = state.sort;
+        }
+        if (state.additional) {
+            for (var prop in state.additional) {
+                dataToSend[prop] = state.additional[prop];
+            }
         }
         //prepare filtration data
         return dataToSend;
@@ -68,14 +76,17 @@ var PagingUtils = (function () {
             data: $.param(sentData, true),
             method: 'POST',
             success: function (data) {
-                console.log('Received data: ' + data);
-                if (data && data.status && data.status === 'OK') {
+                console.log('Received data:');
+                console.log(data);
+                if (data && data.status) {
                     //оновлення UI
                     updatePagination(data.links);
-                    displayDataCallback(data.orders, data.pageDetails);
-                    //заносимо запит до історії
+                    displayDataCallback(data.status, data.orders, data.pageDetails);
                 }
-                if (isFirstLoad === true) {
+                console.log('isFirtLoad: ' + isFirstLoad);
+                //заносимо запит до історії
+                if (!isFirstLoad) {
+                    console.log('Update history');
                     updateHistory(state, sentData);
                 }
             },
@@ -86,7 +97,10 @@ var PagingUtils = (function () {
     }
 
     function updateHistory(state, sentData) {
-        window.history.pushState(state, null, location.pathname + '?' + convertIntoGetParams(sentData));
+        var getParams = convertIntoGetParams(sentData);
+        console.log('Resulting get params');
+        console.log(getParams);
+        window.history.pushState(state, null, location.pathname + '?' + getParams);
     }
 
     return public_interface = {
@@ -101,20 +115,15 @@ var PagingUtils = (function () {
                 event.preventDefault();
                 var page = $(event.target).data('page');
                 console.log('Load page number: ' + page);
-                loadNewContent(page, updateHistory);
+                loadNewContent(page, false);
             });
 
             $(window).on('popstate', function (event) {
                 var state = event.originalEvent.state || initState;
-                reloadContent(state);
+                reloadContent(state, false);
             });
 
-            reloadContent(initState);
-
-            /*$('#sort').on('change', function(){
-             reloadContent(1);
-             })
-             */
+            reloadContent(initState, true);
         },
         update: function () { //обновление любых данных, загружаем с первой странички
             loadNewContent(1, false);
@@ -131,23 +140,38 @@ $(function () {
             var data = {};
             data.sort = $('#sort-menu a.selected-property').data('property');
             //add data filtration
+            data.additional = {};
+            var fromDate = $('#date-from').datepicker('getDate');
+            if (fromDate != null) {
+                data.additional.from = fromDate.getTime();
+            }
+            var toDate = $('#date-to').datepicker('getDate');
+            if (toDate != null) {
+                data.additional.to = toDate.getTime();
+            }
             return data;
         },
-        displayDataCallback: function updateMainContent(orders, details) {
+        displayDataCallback: function updateMainContent(status, orders, details) {
             console.log(orders);
             console.log(details);
-            $("#items-container").html(
-                $('#orderItemTemplate').render(orders)
-            );
-            $('.history_node').on('click', function (event) {
-                $(this).parent()
-                    .children('.history_details')
-                    .stop()
-                    .slideToggle();
-            });
+            var container = $("#items-container");
+            if (status === 'ok') {
+                container.html(
+                    $('#orderItemTemplate').render(orders)
+                );
+                $('.history_node').on('click', function (event) {
+                    $(this).parent()
+                        .children('.history_details')
+                        .stop()
+                        .slideToggle();
+                });
+            } else if (status == 'notFound') {
+                container.html('<h2>Items not found</h2>')
+            }
         },
         initState: startState
     });
+
     var okGlyph = $('#ok-glyph');
     $('#sort-menu').on('click', 'a', function (event) {
         event.preventDefault();
@@ -157,4 +181,15 @@ $(function () {
         target.addClass('selected-property');
         PagingUtils.update();
     });
+
+    $("#date-from").datepicker();
+    if (startState.additional.from) {
+        $("#date-from").datepicker('setDate', new Date(startState.additional.from))
+    }
+    $("#date-to").datepicker();
+    if (startState.additional.to) {
+        $("#date-to").datepicker('setDate', new Date(startState.additional.to))
+    }
+
+    $('#date-apply-button').on('click', PagingUtils.update);
 });
