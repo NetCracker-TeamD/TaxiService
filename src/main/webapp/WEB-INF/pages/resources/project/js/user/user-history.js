@@ -3,6 +3,7 @@ var PagingUtils = (function () {
     var paginationId;
     var displayDataCallback;
     var collectDataCallback;
+    var initState;
 
     //оновлення посилань
     function updatePagination(links) {
@@ -28,12 +29,13 @@ var PagingUtils = (function () {
         }
     }
 
-
     //підготовка даних до відправки у такі формі, якій їх чекає сервер
     function prepareDataForSending(state) {
         var dataToSend = {};
         dataToSend.page = state.pageNum;
-        dataToSend.sort = state.sort;
+        if (state.sort) {
+            dataToSend.sort = state.sort;
+        }
         //prepare filtration data
         return dataToSend;
     }
@@ -46,51 +48,60 @@ var PagingUtils = (function () {
         return getParams.join('&');
     }
 
-    function loadNewContent(page, callback) {
+    //вызывается при наличии только странички (при переходе по страничкам)
+    function loadNewContent(page, isFirstLoad) {
         var collectedData = collectDataCallback();
         collectedData.pageNum = page;
-        reloadContent(collectedData, callback);
+        reloadContent(collectedData, isFirstLoad);
     }
 
-    //головна функція
-    function reloadContent(state, callback) {
+    //вызывается для загрузки данных соотв. переданному состоянию
+    function reloadContent(state, isFirstLoad) {
         var sentData = prepareDataForSending(state);
+        console.log('newState');
+        console.log(state);
+        console.log('data for sending');
+        console.log(sentData);
+
         $.ajax({
             url: dataStoreUrl,
             data: $.param(sentData, true),
             method: 'POST',
             success: function (data) {
-                console.log(data);
+                console.log('Received data: ' + data);
                 if (data && data.status && data.status === 'OK') {
                     //оновлення UI
                     updatePagination(data.links);
                     displayDataCallback(data.orders, data.pageDetails);
                     //заносимо запит до історії
                 }
-                if (typeof callback === 'function') {
-                    callback(state, sentData);
+                if (isFirstLoad === true) {
+                    updateHistory(state, sentData);
                 }
             },
             error: function (jqXHR, status) {
-                alert(status);
+                alert('Error status: ' + status);
             }
         });
     }
 
+    function updateHistory(state, sentData) {
+        window.history.pushState(state, null, location.pathname + '?' + convertIntoGetParams(sentData));
+    }
+
     return public_interface = {
         install: function (initParams) {
-            dataStoreUrl = initParams.dataStoreUrl
+            dataStoreUrl = initParams.dataStoreUrl;
             paginationId = initParams.paginationId;
             collectDataCallback = initParams.collectDataCallback;
             displayDataCallback = initParams.displayDataCallback;
+            initState = initParams.initState;
 
             $('#' + paginationId).on('click', 'a', function (event) {
                 event.preventDefault();
                 var page = $(event.target).data('page');
-                console.log(page);
-                loadNewContent(page, function (state, sentData) {
-                    window.history.pushState(state, null, location.pathname + '?' + convertIntoGetParams(sentData));
-                });
+                console.log('Load page number: ' + page);
+                loadNewContent(page, updateHistory);
             });
 
             $(window).on('popstate', function (event) {
@@ -104,6 +115,9 @@ var PagingUtils = (function () {
              reloadContent(1);
              })
              */
+        },
+        update: function () { //обновление любых данных, загружаем с первой странички
+            loadNewContent(1, false);
         }
     }
 }());
@@ -115,7 +129,7 @@ $(function () {
         collectDataCallback: function collectData() {
             //all necessary data except page number
             var data = {};
-            data.sort = ['registrationDate,ASC']; //має збиратись зі сторінки
+            data.sort = $('#sort-menu a.selected-property').data('property');
             //add data filtration
             return data;
         },
@@ -131,6 +145,16 @@ $(function () {
                     .stop()
                     .slideToggle();
             });
-        }
+        },
+        initState: startState
+    });
+    var okGlyph = $('#ok-glyph');
+    $('#sort-menu').on('click', 'a', function (event) {
+        event.preventDefault();
+        var previous = $('#sort-menu a.selected-property').removeClass('selected-property');
+        var target = $(event.target);
+        target.append(okGlyph);
+        target.addClass('selected-property');
+        PagingUtils.update();
     });
 });

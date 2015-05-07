@@ -105,6 +105,7 @@ public class UserHistoryController {
                 Order next = it.next();
                 if (allowed.containsKey(next.getProperty())) {
                     filtered.add(next);
+                    break; //for this time, only one property allowed for sorting at the same time
                 }
             }
         }
@@ -121,8 +122,9 @@ public class UserHistoryController {
         logger.info("pageable = " + pageable);
         logger.info("All params = " + params);
         //retrieving data from database
+        Sort filtered = filterSort(pageable.getSort());
         Page<TaxiOrder> page = orderService.findAll(
-                new PageRequest(pageable.getPageNumber(), PAGE_SIZE, filterSort(pageable.getSort()))
+                new PageRequest(pageable.getPageNumber(), PAGE_SIZE, filtered)
         );
         List<TaxiOrder> content = page.getContent();
         //assembling orders
@@ -158,17 +160,28 @@ public class UserHistoryController {
         return sortList;
     }
 
+    private List<String> extractPropertiesFromSort(Sort sort) {
+        List<String> props = new ArrayList<>();
+        for (Iterator<Order> it = sort.iterator(); it.hasNext(); ) {
+            props.add(it.next().getProperty());
+        }
+        return props;
+    }
+
     @RequestMapping(value = "/history", method = RequestMethod.GET)
     public String viewHistory(Pageable pageable, Model model) {
         logger.info(pageable);
         logger.info(model);
 
-        Sort sort = pageable.getSort();
+        Sort sort = filterSort(pageable.getSort());
         if (sort != null) {
             List<String> sorts = getStringBySort(sort);
             model.addAttribute("sorts", sorts);
         }
+        model.addAttribute("sort", sort);
         model.addAttribute("pageable", pageable);
+        model.addAttribute("allowedSortProperties", allowedSortProperties());
+        model.addAttribute("selectedSorts", extractPropertiesFromSort(sort));
         return "user/user-history";
     }
 

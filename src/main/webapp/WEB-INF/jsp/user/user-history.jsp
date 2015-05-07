@@ -23,7 +23,7 @@
     <script src="/pages/resources/jsrenderer/jsrender.min.js/"></script>
     <script src="/pages/resources/project/js/user/user-history.js" type="text/javascript"></script>
     <script>
-        var initState = {
+        var startState = {
             pageNum: ${pageable.pageNumber + 1},
             sort: [<c:forEach var="sort" items="${sorts}" varStatus="status">'${sort}'${!status.last ? "," : ""}</c:forEach>]
         };
@@ -118,31 +118,14 @@
                 <div class="panel panel-info">
                     <div class="panel-heading">Map</div>
                     <div class="panel-body">
-                        <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d5081.08804691991!2d30.4596392!3d50.4495934!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0000000000000000%3A0xbc67207d8e291fd0!2z0L_QsNGA0Log0JrQuNGX0LLRgdGM0LrQvtCz0L4g0L_QvtC70ZbRgtC10YXQvdGW0YfQvdC-0LPQviDRltC90YHRgtC40YLRg9GC0YM!5e0!3m2!1sru!2sua!4v1430052929432"
-                                width="430" height="280" frameborder="0" style="border:0;"></iframe>
+                        <!--<iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d5081.08804691991!2d30.4596392!3d50.4495934!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0000000000000000%3A0xbc67207d8e291fd0!2z0L_QsNGA0Log0JrQuNGX0LLRgdGM0LrQvtCz0L4g0L_QvtC70ZbRgtC10YXQvdGW0YfQvdC-0LPQviDRltC90YHRgtC40YLRg9GC0YM!5e0!3m2!1sru!2sua!4v1430052929432"
+                                width="430" height="280" frameborder="0" style="border:0;"></iframe>-->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </script>
 </head>
 <body>
@@ -195,9 +178,18 @@
                             <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Sort by
                                 <span class="caret"></span>
                             </button>
-                            <ul class="dropdown-menu">
-                                <li><a href="1?sort=id">ID Order</a></li>
-                                <li><a href="1?sort=date">Pick-up date</a></li>
+                            <ul id="sort-menu" class="dropdown-menu" role="menu">
+                                <c:forEach items="${allowedSortProperties}" var="prop">
+                                    <li role="presentation">
+                                        <c:set var="isSelected" value="${selectedSorts.contains(prop.key)}"/>
+                                        <a ${isSelected ? "class=\"selected-property\"" : ""}
+                                                role="menuitem" href="#" data-property="${prop.key}">${prop.value}
+                                            <c:if test="${isSelected}">
+                                                <span id="ok-glyph" class="glyphicon glyphicon-ok"></span>
+                                            </c:if>
+                                        </a>
+                                    </li>
+                                </c:forEach>
                             </ul>
                         </div>
                     </div>
