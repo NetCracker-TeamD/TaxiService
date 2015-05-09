@@ -12,9 +12,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/driver")
@@ -22,22 +24,11 @@ public class HistoryDriverController {
     @Autowired
     TaxiOrderService orderService;
     @RequestMapping(value = "/history", method = RequestMethod.GET)
-    public String viewHistory(Model model, HttpServletRequest request) {
+    public String viewHistory(Model model, @RequestParam Map<String,String> requestParam) {
         int page=0;
-        String sort="id";
-        if(request.getParameter("page")!=null){
-            page=Integer.parseInt(request.getParameter("page"))-1;
-        }
-        if(request.getParameter("sort")!=null){
-            switch (request.getParameter("sort")){
-                case "date":
-                    sort = "executionDate";
-                    break;
-                case "id":
-                    sort = "id";
-                    break;
-            }
-        }
+        if(requestParam.get("page")!=null)
+            page=Integer.parseInt(requestParam.get("page"))-1;
+        String sort = checkSort(requestParam.get("sort"));
         int numberOfRows = 7;
         int idDriver=7;
         Pageable pageable=new PageRequest(page,numberOfRows, Sort.Direction.ASC, sort);
@@ -60,5 +51,14 @@ public class HistoryDriverController {
         model.addAttribute("prices",prices);
         model.addAttribute("pages", orderList.getTotalPages());
         return "driver/drv-history";
+    }
+    private String checkSort(String sort){
+        if(sort==null){
+            return "id";
+        }
+        if(sort.equals("date")){
+            return "executionDate";
+        }else
+            return "id";
     }
 }
