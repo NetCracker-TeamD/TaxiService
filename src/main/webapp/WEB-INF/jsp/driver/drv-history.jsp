@@ -16,13 +16,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="authorisation form">
     <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="../../pages/resources/bootstrap/css/datepicker.css">
     <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../pages/resources/bootstrap/less/datepicker.less">
     <link rel="stylesheet" href="../../pages/resources/project/css/welcome.css">
     <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
-    <script src="../../pages/resources/project/js/history/history.js" type="text/javascript"></script>
-</head>
+    <script src="../../pages/resources/bootstrap/js/bootstrap-datepicker.js"></script>
+    <script src="../../pages/resources/project/js/driver/drv-history.js" type="text/javascript"></script></head>
 <body>
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
@@ -36,14 +38,12 @@
             </button>
             <a class="navbar-brand" href="#">Smart Taxi</a>
         </div>
-
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Home</a></li>
                 <li><a href="#">Queue</a></li>
                 <li><a href="#">History</a></li>
             </ul>
-
             <div class="navbar-form navbar-right">
                 <div class="form-group">
                     <input type="text" placeholder="Email" class="form-control">
@@ -55,7 +55,6 @@
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#t_and_c_m">Sign up
                 </button>
             </div>
-
         </div>
         <!--/.navbar-collapse -->
     </div>
@@ -72,13 +71,41 @@
 <div class="container">
     <div class="jumbotron">
         <div class="panel panel-default">
+            <div class="well well-sm">
+                <form class="form-inline" role="form" action="">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>ID</label>
+                                <input class="form-control" name="id" type="text">
+                                <label>Address</label>
+                                <input class="form-control" name="address" type="text">
+                                <label>Service Type</label>
+                                <input class="form-control" name="srvc_type"type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="input-daterange">
+                                <label>Date</label>
+                                <input class="form-control" type="text" id="from_date" name="startDate" placeholder="Select start date" contenteditable="false">
+                                <label>to</label>
+                                <input class="form-control" type="text" id="to_date" name="endDate" placeholder="Select end date" contenteditable="false">
+                            </div>
+                        </div>
+                        <div class="col-sm-1"><input type="submit" class="btn btn-primary" value="Search"/></div>
+                    </div>
+                </form>
+            </div>
             <div class="row">
                 <div class="col-sm-1">
-                    <div class="dropdown">
+                    <div class="dropdown" style="margin-left:15px;">
                         <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Sort by
                             <span class="caret"></span>
                         </button>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu" id="type_sort" >
                             <li><a href="${page}sort=id">ID Order</a></li>
                             <li><a href="${page}sort=date">Pick-up date</a></li>
                         </ul>
@@ -86,7 +113,7 @@
                 </div>
                 <div class="col-sm-9"></div>
                 <div class="col-sm-2">
-                    <div class="btn-group" id="viewType">
+                    <div class="btn-group" id="viewType" style="margin-left:10px;">
                         <button type="button" class="btn btn-primary" value="detailed">detailed</button>
                         <button type="button" class="btn btn-primary" value="list">list</button>
                     </div>
@@ -95,16 +122,16 @@
 
             <div class="panel-body">
                 <c:forEach items="${orderList}" var="order" varStatus="i">
-                    <div id="history_list" class="panel panel-default">
-                        <div id="history_node" class="panel-heading">
+                    <div class="panel panel-default history_list">
+                        <div class="panel-heading history_node">
                             <div class="row">
                                 <div class="col-sm-4">
                                     <a><span class="glyphicon glyphicon-chevron-down"> </span>
                                         <b>№ ${order.id}</b></a>
                                 </div>
-                                <div class="col-sm-4"><fmt:formatDate pattern="dd/MM/yyyy kk:mm"
+                                <div class="col-sm-6"></div>
+                                <div class="col-sm-2"><fmt:formatDate pattern="dd/MM/yyyy kk:mm"
                                                                       value="${order.executionDate.time}"/></div>
-                                <div class="col-sm-4">${prices.get(i.index)}  UAH</div>
                             </div>
                         </div>
                         <div id="history_details" style="display:none;" class="panel-body">
