@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cars</title>
+    <title>Drivers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="authorisation form">
     <!-- Latest compiled and minified CSS -->
@@ -12,9 +12,6 @@
     <link rel="stylesheet" href="/pages/resources/project/css/admin.css">
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
-
-    <!--<script src="../resources/project/js/admin/car.js"></script>-->
-
 </head>
 
 <body>
@@ -34,9 +31,9 @@
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li><a href="#">Users</a></li>
-                <li><a href="#">Groups</a></li>
-                <li><a href="/admin/drivers">Drivers</a></li>
-                <li class="active"><a href="/admin/cars">Cars</a></li>
+                <li><a href="/admin/drivers">Groups</a></li>
+                <li class="active"><a href="#">Drivers</a></li>
+                <li><a href="/admin/cars">Cars</a></li>
                 <li><a href="#">Tariffs</a></li>
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Reports
@@ -55,13 +52,13 @@
     </div>
 </nav>
 
-<div class="modal fade centered-modal" id="create_car" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="create_driver" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">New Car</h4>
+                <h4 class="modal-title">New Driver</h4>
             </div>
             <div class="modal-body">
                 <div class="alert alert-danger alert-dismissible modal-error hidden">
@@ -69,33 +66,41 @@
                 </div>
                 <form>
                     <div class="form-group">
-                        <label for="car_model" class="control-label">Model:</label>
-                        <input onclick="" type="text" class="form-control" id="car_model">
+                        <label for="driver_first_name" class="control-label">First Name:</label>
+                        <input type="text" class="form-control" id="driver_first_name">
                     </div>
                     <div class="form-group">
-                        <label for="car_class" class="control-label">Class:</label>
-                        <select id="car_class" class="form-control">
-                            <option>Premium</option>
-                            <option selected="selected">Standard</option>
-                            <option>Cheep</option>
-                        </select>
+                        <label for="driver_last_name" class="control-label">Last Name:</label>
+                        <input type="text" class="form-control" id="driver_last_name">
                     </div>
-
-                    <div id="car_features_generated">
-                    </div>
-
-                    <%--<div class="checkbox">--%>
-                    <%--<label>--%>
-                    <%--<input id="car_smoke" type="checkbox" value="">--%>
-                    <%--Smoking in car--%>
-                    <%--</label>--%>
-                    <%--</div>--%>
                     <div class="form-group">
-                        <label for="car_driver" class="control-label">Driver:</label>
+                        <label for="driver_mail" class="control-label">E-Mail:</label>
+                        <input type="text" class="form-control" id="driver_mail">
+                    </div>
+                    <label class="radio-inline">
+                        <input type="radio" name="driver_gender" id="driver_gender_man" value="man" checked="checked">
+                        Man
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="driver_gender" id="driver_gender_woman" value="woman"> Woman
+                    </label>
+
+                    <div class="checkbox">
+                        <label>
+                            <input id="driver_smoke" type="checkbox" value="">
+                            Smoke
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="driver_license_serial" class="control-label">License Serial:</label>
+                        <input type="text" class="form-control" id="driver_license_serial">
+                    </div>
+                    <div class="form-group">
+                        <label for="car_driver" class="control-label">Car:</label>
                         <select id="car_driver" class="form-control">
-                            <option>No driver</option>
-                            <option>Igor Ivan</option>
-                            <option>Vasil Vasil</option>
+                            <option selected="selected">No Car</option>
+                            <option>Car 1</option>
+                            <option>Car 2</option>
                         </select>
                     </div>
                 </form>
@@ -103,7 +108,34 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <button type="button"
-                        onclick="createCar()" class="btn btn-success">Create Car
+                        onclick="createDriver()" class="btn btn-success">Create Driver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade centered-modal" id="remove_driver" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Remove driver account</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger alert-dismissible modal-error hidden">
+                    <p>Error-Message</p>
+                </div>
+                <form>
+                    <input type="hidden" name="car_id"/>
+                </form>
+                <p class="lead">Are you really want to remove this driver account?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger"
+                        onclick="">Remove
                 </button>
             </div>
         </div>
@@ -119,7 +151,7 @@
                 <h4 class="modal-title">Remove car</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger alert-dismissible modal-error">
+                <div class="alert alert-danger alert-dismissible modal-error hidden">
                     <p>Error-Message</p>
                 </div>
                 <form>
@@ -130,101 +162,82 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger"
-                        onclick="removeCar($('#remove_car').find('[name=\'car_id\']').val())">Remove Car
+                        onclick="">Remove Car
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade centered-modal" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Success</h4>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Successful operation</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-dismiss="modal">Ok</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="container" id="main_container">
-    <h2 class="sm-hr">Cars</h2>
+    <h2 class="sm-hr">Driver</h2>
 
     <div class="sm-hr">
-        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#create_car">
-            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New Car
+        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#create_driver">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New Driver
         </button>
         <form class="form-inline pull-right ">
             <div class="form-group">
                 <form method="get">
                     <label for="sortInput">Sort</label>
                     <select class="form-control input-sm" id="sortInput" name="order" onchange="form.submit()">
-                        <option value="model">by Model</option>
-                        <option value="driver">by Driver</option>
-                        <option value="driver">by Class</option>
+                        <option value="name">by Name</option>
+                        <option value="gender">by Gender</option>
+                        <option value="license">by license due</option>
                     </select>
                 </form>
             </div>
         </form>
     </div>
     <div class="table-responsive">
-        <table class="table table-striped table-hover">
+        <table class="table table-striped table-hover ">
             <thead>
             <tr>
                 <th>#</th>
-                <th>Model</th>
-                <th>Category</th>
-                <th>Class</th>
-                <%--Car features start--%>
-                <c:forEach var="feauture" items="${carFeatures}">
-                    <th>${feauture.name}</th>
-                </c:forEach>
-                <%--Car features end--%>
+                <th>Last Name</th>
+                <th>First Name</th>
+                <th>E-mail</th>
+                <th>Phone</th>
+                <th>Sex</th>
+                <%--&lt;%&ndash;Driver features start&ndash;%&gt;--%>
+                <%--<c:forEach var="feauture" items="${driverFeatures}">--%>
+                    <%--<th>${feauture.name}</th>--%>
+                <%--</c:forEach>--%>
+                <%--&lt;%&ndash;Driver features end&ndash;%&gt;--%>
                 <th>Enabled</th>
-                <th>Driver</th>
-                <th>Manage</th>
+                <th>At work</th>
+                <th>Car model</th>
+                <th>license</th>
             </tr>
             </thead>
             <tbody>
             <%int num = ((Page) request.getAttribute("page")).getSize() * ((Page) request.getAttribute("page")).getNumber();%>
-            <c:forEach var="car" items="${page.content}">
-                <tr>
+            <c:forEach var="driver" items="${page.content}">
+                <tr onclick="openDriverInfo(event,${driver.id})">
                     <td>
                         <%=++num%>
                     </td>
-                    <td car-id="${car.carId}">${car.model}</td>
-                    <td>${car.category}</td>
-                    <td>${car.carClass.className}</td>
-                    <c:forEach var="feature" items="${carFeatures}">
-                        <td>
-                        <span class="glyphicon <c:choose><c:when test="${car.features.contains(feature)}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
-                              aria-hidden="true"></span>
-                        </td>
-                    </c:forEach>
+                    <td>${driver.lastName}</td>
+                    <td>${driver.firstName}</td>
+                    <td><a href="mailto:#">${driver.email}</a></td>
+                    <td>${driver.phoneNumber}</td>
+                    <td>${driver.sex}</td>
+                    <%--<c:forEach var="feature" items="${driverFeatures}">--%>
+                        <%--<td>--%>
+                        <%--<span class="glyphicon <c:choose><c:when test="${driver.features.contains(feature)}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"--%>
+                              <%--aria-hidden="true"></span>--%>
+                        <%--</td>--%>
+                    <%--</c:forEach>--%>
                     <td>
-                        <span class="glyphicon <c:choose><c:when test="${car.isEnabled()}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
+                        <span class="glyphicon <c:choose><c:when test="${driver.isEnabled()}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
                               aria-hidden="true"></span>
                     </td>
-                    <td driver-id="${car.driver.id}"><a href="">${car.driver.lastName} ${car.driver.firstName}</a></td>
                     <td>
-                        <button title="Edit" type="button" onclick="startEditCar(event)" data-toggle="modal"
-                                data-target="#"
-                                data-car-id="${car.carId}" class="btn btn-default btn-xs" aria-label="Left Align">
-                            <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-                        </button>
-                        <button title="Remove" type="button" data-toggle="modal" data-target="#remove_car"
-                                data-car-id="${car.carId}" class="btn btn-default btn-xs" aria-label="Left Align">
-                            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                        </button>
+                        <span class="glyphicon <c:choose><c:when test="${driver.isAtWork()}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
+                              aria-hidden="true"></span>
                     </td>
+                    <td>${driver.car.model}</td>
+                    <td>${driver.license}</td>
                 </tr>
             </c:forEach>
             </tbody>
@@ -233,17 +246,17 @@
         <nav align="center">
             <ul class="pagination">
                 <li <c:if test="${page.isFirst()}">class="disabled" onclick="return false"</c:if>>
-                    <a href="/admin/cars?page=${page.number-1}" title="Previous">
+                    <a href="/admin/drivers?page=${page.number-1}" title="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
                 <c:forEach var="elem" items="${pagination}">
                     <li <c:if test="${page.number == elem}">class="active"</c:if>>
-                        <a href="/admin/cars?page=${elem}">${elem+1}</a>
+                        <a href="/admin/drivers?page=${elem}">${elem+1}</a>
                     </li>
                 </c:forEach>
                 <li <c:if test="${page.isLast()}">class="disabled" onclick="return false"</c:if>>
-                    <a href="/admin/cars?page=${page.number+1}" title="Next">
+                    <a href="/admin/drivers?page=${page.number+1}" title="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
                 </li>
@@ -257,7 +270,7 @@
         <p>&#169 TeamD 2015</p>
     </footer>
 </div>
-<script type="application/javascript" src="/pages/resources/project/js/admin/car.js"></script>
+<script type="application/javascript" src="/pages/resources/project/js/admin/driver.js"></script>
 </body>
 
 </html>

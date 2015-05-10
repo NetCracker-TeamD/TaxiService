@@ -1,24 +1,26 @@
 package com.teamd.taxi.models.admin;
 
 import com.teamd.taxi.controllers.admin.orders.CarOrder;
+import com.teamd.taxi.controllers.admin.orders.DriverOrder;
+import com.teamd.taxi.entity.Driver;
 
 import javax.validation.constraints.Min;
 
 /**
- * Created on 04-May-15.
+ * Created on 07-May-15.
  *
  * @author Nazar Dub
  */
-public class CarsPageModel {
+public class DriverPageModel {
     private static final Integer DEFAULT_PAGE = 0;
-    private static final CarOrder DEFAULT_ORDER = CarOrder.MODEL;
+    private static final DriverOrder DEFAULT_ORDER = DriverOrder.LAST_NAME;
 
     @Min(0)
     private Integer page = DEFAULT_PAGE;
 
-    private CarOrder order = DEFAULT_ORDER;
+    private DriverOrder order = DEFAULT_ORDER;
 
-    public CarsPageModel() {
+    public DriverPageModel() {
     }
 
     public Integer getPage() {
@@ -30,11 +32,11 @@ public class CarsPageModel {
     }
 
     public String getOrder() {
-        return order.toString().toLowerCase();
+        return order.getOrder();
     }
 
     public void setOrder(String order) {
-        this.order = CarOrder.valueOf(order.toUpperCase());
+        this.order = DriverOrder.valueOf(order.toUpperCase());
     }
 
     @Override
