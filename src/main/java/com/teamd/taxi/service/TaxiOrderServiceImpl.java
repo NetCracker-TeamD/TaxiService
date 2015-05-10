@@ -42,11 +42,11 @@ public class TaxiOrderServiceImpl implements TaxiOrderService {
 
     @Override
     @Transactional
-    public Page<TaxiOrder> findTaxiOrderByDriver(int id, Pageable pageable) {
+    public Page<TaxiOrder> findTaxiOrderByDriver(Specification<TaxiOrder> specs, Pageable pageable) {
         if (orderRepository == null) {
             logger.error("orderRepository is null");
         }
-        Page<TaxiOrder> to = orderRepository.findByDriverId(id, pageable);
+        Page<TaxiOrder> to = orderRepository.findAll(specs, pageable);
         for (TaxiOrder order : to.getContent()) {
             Hibernate.initialize(order.getFeatures());
             Hibernate.initialize(order.getRoutes());
