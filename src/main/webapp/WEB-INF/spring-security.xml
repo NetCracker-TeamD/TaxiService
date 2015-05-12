@@ -40,12 +40,14 @@
         <beans:property name="userDetailsService">
             <beans:bean class="com.teamd.taxi.authentication.driver.DriverDetailsService"/>
         </beans:property>
+        <beans:property name="passwordEncoder" ref="encoder"/>
     </beans:bean>
 
     <beans:bean id="userAuthenticationProvider" class="com.teamd.taxi.authentication.user.UserAuthenticationProvider">
         <beans:property name="userDetailsService">
             <beans:bean class="com.teamd.taxi.authentication.user.MyUserDetailsService"/>
         </beans:property>
+        <beans:property name="passwordEncoder" ref="encoder"/>
     </beans:bean>
 
 
@@ -53,4 +55,7 @@
         <authentication-provider ref="driverAuthenticationProvider"/>
         <authentication-provider ref="userAuthenticationProvider"/>
     </authentication-manager>
+
+    <beans:bean id="encoder"
+                class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
 </beans:beans>
