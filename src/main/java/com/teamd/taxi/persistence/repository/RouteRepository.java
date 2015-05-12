@@ -14,6 +14,6 @@ import java.util.List;
 public interface RouteRepository extends PagingAndSortingRepository<Route, Long> {
 
     @Query("SELECT r FROM Route r WHERE r.order.id = :id AND r.status in :status")
-    List<Route> findFreeRouteByInOrder(@Param("id")long id, @Param("status")List<RouteStatus> statusList);
+    List<Route> findFreeRouteByInOrder(@Param("id") long id, @Param("status") List<RouteStatus> statusList);
 
 }

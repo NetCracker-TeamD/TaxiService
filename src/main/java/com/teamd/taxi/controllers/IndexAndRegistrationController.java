@@ -16,18 +16,23 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import org.apache.log4j.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Controller
@@ -62,15 +67,25 @@ public class IndexAndRegistrationController {
     }
 
     @RequestMapping("/register")
-    public String registerNewCustomer(
+    @ResponseBody
+    public Map<String, Object> registerNewCustomer(
             @Valid RegistrationForm form, BindingResult errors) {
+        Map<String, Object> retValue = new HashMap<>();
         if (errors.hasErrors()) {
-            List<ObjectError> errorList = errors.getAllErrors();
-            logger.info("RegisterForm validation errors:");
-            for (ObjectError objectError : errorList) {
-                logger.info(objectError.toString());
+            logger.info("RegisterForm validation errors");
+            Map<String, List<String>> fieldErrors = new HashMap<>();
+            List<FieldError> fieldErrorList = errors.getFieldErrors();
+            for (FieldError fieldError : fieldErrorList) {
+                String field = fieldError.getField();
+                List<String> messages = fieldErrors.get(field);
+                if (messages == null) {
+                    messages = new ArrayList<>();
+                    fieldErrors.put(field, messages);
+                }
+                messages.add(fieldError.getDefaultMessage());
             }
-            //TODO: report errors
+            retValue.put("fieldErrors", fieldErrors);
+            retValue.put("success", false);
         } else {
             User user = new User();
             user.setFirstName(form.getFirstName());
@@ -80,9 +95,9 @@ public class IndexAndRegistrationController {
             user.setUserPassword(form.getPassword());
 
             userService.registerNewCustomerUser(user);
+            retValue.put("success", true);
         }
-        //TODO: return something normal
-        return "coderesolving";
+        return retValue;
     }
 
     @RequestMapping("/confirm/{confirmationCode}")

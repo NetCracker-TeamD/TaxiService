@@ -36,7 +36,7 @@ public class QueueController {
     //  RouteStatus.COMPLETED видалити, в базі не було даних з RouteStatus.QUEUED, RouteStatus.UPDATED
     private List<RouteStatus> statusList = Arrays.asList(RouteStatus.COMPLETED,
             RouteStatus.QUEUED,
-            RouteStatus.UPDATED);
+            RouteStatus.UPDATING);
 
     @Autowired
     private TaxiOrderService1 taxiOrderService1;

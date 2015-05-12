@@ -5,11 +5,8 @@
  */
 package com.teamd.taxi.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import java.io.Serializable;
 import java.util.Calendar;
-import java.util.Date;
 import javax.persistence.*;
 
 /**
@@ -39,8 +36,8 @@ public class Route implements Serializable {
     @Column(name = "total_price")
     private Float totalPrice;
 
-    @Column(name = "is_late")
-    private Boolean isLate;
+    @Column(name = "customer_is_late")
+    private Boolean customerLate;
 
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
@@ -152,12 +149,12 @@ public class Route implements Serializable {
         this.driver = driverId;
     }
 
-    public Boolean getIsLate() {
-        return isLate;
+    public Boolean isCustomerLate() {
+        return customerLate;
     }
 
-    public void setIsLate(Boolean customerIsLate) {
-        this.isLate = customerIsLate;
+    public void setCustomerLate(Boolean customerIsLate) {
+        this.customerLate = customerIsLate;
     }
 
     @Override
