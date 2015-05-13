@@ -33,10 +33,6 @@ public class CarsPageModel {
         return order.toString().toLowerCase();
     }
 
-//    public void setOrder(CarOrder order) {
-//        this.order = order;
-//    }
-
     public void setOrder(String order) {
         this.order = CarOrder.valueOf(order.toUpperCase());
     }

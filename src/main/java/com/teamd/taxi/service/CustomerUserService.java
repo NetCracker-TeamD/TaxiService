@@ -8,6 +8,7 @@ import com.teamd.taxi.service.email.EmailService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Random;
@@ -27,6 +28,10 @@ public class CustomerUserService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private PasswordEncoder encoder;
+
+
     public User registerNewCustomerUser(User newUser) {
         //create confirmation code for user and attach it to the entity
         newUser.setConfirmed(false);
@@ -39,6 +44,7 @@ public class CustomerUserService {
         } while (userRepository.findByConfirmationCode(confirmationCode).size() > 0);
         newUser.setConfirmationCode(confirmationCode);
         newUser.setUserRole(UserRole.ROLE_CUSTOMER);
+        newUser.setUserPassword(encoder.encode(newUser.getUserPassword()));
         //TODO:send notification email
         //save it
         newUser = userRepository.save(newUser);

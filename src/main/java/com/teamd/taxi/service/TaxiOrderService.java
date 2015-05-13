@@ -14,7 +14,7 @@ import java.util.List;
 public interface TaxiOrderService {
     Page<TaxiOrder> findTaxiOrderByUser(long id, Pageable pageable);
 
-    Page<TaxiOrder> findTaxiOrderByDriver(int id, Pageable pageable);
+    Page<TaxiOrder> findTaxiOrderByDriver(Specification<TaxiOrder> specs, Pageable pageable);
 
     Page<TaxiOrder> findAll(Pageable pageable);
 

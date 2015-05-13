@@ -1,7 +1,6 @@
 <%@ page import="org.springframework.data.domain.Page" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -36,8 +35,8 @@
             <ul class="nav navbar-nav">
                 <li><a href="#">Users</a></li>
                 <li><a href="#">Groups</a></li>
-                <li><a href="#">Drivers</a></li>
-                <li class="active"><a href="#">Cars</a></li>
+                <li><a href="/admin/drivers">Drivers</a></li>
+                <li class="active"><a href="/admin/cars">Cars</a></li>
                 <li><a href="#">Tariffs</a></li>
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Reports
@@ -86,17 +85,17 @@
                     </div>
 
                     <%--<div class="checkbox">--%>
-                        <%--<label>--%>
-                            <%--<input id="car_smoke" type="checkbox" value="">--%>
-                            <%--Smoking in car--%>
-                        <%--</label>--%>
+                    <%--<label>--%>
+                    <%--<input id="car_smoke" type="checkbox" value="">--%>
+                    <%--Smoking in car--%>
+                    <%--</label>--%>
                     <%--</div>--%>
                     <div class="form-group">
                         <label for="car_driver" class="control-label">Driver:</label>
                         <select id="car_driver" class="form-control">
                             <option>No driver</option>
                             <option>Igor Ivan</option>
-                            <option>Vasil Vasil </option>
+                            <option>Vasil Vasil</option>
                         </select>
                     </div>
                 </form>
@@ -168,7 +167,7 @@
                 <form method="get">
                     <label for="sortInput">Sort</label>
                     <select class="form-control input-sm" id="sortInput" name="order" onchange="form.submit()">
-                        <option value="modle">by Model</option>
+                        <option value="model">by Model</option>
                         <option value="driver">by Driver</option>
                         <option value="driver">by Class</option>
                     </select>
@@ -198,14 +197,15 @@
             <%int num = ((Page) request.getAttribute("page")).getSize() * ((Page) request.getAttribute("page")).getNumber();%>
             <c:forEach var="car" items="${page.content}">
                 <tr>
-                    <td><%=++num%>
+                    <td>
+                        <%=++num%>
                     </td>
                     <td car-id="${car.carId}">${car.model}</td>
                     <td>${car.category}</td>
                     <td>${car.carClass.className}</td>
-                    <c:forEach var="feature1" items="${carFeatures}">
+                    <c:forEach var="feature" items="${carFeatures}">
                         <td>
-                        <span class="glyphicon <c:choose><c:when test="${car.features.contains(feature1)}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
+                        <span class="glyphicon <c:choose><c:when test="${car.features.contains(feature)}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
                               aria-hidden="true"></span>
                         </td>
                     </c:forEach>
