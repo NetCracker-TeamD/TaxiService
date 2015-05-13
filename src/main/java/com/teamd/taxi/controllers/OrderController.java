@@ -10,13 +10,16 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class OrderController {
@@ -42,6 +45,17 @@ public class OrderController {
         );
         retVal.put("services", serviceTypeService.findAll());
         return gson.toJson(retVal);
+    }
+
+    @RequestMapping("/order")
+    public String sendOrderFormPage() {
+        return "order-form";
+    }
+
+    @RequestMapping("/makeOrder")
+    @ResponseBody
+    public Map<String, Object> makeOrder(@RequestParam MultiValueMap<String, String> params) {
+        return null;
     }
 
     private static class ServiceTypeSerializer implements JsonSerializer<ServiceType> {

@@ -75,14 +75,11 @@ public class CarAdminController {
     @ResponseBody
     public AdminResponseModel<String> removeCar(@RequestParam(value = "id") Integer id) {
         AdminResponseModel<String> response = new AdminResponseModel<>();
-        System.out.println("In car delete with id = " + id);
         try {
             carService.removeCar(id);
-            response.setResult(AdminResponseModel.RESULT_SUCCESS);
+            response.setResultSuccess();
             response.setContent(env.getRequiredProperty(MESSAGE_SUCCESS_DELETE));
         } catch (EmptyResultDataAccessException e) {
-            //Error
-            response.setResult(AdminResponseModel.RESULT_FAILURE);
             response.setContent(env.getRequiredProperty(MESSAGE_CAR_ID_NOT_EXIST));
         }
         return response;

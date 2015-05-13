@@ -2,36 +2,23 @@ package com.teamd.taxi.controllers.driver;
 
 import com.google.gson.*;
 import com.teamd.taxi.entity.*;
-import com.teamd.taxi.models.AssembledOrder;
-import com.teamd.taxi.models.AssembledRoute;
-import com.teamd.taxi.models.PageDetails;
-import com.teamd.taxi.models.PagingLink;
-import com.teamd.taxi.service.*;
+import com.teamd.taxi.service.DriverService;
+import com.teamd.taxi.service.ServiceTypeService;
+import com.teamd.taxi.service.TaxiOrderService1;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.domain.Specifications;
-import org.springframework.http.MediaType;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.bind.annotation.SessionAttributes;
 
-import javax.persistence.criteria.*;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.Writer;
-import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 import static org.springframework.data.jpa.domain.Specifications.where;
@@ -89,6 +76,9 @@ public class QueueController {
         if (additional != null) {
             spec = spec.and(additional);
         }
+        pageableOrder = new PageRequest(curPage, PAGE_SIZE, Sort.Direction.ASC, SORT_BY);
+        serviceTypes = serviceTypeService.findAll();
+        Page<TaxiOrder> orders = taxiOrderService1.getFreeOrder(statusList, pageableOrder);
 
         Page<TaxiOrder> orders = taxiOrderService.findAll(spec, pageable);
         List<TaxiOrder> content = orders.getContent();

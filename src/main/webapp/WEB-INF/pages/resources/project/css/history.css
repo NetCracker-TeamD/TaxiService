@@ -5,3 +5,7 @@
 .history_node:hover {
     background: #dadada;
 }
+.map-panel{
+    cursor: pointer;
+}
+#viewType button:focus { outline: none; }
