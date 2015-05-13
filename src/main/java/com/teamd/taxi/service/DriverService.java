@@ -9,6 +9,7 @@ import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.lang.reflect.Array;
@@ -20,6 +21,14 @@ import java.util.*;
 @Service
 public class DriverService {
 
+    private static final int DRIVER_PASS_LENGTH = 10;
+
+    @Autowired
+    private PasswordEncoder encoder;
+
+    @Autowired
+    private RandomStringGenerator stringGenerator;
+
     @Autowired
     private DriverRepository driverRepository;
 
@@ -28,7 +37,7 @@ public class DriverService {
 
     @Transactional
     public Driver getDriver(int id) {
-        Driver driver = driverRepository.findById(id);
+        Driver driver = driverRepository.findOne(id);
         Hibernate.initialize(driver.getFeatures());
         Hibernate.initialize(driver.getRoutes());
         return driver;

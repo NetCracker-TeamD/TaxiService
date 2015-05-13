@@ -28,8 +28,4 @@ public class RandomStringGenerator {
         return builder.toString();
     }
 
-    public static void main(String[] args) {
-
-    }
-
 }
