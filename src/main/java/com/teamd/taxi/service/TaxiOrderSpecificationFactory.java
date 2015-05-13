@@ -1,25 +1,21 @@
 package com.teamd.taxi.service;
 
 
+import com.teamd.taxi.entity.*;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import com.teamd.taxi.entity.Driver;
-import com.teamd.taxi.entity.RouteStatus;
-import com.teamd.taxi.entity.TaxiOrder;
-import com.teamd.taxi.entity.Route;
 import org.apache.log4j.Logger;
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.persistence.criteria.*;
 import java.util.Calendar;
+import java.util.List;
 
 @Service
 public class TaxiOrderSpecificationFactory {
-
-
-    @Autowired
-    TaxiOrderRepository orderRepository;
 
     public Specification<TaxiOrder> registrationDateLessThan(final Calendar calendar) {
         return new Specification<TaxiOrder>() {
@@ -114,14 +110,5 @@ public class TaxiOrderSpecificationFactory {
                 return cb.isTrue(service.<Integer>get("id").in(serviceTypeIds));
             }
         };
-    }
-
-    @Transactional
-    public TaxiOrder findOneById(long id) {
-        TaxiOrder order = orderRepository.findOne(id);
-        Hibernate.initialize(order.getFeatures());
-        Hibernate.initialize(order.getRoutes());
-        Hibernate.initialize(order.getServiceType());
-        return order;
     }
 }

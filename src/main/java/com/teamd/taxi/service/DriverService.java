@@ -1,9 +1,18 @@
 package com.teamd.taxi.service;
 
 import com.teamd.taxi.entity.Driver;
+import com.teamd.taxi.entity.Feature;
+import com.teamd.taxi.entity.FeatureType;
 import com.teamd.taxi.persistence.repository.DriverRepository;
+import com.teamd.taxi.persistence.repository.FeatureRepository;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Created by Іван on 06.05.2015.
@@ -16,13 +25,14 @@ public class DriverService {
 
     @Autowired
     private FeatureRepository featureRepository;
-    
-    public Driver getDriver(int id){
-        Driver driver = driverRepository.findById(id);
+
+    public Driver getDriver(int id) {
+        Driver driver = driverRepository.findOne(id);
         Hibernate.initialize(driver.getFeatures());
         Hibernate.initialize(driver.getRoutes());
         return driver;
     }
+
     @Transactional
     public Page<Driver> getDrivers(Pageable pageable) {
         Page<Driver> page = driverRepository.findAll(pageable);

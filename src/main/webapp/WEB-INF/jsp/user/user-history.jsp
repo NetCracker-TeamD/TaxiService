@@ -1,12 +1,7 @@
-<%@ page import="com.teamd.taxi.entity.Route" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
          pageEncoding="UTF-8" %>
-<%@ taglib prefix="fmt"
-           uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="c"
            uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="form"
-           uri="http://www.springframework.org/tags/form" %>
 <html lang="en">
 <head>
     <title>History</title>
@@ -21,8 +16,9 @@
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="/pages/resources/jquery/jquery-ui.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
-    <script src="/pages/resources/project/js/history/history.js" type="text/javascript"></script>
+
     <script src="/pages/resources/jsrenderer/jsrender.min.js/"></script>
+    <script src="/pages/resources/project/js/paging.js" type="text/javascript"></script>
     <script src="/pages/resources/project/js/user/user-history.js" type="text/javascript"></script>
     <script>
         var startState = {
@@ -135,6 +131,10 @@
                 </div>
             </div>
         </div>
+
+
+
+
     </script>
 </head>
 <body>
