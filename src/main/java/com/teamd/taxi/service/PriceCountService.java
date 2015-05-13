@@ -6,6 +6,7 @@ import com.teamd.taxi.exception.ItemNotFoundException;
 import com.teamd.taxi.persistence.repository.InfoRepository;
 import com.teamd.taxi.persistence.repository.RouteRepository;
 import com.teamd.taxi.persistence.repository.TariffRepository;
+import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,9 @@ public class PriceCountService {
 
     @Autowired
     private InfoRepository infoRepository;
+
+    @Autowired
+    private TaxiOrderRepository orderRepository;
 
     @Transactional
     private Float countRoutePrice(
@@ -173,6 +177,85 @@ public class PriceCountService {
         List<TariffByTime> timeOfDayTariffs = tariffRepository.findByTariffType(TariffType.TIME_OF_DAY);
         return countRoutePrice(route, dayOfYearTariffs, dayOfWeekTariffs, timeOfDayTariffs)
                 + countStartIdlePrice(route);
+    }
+
+    private List<Route> reorderAndFilterRoutes(List<Route> original) {
+        LinkedList<Route> routes = new LinkedList<>(original);
+        LinkedList<Route> reordered = new LinkedList<>();
+        Route globalPivot = routes.pollFirst();
+        reordered.add(globalPivot);
+        Route pivot = globalPivot;
+        boolean found = false;
+        do {
+            for (Iterator<Route> it = routes.iterator(); it.hasNext(); ) {
+                Route element = it.next();
+                if (element.getSourceAddress().equals(pivot.getDestinationAddress())) {
+                    reordered.add(element);
+                    pivot = element;
+                    it.remove();
+                    found = true;
+                    break;
+                }
+            }
+        } while (found);
+        pivot = globalPivot;
+        found = false;
+        do {
+            for (Iterator<Route> it = routes.iterator(); it.hasNext(); ) {
+                Route element = it.next();
+                if (element.getDestinationAddress().equals(pivot.getSourceAddress())) {
+                    reordered.addFirst(element);
+                    pivot = element;
+                    it.remove();
+                    found = true;
+                    break;
+                }
+            }
+        } while (found);
+        routes = reordered;
+        //відкидаємо непотрібні
+        for (Iterator<Route> routeIterator = routes.iterator(); routeIterator.hasNext(); ) {
+            Route next = routeIterator.next();
+            if (next.getStatus() != RouteStatus.COMPLETED) {
+                routeIterator.remove();
+            }
+        }
+        return routes;
+    }
+
+    @Transactional
+    public Float countPriceForChainOrder(long orderId, long driverId) throws ItemNotFoundException, InfoNotFoundException {
+        TaxiOrder order = orderRepository.findOne(orderId);
+        if (order == null) {
+            throw new ItemNotFoundException();
+        }
+        ServiceType serviceType = order.getServiceType();
+        if (!serviceType.isDestinationLocationsChain()) {
+            throw new RuntimeException("does not make sense");
+        }
+        List<Route> routes = routeRepository.findByOrderAndDriver(orderId, driverId);
+        routes = reorderAndFilterRoutes(routes);
+        if (routes.isEmpty()) {
+            return 0f;
+        }
+        //рахуємо
+        List<TariffByTime> dayOfYearTariffs = tariffRepository.findByTariffType(TariffType.DAY_OF_YEAR);
+        List<TariffByTime> dayOfWeekTariffs = tariffRepository.findByTariffType(TariffType.DAY_OF_WEEK);
+        List<TariffByTime> timeOfDayTariffs = tariffRepository.findByTariffType(TariffType.TIME_OF_DAY);
+        float price = 0;
+        //ціна безпосередньо за маршрути
+        for (Route route : routes) {
+            price += countRoutePrice(route, dayOfYearTariffs, dayOfWeekTariffs, timeOfDayTariffs);
+        }
+        //додаємо ціну за простій
+        price += countStartIdlePrice(routes.get(0));
+        float idleCoeff = order.getCarClass().getIdlePriceCoefficient();
+        for (int i = 1; i < routes.size(); i++) {
+            long difference = routes.get(i).getStartTime().getTimeInMillis()
+                    - routes.get(i - 1).getCompletionTime().getTimeInMillis();
+            price += idleCoeff * (difference / (1000 * 60.0));
+        }
+        return price;
     }
 
     private static class TimeCoeffPair {

@@ -20,4 +20,7 @@ public interface RouteRepository extends JpaRepository<Route, Long>, CrudReposit
             "(com.teamd.taxi.entity.RouteStatus.QUEUED) ")
     List<Route> findFreeRouteByInOrder(@Param("id") long id);
 
+
+    @Query("SELECT r FROM Route r WHERE r.order.id = :orderId AND r.driver.id = :driverId")
+    List<Route> findByOrderAndDriver(@Param("orderId") long orderId, @Param("driverId") long driverId);
 }
