@@ -20,7 +20,8 @@ public class CustomerUserService {
 
     private static int CONFIRMATION_CODE_LENGTH = 60;
 
-    private static String CONFIRMATION_CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    @Autowired
+    private RandomStringGenerator stringGenerator;
 
     @Autowired
     private UserRepository userRepository;
@@ -40,7 +41,7 @@ public class CustomerUserService {
         //probably, only one generation will be performed,
         //because of huge amount (36^60 ~ 2 ^ 310) of possible codes
         do {
-            confirmationCode = generateConfirmationCode();
+            confirmationCode = stringGenerator.generateString(CONFIRMATION_CODE_LENGTH);
         } while (userRepository.findByConfirmationCode(confirmationCode).size() > 0);
         newUser.setConfirmationCode(confirmationCode);
         newUser.setUserRole(UserRole.ROLE_CUSTOMER);
@@ -69,16 +70,5 @@ public class CustomerUserService {
             logger.error("More than one user have confirmation code: " + confirmationCode);
         }
         return false;
-    }
-
-    private String generateConfirmationCode() {
-        Random random = new Random();
-        StringBuilder builder = new StringBuilder(CONFIRMATION_CODE_LENGTH);
-        int alphabetLength = CONFIRMATION_CODE_ALPHABET.length();
-        for (int i = 0; i < CONFIRMATION_CODE_LENGTH; i++) {
-            int charIndex = random.nextInt(alphabetLength);
-            builder.append(CONFIRMATION_CODE_ALPHABET.charAt(charIndex));
-        }
-        return builder.toString();
     }
 }

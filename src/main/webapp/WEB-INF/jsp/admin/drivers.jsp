@@ -61,7 +61,7 @@
                 <h4 class="modal-title">New Driver</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger alert-dismissible modal-error hidden">
+                <div class="alert alert-danger alert-dismissible modal-error" onclick="hideErrorModal($('#create_driver'))">
                     <p>Error-Message</p>
                 </div>
                 <form>
@@ -77,20 +77,42 @@
                         <label for="driver_mail" class="control-label">E-Mail:</label>
                         <input type="text" class="form-control" id="driver_mail">
                     </div>
+                    <div class="form-group">
+                        <label for="driver_phone" class="control-label">Phone Number:</label>
+                        <input type="text" class="form-control" id="driver_phone">
+                    </div>
                     <label class="radio-inline">
-                        <input type="radio" name="driver_gender" id="driver_gender_man" value="man" checked="checked">
-                        Man
+                        <input type="radio" name="driver_gender" id="driver_sex_male" value="MALE" checked="checked">
+                        Male
                     </label>
                     <label class="radio-inline">
-                        <input type="radio" name="driver_gender" id="driver_gender_woman" value="woman"> Woman
+                        <input type="radio" name="driver_gender" id="driver_sex_female" value="FEMALE"> Female
                     </label>
 
                     <div class="checkbox">
                         <label>
-                            <input id="driver_smoke" type="checkbox" value="">
-                            Smoke
+                            <input id="driver_enabled" type="checkbox" checked="checked">
+                            Enabled
                         </label>
                     </div>
+                    <div class="checkbox">
+                        <label>
+                            <input id="driver_at_work" type="checkbox" checked="checked">
+                            At Work
+                        </label>
+                    </div>
+                    <hr/>
+                    <%--Driver features start--%>
+                    <c:forEach var="feauture" items="${driverFeatures}">
+                        <div class="checkbox">
+                            <label>
+                                <input  class="feature" type="checkbox" value="${feauture.id}">
+                                    ${feauture.name}
+                            </label>
+                        </div>
+                    </c:forEach>
+                    <%--Driver features end--%>
+                    <hr/>
                     <div class="form-group">
                         <label for="driver_license_serial" class="control-label">License Serial:</label>
                         <input type="text" class="form-control" id="driver_license_serial">
@@ -128,14 +150,14 @@
                     <p>Error-Message</p>
                 </div>
                 <form>
-                    <input type="hidden" name="car_id"/>
+                    <input type="hidden" name="driver_id"/>
                 </form>
                 <p class="lead">Are you really want to remove this driver account?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger"
-                        onclick="">Remove
+                        onclick="removeDriver($('#remove_driver').find('[name=\'driver_id\']').val())">Remove Account
                 </button>
             </div>
         </div>
@@ -151,7 +173,7 @@
                 <h4 class="modal-title">Remove car</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger alert-dismissible modal-error hidden">
+                <div class="alert alert-danger alert-dismissible modal-error">
                     <p>Error-Message</p>
                 </div>
                 <form>
@@ -162,8 +184,26 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger"
-                        onclick="">Remove Car
+                <%--onclick="removeCar($('#remove_car').find('[name=\'car_id\']').val())"--%>>Remove Car
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade centered-modal" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Success</h4>
+            </div>
+            <div class="modal-body">
+                <p class="lead">Successful operation</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Ok</button>
             </div>
         </div>
     </div>
@@ -199,11 +239,6 @@
                 <th>E-mail</th>
                 <th>Phone</th>
                 <th>Sex</th>
-                <%--&lt;%&ndash;Driver features start&ndash;%&gt;--%>
-                <%--<c:forEach var="feauture" items="${driverFeatures}">--%>
-                    <%--<th>${feauture.name}</th>--%>
-                <%--</c:forEach>--%>
-                <%--&lt;%&ndash;Driver features end&ndash;%&gt;--%>
                 <th>Enabled</th>
                 <th>At work</th>
                 <th>Car model</th>
@@ -217,17 +252,17 @@
                     <td>
                         <%=++num%>
                     </td>
-                    <td>${driver.lastName}</td>
+                    <td driver-id="${driver.id}">${driver.lastName}</td>
                     <td>${driver.firstName}</td>
                     <td><a href="mailto:#">${driver.email}</a></td>
                     <td>${driver.phoneNumber}</td>
                     <td>${driver.sex}</td>
-                    <%--<c:forEach var="feature" items="${driverFeatures}">--%>
+                        <%--<c:forEach var="feature" items="${driverFeatures}">--%>
                         <%--<td>--%>
                         <%--<span class="glyphicon <c:choose><c:when test="${driver.features.contains(feature)}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"--%>
-                              <%--aria-hidden="true"></span>--%>
+                        <%--aria-hidden="true"></span>--%>
                         <%--</td>--%>
-                    <%--</c:forEach>--%>
+                        <%--</c:forEach>--%>
                     <td>
                         <span class="glyphicon <c:choose><c:when test="${driver.isEnabled()}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
                               aria-hidden="true"></span>
