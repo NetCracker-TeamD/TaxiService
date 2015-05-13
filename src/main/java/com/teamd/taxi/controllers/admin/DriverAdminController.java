@@ -7,19 +7,23 @@ import com.google.gson.stream.JsonWriter;
 import com.teamd.taxi.entity.Car;
 import com.teamd.taxi.entity.Driver;
 import com.teamd.taxi.entity.Feature;
+import com.teamd.taxi.models.admin.AdminResponseModel;
 import com.teamd.taxi.models.admin.DriverInfoResponseModel;
+import com.teamd.taxi.models.admin.DriverModel;
 import com.teamd.taxi.models.admin.DriverPageModel;
 import com.teamd.taxi.service.AdminPagesUtil;
 import com.teamd.taxi.service.CarService;
 import com.teamd.taxi.service.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,8 +48,11 @@ public class DriverAdminController {
     private static final int DEFAULT_NUM_OF_RECORDS_ON_PAGE = 20;
     private static final Sort.Direction DEFAULT_SORT_DIRECTION = Sort.Direction.ASC;
 
-//    private static final String MESSAGE_CAR_ID_NOT_EXIST = "admin.car.delete.nonexistent";
-//    private static final String MESSAGE_SUCCESS_DELETE = "admin.car.delete.success";
+    private static final String MESSAGE_CAR_ID_NOT_EXIST = "admin.car.delete.nonexistent";
+    private static final String MESSAGE_CAR_SUCCESS_DELETE = "admin.car.delete.success";
+    private static final String MESSAGE_DRIVER_ID_NOT_EXIST = "admin.driver.delete.nonexistent";
+    private static final String MESSAGE_DRIVER_SUCCESS_DELETE = "admin.driver.delete.success";
+    private static final String MESSAGE_DRIVER_SUCCESS_CREATE = "admin.driver.create.success";
 
     @Resource
     private Environment env;
@@ -97,6 +104,41 @@ public class DriverAdminController {
         response.setContent(driver);
 
         return gson.toJson(response);
+    }
+
+    //URL example: driver-delete?id=5
+    @RequestMapping(value = "/driver-delete", method = RequestMethod.POST)
+    @ResponseBody
+    public AdminResponseModel<String> removeDriver(@RequestParam(value = "id") Integer id) {
+        AdminResponseModel<String> response = new AdminResponseModel<>();
+        try {
+            driverService.removeDriver(id);
+            response.setResultSuccess();
+            response.setContent(env.getRequiredProperty(MESSAGE_DRIVER_SUCCESS_DELETE));
+        } catch (EmptyResultDataAccessException e) {
+            response.setContent(env.getRequiredProperty(MESSAGE_DRIVER_ID_NOT_EXIST));
+        }
+        return response;
+    }
+
+    @RequestMapping(value = "/driver-create", method = RequestMethod.POST)
+    @ResponseBody
+    public AdminResponseModel<String> addDriver(@Valid DriverModel driverModel, BindingResult bindingResult) {
+        AdminResponseModel<String> response = new AdminResponseModel<>();
+        if (bindingResult.hasErrors()) {
+            System.out.println("Error in binding driver data");
+            //TODO: Make one error message per field
+            StringBuilder errors = new StringBuilder();
+            for (ObjectError e : bindingResult.getAllErrors()) {
+                errors.append("<p>");
+                errors.append(e.getDefaultMessage());
+                errors.append("</p>");
+            }
+            return response.setContent(errors.toString());
+        }
+        driverService.createDriverAccount(driverModel.toDriver());
+        response.setResultSuccess().setContent(env.getRequiredProperty(MESSAGE_DRIVER_SUCCESS_CREATE));
+        return response;
     }
 
     private static class DriverSerializer implements JsonSerializer<Driver> {

@@ -5,9 +5,16 @@
  */
 package com.teamd.taxi.entity;
 
+import org.hibernate.annotations.*;
+import org.hibernate.annotations.CascadeType;
+import org.hibernate.engine.spi.CascadeStyle;
+import org.hibernate.engine.spi.CascadingAction;
+
 import java.io.Serializable;
 import java.util.List;
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
  * @author Олег
@@ -49,7 +56,12 @@ public class Driver implements Serializable {
     @Column(name = "at_work")
     private boolean atWork;
 
-    @ManyToMany(mappedBy = "drivers")
+    //Changed by Dub 12.05.12 to make easier crud operations on driver entity
+    //@ManyToMany(mappedBy = "drivers")
+    @JoinTable(name = "driver_feature_list",
+            inverseJoinColumns = {@JoinColumn(name = "feature_id", referencedColumnName = "id")},
+            joinColumns = {@JoinColumn(name = "driver_id", referencedColumnName = "id")})
+    @ManyToMany
     private List<Feature> features;
 
     @OneToOne(mappedBy = "driver")

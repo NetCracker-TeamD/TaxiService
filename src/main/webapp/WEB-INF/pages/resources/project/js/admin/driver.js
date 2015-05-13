@@ -16,8 +16,8 @@ var radioInput = '<label class="radio-inline"><input type="radio" name="driver_n
 
 var editDriverButton = '<button type="button" onclick="startEditDriver(event)" data-toggle="modal" data-target="#" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Edit</button>';
 var editCarButton = '<button type="button" onclick="startEditCar(event)" data-toggle="modal" data-target="#" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Edit</button>';
-var removeDriverButton = '<button type="button" onclick="" data-toggle="modal" data-target="#remove_driver" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
-var removeCarButton = '<button type="button" onclick="" data-toggle="modal" data-target="#remove_car" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
+var removeDriverButton = '<button type="button" data-toggle="modal" data-target="#remove_driver" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
+var removeCarButton = '<button type="button" onclick="" data-toggle="modal" data-target="#remove_car" data-car-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
 var driverInfo =
     '<tr class="hidden driver-info">' +
     '<td colspan="10" class="driver-panel"><div id="collapseThree" class="collapse" aria-expanded="false">' +
@@ -57,7 +57,9 @@ var selectCarClassInput = '<select class="form-control-auto-size"><option>A</opt
 var selectCarCategoryInput = '<select class="form-control-auto-size"><option>Business</option><option>Standard</option><option>Economy</option></select>';
 //var selectCarClassInput = '<select class="form-control-auto-size"><option>Premium</option><option>Standard</option><option>Cheep</option></select>';
 
-var createCarModal = $('#create_driver');
+var createDriverModal = $('#create_driver');
+var removeDriverModal = $('#remove_driver');
+var successModal = $('#successModal');
 
 function openDriverInfo(node, driverId) {
     // ignore if mailto click
@@ -68,6 +70,8 @@ function openDriverInfo(node, driverId) {
     var record = $(node.target).closest('tr');
     record.addClass('hidden');
     record.after(driverInfo);
+
+    record.next().find("[data-driver-id='']").attr('data-driver-id', record.find('[driver-id]').attr('driver-id'));
 
     var info = record.next().find('.collapse');
 
@@ -366,8 +370,58 @@ function updateDriver(value) {
 }
 
 function createDriver() {
-    alert("create Driver");
-    //TODO Ajax here
+    var firstName = $('#driver_first_name').val();
+    var lastName = $('#driver_last_name').val();
+    var email = $('#driver_mail').val();
+    var phone = $('#driver_phone').val();
+
+    var male = $('#driver_sex_male');
+    var female = $('#driver_sex_female');
+    var sex;
+    if (male.is(":checked")) {
+        sex = male.val();
+    } else {
+        sex = female.val();
+    }
+
+    var license = $('#driver_license_serial').val();
+    var enabled = $('#driver_enabled').is(":checked");
+    var atWork = $('#driver_at_work').is(":checked");
+
+    var features = [];
+    createDriverModal.find('.feature').filter(':checked').each(function (indx, element) {
+        features.push($(element).val());
+    });
+    $.ajax('/admin/driver-create', {
+        type: 'post',
+        dataType: 'json',
+        data: {
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            phoneNumber: phone,
+            sex: sex,
+            license: license,
+            enabled: enabled,
+            atWork: atWork,
+            features: features.toString()
+        },
+        success: function (response) {
+            if (response.result == "success") {
+                showSuccess(response.content);
+                createDriverModal.modal('hide');
+            } else {
+                if (response.result == "failure") {
+                    showError(createDriverModal, response.content);
+                } else {
+                    showError(createDriverModal, "Something went wrong... Try again later");
+                }
+            }
+        },
+        error: function () {
+            showError(createDriverModal, "No response");
+        }
+    });
 }
 
 function cancelEdit(node) {
@@ -377,13 +431,66 @@ function cancelEdit(node) {
     record.next().remove();
 }
 
-createCarModal.on('shown.bs.modal', function () {
+
+function removeDriver(id) {
+    $.ajax('/admin/driver-delete', {
+        type: 'post',
+        dataType: 'json',
+        data: {id: id},
+        success: function (response) {
+            if (response.result == "success") {
+                showSuccess(response.content);
+                removeDriverModal.modal('hide');
+            } else {
+                if (response.result == "failure") {
+                    showError(removeDriverModal, response.content);
+                } else {
+                    showError(removeDriverModal, "Something went wrong... Try again later");
+                }
+            }
+        },
+        error: function () {
+            showError(removeDriverModal, "Something went wrong... Try again later");
+        }
+    });
+}
+
+function showSuccess(message) {
+    successModal.find('.lead').html(message);
+    successModal.modal('show');
+}
+
+function showError(modalId, message) {
+    var errorAlert = modalId.find('.modal-error').eq(0);
+    errorAlert.find('p').html("<strong>Error!</strong> " + message);
+    errorAlert.show(1000);
+}
+
+
+removeDriverModal.on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var modal = $(this);
+    modal.find("[name='driver_id']").val(button.data('driver-id'));
+    removeDriverModal.find('.modal-error').hide();
+    //alert(button.data('driver-id'));
+});
+
+
+createDriverModal.on('shown.bs.modal', function () {
     $('#driver_first_name').focus();
 });
 
-createCarModal.on('show.bs.modal', function () {
-    $('#car_model').val('');
-    $('#car_wifi').removeAttr('checked');
-    $('#car_animal').removeAttr('checked');
+createDriverModal.on('show.bs.modal', function () {
+    createDriverModal.find('.modal-error').hide();
 });
+
+successModal.on('hidden.bs.modal', function (event) {
+    location.reload(true);
+});
+
+function hideErrorModal(modalId) {
+    modalId.find('.modal-error').hide(1000);
+}
+
+
 
