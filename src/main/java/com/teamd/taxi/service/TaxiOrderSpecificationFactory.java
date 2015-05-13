@@ -1,17 +1,25 @@
 package com.teamd.taxi.service;
 
+import com.teamd.taxi.entity.ServiceType;
 import com.teamd.taxi.entity.TaxiOrder;
+import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
+import org.hibernate.Hibernate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.Calendar;
+import java.util.List;
 
 @Service
 public class TaxiOrderSpecificationFactory {
+
+
+    @Autowired
+    TaxiOrderRepository orderRepository;
+
     public Specification<TaxiOrder> registrationDateLessThan(final Calendar calendar) {
         return new Specification<TaxiOrder>() {
             @Override
@@ -28,5 +36,24 @@ public class TaxiOrderSpecificationFactory {
                 return criteriaBuilder.greaterThan(root.<Calendar>get("registrationDate"), calendar);
             }
         };
+    }
+
+    public Specification<TaxiOrder> serviceTypeIn(final List<Integer> serviceTypeIds) {
+        return new Specification<TaxiOrder>() {
+            @Override
+            public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> cq, CriteriaBuilder cb) {
+                Join<TaxiOrder, ServiceType> service = root.join("serviceType");
+                return cb.isTrue(service.<Integer>get("id").in(serviceTypeIds));
+            }
+        };
+    }
+
+    @Transactional
+    public TaxiOrder findOneById(long id) {
+        TaxiOrder order = orderRepository.findOne(id);
+        Hibernate.initialize(order.getFeatures());
+        Hibernate.initialize(order.getRoutes());
+        Hibernate.initialize(order.getServiceType());
+        return order;
     }
 }

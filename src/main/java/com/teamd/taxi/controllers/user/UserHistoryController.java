@@ -6,6 +6,7 @@ import com.teamd.taxi.entity.ServiceType;
 import com.teamd.taxi.entity.TaxiOrder;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
+import com.teamd.taxi.models.PageDetails;
 import com.teamd.taxi.models.PagingLink;
 import com.teamd.taxi.service.PagingLinksGenerator;
 import com.teamd.taxi.service.TaxiOrderService;
@@ -208,8 +209,8 @@ public class UserHistoryController {
     }
 
     @RequestMapping(value = "/loadHistory", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public String loadHistory(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
+     @ResponseBody
+     public String loadHistory(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
         logger.info("pageable = " + pageable);
         logger.info("All params = " + params);
         //retrieving data from database
@@ -336,21 +337,6 @@ public class UserHistoryController {
             st.addProperty("isMultipleDestinationLocations", serviceType.isMultipleDestinationLocations());
             st.addProperty("isMultipleSourceLocations", serviceType.isMultipleSourceLocations());
             return st;
-        }
-    }
-
-    private static class PageDetails {
-
-        private long totalElements;
-        private int totalPage;
-        private int elementsNumber;
-        private int pageNumber;
-
-        public PageDetails(Page<?> page) {
-            totalElements = page.getTotalElements();
-            totalPage = page.getTotalPages();
-            elementsNumber = page.getNumberOfElements();
-            pageNumber = page.getNumber();
         }
     }
 }
