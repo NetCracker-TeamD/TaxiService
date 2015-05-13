@@ -3,7 +3,6 @@ package com.teamd.taxi.models;
 import com.teamd.taxi.entity.Route;
 import com.teamd.taxi.entity.ServiceType;
 import com.teamd.taxi.entity.TaxiOrder;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
