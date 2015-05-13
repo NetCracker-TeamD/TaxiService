@@ -39,4 +39,8 @@ public class CarService {
         carRepository.delete(id);
     }
 
+    public List<Feature> getFeatureCarByDriverID(int id) {
+        return featureRepository.getFeaturesByCarID(id);
+    }
+
 }

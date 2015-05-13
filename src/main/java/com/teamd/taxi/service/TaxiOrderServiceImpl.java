@@ -4,6 +4,7 @@ import com.teamd.taxi.entity.TaxiOrder;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,4 +79,14 @@ public class TaxiOrderServiceImpl implements TaxiOrderService {
         }
         return to;
     }
+
+    @Transactional
+    public TaxiOrder findOneById(long id) {
+        TaxiOrder order = orderRepository.findOne(id);
+        Hibernate.initialize(order.getFeatures());
+        Hibernate.initialize(order.getRoutes());
+        Hibernate.initialize(order.getServiceType());
+        return order;
+    }
+
 }

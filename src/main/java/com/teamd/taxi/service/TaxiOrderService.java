@@ -19,4 +19,6 @@ public interface TaxiOrderService {
     Page<TaxiOrder> findAll(Pageable pageable);
 
     Page<TaxiOrder> findAll(Specification<TaxiOrder> spec, Pageable pageable);
+
+    TaxiOrder findOneById(long id);
 }

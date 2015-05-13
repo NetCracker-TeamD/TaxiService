@@ -1,89 +1,336 @@
 package com.teamd.taxi.controllers.driver;
 
+import com.google.gson.*;
 import com.teamd.taxi.entity.*;
-import com.teamd.taxi.service.DriverService;
-import com.teamd.taxi.service.ServiceTypeService;
-import com.teamd.taxi.service.TaxiOrderService1;
+import com.teamd.taxi.models.AssembledOrder;
+import com.teamd.taxi.models.AssembledRoute;
+import com.teamd.taxi.models.PageDetails;
+import com.teamd.taxi.models.PagingLink;
+import com.teamd.taxi.service.*;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.Specifications;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.persistence.criteria.*;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Writer;
+import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static org.springframework.data.jpa.domain.Specifications.where;
 
 /**
  * Created by Іван on 02.05.2015.
  */
-@SessionAttributes(types = Driver.class)
 @Controller
 @RequestMapping("/driver")
 public class QueueController {
 
-    private String SORT_BY = "executionDate";
-    private int PAGE_SIZE = 20;
-    private static Pageable pageableOrder;
-    private int curPage = 0;
-    private List<ServiceType> serviceTypes;
-    private static final Logger logger = Logger.getLogger(QueueController.class);
-    //  RouteStatus.COMPLETED видалити, в базі не було даних з RouteStatus.QUEUED, RouteStatus.UPDATED
-    private List<RouteStatus> statusList = Arrays.asList(RouteStatus.COMPLETED,
-            RouteStatus.QUEUED,
-            RouteStatus.UPDATED);
+    public final static String SORT_BY = "executionDate";
+    public final static int PAGE_SIZE = 3;
+    private Gson gson;
 
     @Autowired
-    private TaxiOrderService1 taxiOrderService1;
+    @Qualifier("dateFormatter")
+    private SimpleDateFormat dateFormat;
 
     @Autowired
     private ServiceTypeService serviceTypeService;
 
     @Autowired
+    private PagingLinksGenerator linksGenerator;
+
+    @Autowired
     private DriverService driverService;
 
-    @RequestMapping(value = "/queue", method = RequestMethod.GET)
-    public String viewCurrentOrder(Model model, HttpServletRequest request) {
+    @Autowired
+    private TaxiOrderService taxiOrderService;
 
-        Driver registerDriver = driverService.getDriver(1);
+    @Autowired
+    private TaxiOrderSpecificationFactory taxiOrderSpecificationFactory;
 
-        if (request.getParameter("curPage") != null) {
-            curPage = Integer.parseInt(request.getParameter("curPage")) - 1;
+    private static int currentDriverID = 6;
+
+    private static final Logger log = Logger.getLogger(QueueController.class);
+
+
+    @RequestMapping(value = "/loadQueue", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String loadQueue(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
+        log.info("Received params: " + params);
+        Driver driver = driverService.getDriver(currentDriverID);
+        pageable = new PageRequest(pageable.getPageNumber(), PAGE_SIZE);
+        //вибрані сервіси з TRUE значенням інші з FALSE
+        Map<ServiceType, Boolean> selectedTypes = getSelectedTypes(params);
+        //повертає всі id`s фіч для даного водія і його машини
+        List<Integer> featureIds = getIdsAllFeature(driver.getId());
+        log.info("Featured = " + featureIds);
+        //запит на доступні замовлення
+        Specifications<TaxiOrder> spec = where(new OrderSpec(featureIds, driver.getCar().getCarClass()))
+                .and(new RouteSpec());
+        Specification<TaxiOrder> additional = resolveSpecification(selectedTypes);
+        if (additional != null) {
+            spec = spec.and(additional);
         }
-        pageableOrder = new PageRequest(curPage, PAGE_SIZE, Sort.Direction.ASC, SORT_BY);
-        serviceTypes = serviceTypeService.findAll();
-        Page<TaxiOrder> orders = taxiOrderService1.getFreeOrder(statusList, pageableOrder);
 
-        model.addAttribute("services", serviceTypes);
-        model.addAttribute("orders", orders.getContent());
-        model.addAttribute("countPage", orders.getTotalPages());
-        return "driver/drv-queue";
+        Page<TaxiOrder> orders = taxiOrderService.findAll(spec, pageable);
+        List<TaxiOrder> content = orders.getContent();
+        HashMap<String, Object> returnValue = new HashMap<>();
+        if (content.size() != 0) {
+            //remove unnecessary orders
+            for (TaxiOrder taxiOrder : content) {
+                List<Route> routes = taxiOrder.getRoutes();
+                for (Iterator<Route> it = routes.iterator(); it.hasNext(); ) {
+                    Route next = it.next();
+                    if (next.getStatus() != RouteStatus.QUEUED) {
+                        it.remove();
+                    }
+                }
+            }
+            //assembling orders
+            List<AssembledOrder> assembledOrders = new ArrayList<>(content.size());
+            for (TaxiOrder taxiOrder : content) {
+                assembledOrders.add(AssembledOrder.assembleOrder(taxiOrder));
+            }
+            //generating links for paging
+            UriComponentsBuilder builder = MvcUriComponentsBuilder.fromMethodName(
+                    QueueController.class, "viewCurrentOrder", null, null, null
+            );
+            addSelectedServices(builder, selectedTypes);
+            List<PagingLink> links = linksGenerator.generateLinks(orders, builder);
+            //send data to the receiver
+            returnValue.put("orders", assembledOrders);
+            returnValue.put("pageDetails", new PageDetails(orders));
+            returnValue.put("links", links);
+            returnValue.put("status", "ok");
+        } else {
+            returnValue.put("status", "notFound");
+        }
+        return getGson().toJson(returnValue);
     }
 
-    @RequestMapping(value = "/queue", method = RequestMethod.POST)
-    public String viewFilterSrviceOrder(Model model, HttpServletRequest request) {
-        List<Integer> idService = new ArrayList<>();
-
-        for (ServiceType service : serviceTypes) {
-            if (request.getParameter(service.getId().toString()) != null) {
-                idService.add(service.getId());
+    private void addSelectedServices(UriComponentsBuilder builder, Map<ServiceType, Boolean> types) {
+        for (Map.Entry<ServiceType, Boolean> entry : types.entrySet()) {
+            if (entry.getValue()) {
+                builder.queryParam(entry.getKey().getId() + "", "on");
             }
         }
-        if (idService.size() == 0) {
-//            redirect error page
-        }
-        Page<TaxiOrder> orders = taxiOrderService1.getFilterServiceFreeOrders(statusList, idService, pageableOrder);
-        model.addAttribute("services", serviceTypes);
-        model.addAttribute("selectServices", idService);
-        model.addAttribute("orders", orders.getContent());
-        model.addAttribute("countPage", orders.getTotalPages());
+    }
+
+    @RequestMapping(value = "/queue", method = RequestMethod.GET)
+    public String viewCurrentOrder(Pageable pageable, Model model, @RequestParam MultiValueMap<String, String> params) {
+        log.info(params);
+        pageable = new PageRequest(pageable.getPageNumber(), PAGE_SIZE);
+        //вибрані сервіси з TRUE значенням інші з FALSE
+        Map<ServiceType, Boolean> selectedTypes = getSelectedTypes(params);
+        model.addAttribute("pageable", pageable);
+        model.addAttribute("selectedServices", selectedTypes);
         return "driver/drv-queue";
     }
 
+    private Specification<TaxiOrder> resolveSpecification(Map<ServiceType, Boolean> selectedTypes) {
+        if (selectedTypes.containsValue(true)) {
+            List<Integer> serviceIds = new ArrayList<>();
+            for (Map.Entry<ServiceType, Boolean> st : selectedTypes.entrySet()) {
+                if (st.getValue()) {
+                    serviceIds.add(st.getKey().getId());
+                }
+            }
+            return taxiOrderSpecificationFactory.serviceTypeIn(serviceIds);
+        }
+        return null;
+    }
 
+    private List<Integer> getIdsAllFeature(int driverID) {
+        Driver driver = driverService.getDriver(driverID);
+        Car car = driver.getCar();
+        List<Feature> merged = new ArrayList<>(driver.getFeatures());
+        merged.addAll(car.getFeatures());
+        List<Integer> featureIds = new ArrayList<>();
+        for (Feature f : merged) {
+            featureIds.add(f.getId());
+        }
+        return featureIds;
+    }
+
+    private Map<ServiceType, Boolean> getSelectedTypes(MultiValueMap<String, String> params) {
+        log.info("Selected Service = " + params);
+        Map<ServiceType, Boolean> selected = new TreeMap<>(
+                new Comparator<ServiceType>() {
+                    @Override
+                    public int compare(ServiceType o1, ServiceType o2) {
+                        if (o1.getId() > o2.getId()) {
+                            return 1;
+                        } else return -1;
+                    }
+                });
+        List<ServiceType> serviceTypes = serviceTypeService.findAll();
+        for (ServiceType serviceType : serviceTypes) {
+            boolean isSelect = params.keySet().contains(String.valueOf(serviceType.getId()));
+            selected.put(serviceType, isSelect);
+        }
+        //do work
+        return selected;
+    }
+
+
+    private static class OrderSpec implements Specification<TaxiOrder> {
+
+        private List<Integer> featureIds;
+        private CarClass carClass;
+
+        public OrderSpec(List<Integer> featureIds, CarClass carClass) {
+            this.carClass = carClass;
+            this.featureIds = featureIds;
+        }
+
+        @Override
+        public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> cq, CriteriaBuilder cb) {
+            cq.distinct(true);
+            Subquery<Long> taxiOrderIdSubquery = cq.subquery(Long.class);
+            Root<TaxiOrder> subRoot = taxiOrderIdSubquery.from(TaxiOrder.class);
+            taxiOrderIdSubquery.select(subRoot.<Long>get("id"));
+            Join<TaxiOrder, Feature> subFeatureJoin = subRoot.join("features");
+            taxiOrderIdSubquery.where(cb.not(
+                    subFeatureJoin.get("id").in(featureIds)
+            ));
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.HOUR, 1);
+
+            return cb.and(
+                    cb.not(root.<Long>get("id").in(taxiOrderIdSubquery)),
+                    cb.lessThan(root.<Calendar>get("executionDate"), calendar),
+                    cb.equal(root.<CarClass>get("carClass"), carClass)
+            );
+        }
+    }
+
+    private static class RouteSpec implements Specification<TaxiOrder> {
+        @Override
+        public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+            Join<TaxiOrder, Route> routes = root.join("routes");
+            return criteriaBuilder.equal(routes.<RouteStatus>get("status"), RouteStatus.QUEUED);
+        }
+    }
+
+
+    //bad bad code.... don't do this at real projects))
+    //only for testing
+    @RequestMapping("/test")
+    public void test(HttpServletResponse response, Pageable pageable) throws IOException {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(2015, Calendar.MAY, 6, 12, 0);
+        Page<TaxiOrder> page = taxiOrderService.findAll(
+                where(new OrderSpec(Arrays.asList(1, 2, 3, 4), null))
+                        .and(new RouteSpec())
+                        .and(taxiOrderSpecificationFactory.serviceTypeIn(Arrays.asList(1))),
+                pageable
+        );
+        try (Writer writer = response.getWriter()) {
+            for (TaxiOrder taxiOrder : page) {
+                writer.append(taxiOrder.toString())
+                        .append("\n");
+            }
+            writer.append("" + page.getTotalPages());
+        }
+    }
+
+
+    private Gson getGson() {
+        if (gson == null) {
+            gson = new GsonBuilder()
+                    .registerTypeAdapter(TaxiOrder.class, new TaxiOrderSerializer(dateFormat))
+                    .registerTypeAdapter(Feature.class, new FeatureSerializer())
+                    .registerTypeAdapter(AssembledRoute.class, new AssembledRouteSerializer(dateFormat))
+                    .registerTypeAdapter(ServiceType.class, new ServiceTypeSerializer())
+                    .serializeNulls()
+                    .disableHtmlEscaping()
+                    .create();
+        }
+        return gson;
+    }
+
+    private static class TaxiOrderSerializer implements JsonSerializer<TaxiOrder> {
+
+        private SimpleDateFormat fmt;
+
+        public TaxiOrderSerializer(SimpleDateFormat fmt) {
+            this.fmt = fmt;
+        }
+
+        @Override
+        public JsonElement serialize(TaxiOrder taxiOrder, Type type, JsonSerializationContext context) {
+            JsonObject to = new JsonObject();
+            //primitives
+            to.addProperty("id", taxiOrder.getId());
+            to.addProperty("musicStyle", taxiOrder.getMusicStyle());
+            to.addProperty("executionDate", fmt.format(taxiOrder.getExecutionDate().getTime()));
+            //lists
+            to.add("features", context.serialize(taxiOrder.getFeatures()));
+            //enums and other objects
+            to.add("serviceType", context.serialize(taxiOrder.getServiceType()));
+            to.add("paymentType", context.serialize(taxiOrder.getPaymentType()));
+            return to;
+        }
+    }
+
+    private static class AssembledRouteSerializer implements JsonSerializer<AssembledRoute> {
+
+        private SimpleDateFormat fmt;
+
+        public AssembledRouteSerializer(SimpleDateFormat fmt) {
+            this.fmt = fmt;
+        }
+
+        @Override
+        public JsonElement serialize(AssembledRoute route, Type type, JsonSerializationContext context) {
+            JsonObject to = new JsonObject();
+            //primitives
+            to.addProperty("sourceAddress", route.getSource());
+            to.addProperty("destinationAddress", route.getDestination());
+            to.addProperty("totalDistance", route.getTotalDistance());
+            to.addProperty("totalCars", route.getTotalCars());
+            //objects
+            return to;
+        }
+    }
+
+    private static class FeatureSerializer implements JsonSerializer<Feature> {
+
+        @Override
+        public JsonElement serialize(Feature feature, Type type, JsonSerializationContext jsonSerializationContext) {
+            JsonObject fo = new JsonObject();
+            fo.addProperty("featureName", feature.getName());
+            return fo;
+        }
+    }
+
+    private static class ServiceTypeSerializer implements JsonSerializer<ServiceType> {
+
+        @Override
+        public JsonElement serialize(ServiceType serviceType, Type type, JsonSerializationContext jsonSerializationContext) {
+            JsonObject st = new JsonObject();
+            st.addProperty("name", serviceType.getName());
+            st.addProperty("isDestinationLocationsChain", serviceType.isDestinationLocationsChain());
+            return st;
+        }
+    }
 }
