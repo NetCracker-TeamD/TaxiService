@@ -156,8 +156,8 @@ public class TaxiOrder implements Serializable {
         return customer;
     }
 
-    public void setCustomer(User userId) {
-        this.customer = userId;
+    public void setCustomer(User user) {
+        this.customer = user;
     }
 
     public ServiceType getServiceType() {

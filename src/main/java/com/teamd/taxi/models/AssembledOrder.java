@@ -51,8 +51,9 @@ public class AssembledOrder {
             reordered.add(globalPivot);
             //достраиваем вправо от ведущего
             AssembledRoute pivot = globalPivot;
-            boolean found = false;
+            boolean found;
             do {
+                found = false;
                 for (Iterator<AssembledRoute> it = routes.iterator(); it.hasNext(); ) {
                     AssembledRoute element = it.next();
                     if (element.getSource().equals(pivot.getDestination())) {
@@ -66,8 +67,8 @@ public class AssembledOrder {
             } while (found);
             //достраиваем влево от ведущего
             pivot = globalPivot;
-            found = false;
             do {
+                found = false;
                 for (Iterator<AssembledRoute> it = routes.iterator(); it.hasNext(); ) {
                     AssembledRoute element = it.next();
                     if (element.getDestination().equals(pivot.getSource())) {

@@ -13,7 +13,15 @@ public class FeatureService {
     @Autowired
     private FeatureRepository featureRepository;
 
-    public List<Feature> getFeatures(){
+    public List<Feature> getFeatures() {
         return featureRepository.findAll();
+    }
+
+    public Feature findById(int featureId) {
+        return featureRepository.findOne(featureId);
+    }
+
+    public List<Feature> findByIdList(List<Integer> ids) {
+        return featureRepository.findByIdList(ids);
     }
 }

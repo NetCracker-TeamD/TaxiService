@@ -1,6 +1,13 @@
 package com.teamd.taxi.service;
 
-import com.teamd.taxi.entity.TaxiOrder;
+import com.teamd.taxi.entity.*;
+import com.teamd.taxi.exception.AddressNotFoundException;
+import com.teamd.taxi.exception.MapServiceNotAvailableException;
+import com.teamd.taxi.exception.NotCompatibleException;
+import com.teamd.taxi.exception.PropertyNotFoundException;
+import com.teamd.taxi.models.TaxiOrderForm;
+import com.teamd.taxi.persistence.repository.RouteRepository;
+import com.teamd.taxi.persistence.repository.ServiceTypeRepository;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
@@ -14,6 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 /**
  * Created by Anton on 02.05.2015.
@@ -23,7 +33,16 @@ public class TaxiOrderServiceImpl implements TaxiOrderService {
 
     @Qualifier("taxiOrderRepository")
     @Resource
-    TaxiOrderRepository orderRepository;
+    private TaxiOrderRepository orderRepository;
+
+    @Autowired
+    private RouteRepository routeRepository;
+
+    @Autowired
+    private ServiceTypeRepository serviceTypeRepository;
+
+    @Autowired
+    private MapService mapService;
 
     Logger logger = Logger.getLogger(TaxiOrderService.class);
 
@@ -89,4 +108,123 @@ public class TaxiOrderServiceImpl implements TaxiOrderService {
         return order;
     }
 
+    @Override
+    @Transactional
+    public TaxiOrder createNewTaxiOrder(TaxiOrderForm form, User user) throws NotCompatibleException, MapServiceNotAvailableException, AddressNotFoundException, PropertyNotFoundException {
+        TaxiOrder order = new TaxiOrder();
+        ServiceType serviceType = form.getServiceType();
+        //проверка совместимости класса автомобиля и сервиса
+        CarClass carClass = form.getCarClass();
+        if (carClass != null && !serviceType.getAllowedCarClasses().contains(form.getCarClass())) {
+            throw new NotCompatibleException();
+        }
+        //проверка совместимости фич и сервиса
+        List<Feature> orderFeatureList = form.getFeatures();
+        if (orderFeatureList != null) {
+            List<Feature> allowedFeatures = serviceType.getAllowedFeatures();
+            for (Feature feature : orderFeatureList) {
+                if (!allowedFeatures.contains(feature)) {
+                    throw new NotCompatibleException();
+                }
+            }
+        }
+        //создание прототипов маршрутов и проверка адрессов
+        List<Route> routes = new ArrayList<>();
+        List<String> addressesToCheck = new ArrayList<>();
+        Boolean isChain = serviceType.isDestinationLocationsChain();
+        if (isChain != null && isChain) {
+            List<String> intermediate = form.getIntermediate();
+            intermediate.add(0, form.getSource().get(0));
+            intermediate.add(form.getDestination().get(0));
+            addressesToCheck = intermediate;
+            for (int i = 1; i < intermediate.size(); i++) {
+                routes.add(new Route(
+                        null,
+                        RouteStatus.QUEUED,
+                        intermediate.get(i - 1),
+                        intermediate.get(i),
+                        false
+                ));
+            }
+        } else if (serviceType.isMultipleSourceLocations()) {
+            List<String> sources = form.getSource();
+            String destination = form.getDestination().get(0);
+            for (String source : sources) {
+                routes.add(new Route(null, RouteStatus.QUEUED, source, destination, false));
+            }
+            addressesToCheck.addAll(sources);
+            addressesToCheck.add(destination);
+        } else {
+            String source = form.getSource().get(0);
+            routes.add(new Route(null, RouteStatus.QUEUED, source, null, false));
+            addressesToCheck.add(source);
+        }
+        //проверка адрессов
+        for (String address : addressesToCheck) {
+            if (!mapService.isExists(address)) {
+                throw new AddressNotFoundException(address);
+            }
+        }
+        //размножаем их до необх. количества автомобилей
+        if (serviceType.isMultipleSourceLocations()) {
+            List<Route> multiplied = new ArrayList<>();
+            List<Integer> amounts = form.getCarsAmount();
+            if (amounts.size() != routes.size()) {
+                throw new PropertyNotFoundException("not enough car amounts: expected - " +
+                        routes.size() + ", actual - " + amounts.size());
+            }
+            for (int i = 0; i < routes.size(); i++) {
+                int amount = amounts.get(i);
+                Route prototype = routes.get(i);
+                multiplied.addAll(makeClones(prototype, amount));
+            }
+            routes = multiplied;
+        } else {
+            int amount = form.getCarsAmount().get(0);
+            List<Route> multipled = new ArrayList<>();
+            for (Route route : routes) {
+                multipled.addAll(makeClones(route, amount));
+            }
+            routes = multipled;
+        }
+        //финальное заполнение и сохранение обьекта
+        String driverSexString = form.getDriverSex();
+        Sex sex = "ANY".equals(driverSexString)
+                ? null : Sex.valueOf(driverSexString);
+        order.setDriverSex(sex);
+        order.setCarClass(form.getCarClass());
+        order.setCustomer(user);
+        order.setServiceType(serviceType);
+        order.setRegistrationDate(Calendar.getInstance());
+        order.setPaymentType(form.getPaymentType());
+        order.setExecutionDate(form.getExecDate());
+        order.setFeatures(form.getFeatures());
+        order = orderRepository.save(order);
+
+        logger.info("saved order: " + order);
+
+        for (Route route : routes) {
+            route.setOrder(order);
+        }
+        routes = routeRepository.save(routes);
+        order.setRoutes(routes);
+        return order;
+    }
+
+    private List<Route> makeClones(Route prototype, int amount) {
+        List<Route> multiplied = new ArrayList<>();
+        while (amount-- > 0) {
+            multiplied.add(makeClone(prototype));
+        }
+        return multiplied;
+    }
+
+    private Route makeClone(Route route) {
+        Route clone = new Route();
+        clone.setSourceAddress(route.getSourceAddress());
+        clone.setDestinationAddress(route.getDestinationAddress());
+        clone.setStatus(route.getStatus());
+        clone.setCustomerLate(route.isCustomerLate());
+        return clone;
+    }
 }

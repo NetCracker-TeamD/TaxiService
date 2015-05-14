@@ -1,26 +1,22 @@
 package com.teamd.taxi.service;
 
-/*
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;*/
-
 import com.google.maps.*;
+import com.google.maps.errors.NotFoundException;
 import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsRoute;
 import com.google.maps.model.TravelMode;
+import com.teamd.taxi.exception.MapServiceNotAvailableException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DistanceCalculator {
+public class MapService {
 
     private String apiKey;
 
     @Autowired
-    public DistanceCalculator(String googleApiKey) {
-        this.apiKey = apiKey;
+    public MapService(String googleApiKey) {
+        this.apiKey = googleApiKey;
     }
 
     public Long calculateDistanceInMeters(String from, String to, String[] waypoints) throws Exception {
@@ -42,5 +38,16 @@ public class DistanceCalculator {
             return distance;
         }
         return null;
+    }
+
+    public boolean isExists(String address) throws MapServiceNotAvailableException {
+        try {
+            calculateDistanceInMeters(address, address, null);
+        } catch (NotFoundException notFound) {
+            return false;
+        } catch (Exception ex) {
+            throw new MapServiceNotAvailableException(ex);
+        }
+        return true;
     }
 }

@@ -17,6 +17,7 @@ import javax.persistence.*;
 public class Route implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
@@ -62,11 +63,12 @@ public class Route implements Serializable {
         this.id = id;
     }
 
-    public Route(Long id, RouteStatus status, String sourceAddress, String destinationAddress) {
+    public Route(Long id, RouteStatus status, String sourceAddress, String destinationAddress, Boolean customerIsLate) {
         this.id = id;
         this.status = status;
         this.sourceAddress = sourceAddress;
         this.destinationAddress = destinationAddress;
+        this.customerLate = customerIsLate;
     }
 
     public Long getId() {

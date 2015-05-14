@@ -3,6 +3,9 @@ package com.teamd.taxi.models;
 import com.teamd.taxi.entity.Route;
 import com.teamd.taxi.entity.RouteStatus;
 
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class AssembledRoute {
@@ -41,6 +44,19 @@ public class AssembledRoute {
                 totalDisance = sample.getDistance();
             }
         }
+        Collections.sort(routes, new Comparator<Route>() {
+            @Override
+            public int compare(Route r1, Route r2) {
+                Calendar s1 = r1.getStartTime();
+                Calendar s2 = r2.getStartTime();
+                if (s1 == null) {
+                    return 1;
+                } else if (s2 == null) {
+                    return -1;
+                }
+                return s1.compareTo(s2);
+            }
+        });
     }
 
     public String getSource() {

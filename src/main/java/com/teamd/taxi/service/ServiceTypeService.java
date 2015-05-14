@@ -28,7 +28,15 @@ public class ServiceTypeService {
         return serviceTypes;
     }
 
-    public List<ServiceType> getAllServices(){
+    @Transactional
+    public ServiceType findById(int serviceTypeId) {
+        ServiceType serviceType = serviceTypeRepository.findOne(serviceTypeId);
+        Hibernate.initialize(serviceType.getAllowedFeatures());
+        Hibernate.initialize(serviceType.getAllowedCarClasses());
+        return serviceType;
+    }
+
+    public List<ServiceType> getAllServices() {
         return serviceTypeRepository.findAll();
     }
 }
