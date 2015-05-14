@@ -26,6 +26,7 @@ public class ReportsController {
     @RequestMapping(value = "/serviceProfitabilityByMonth")
     @ResponseBody
     public List<Map<String, Object>> generateServiceProfitabilityReport() {
+
         return reportsRepository.getReport(new ReportResolver() {
             @Override
             public String getQuery() {
@@ -33,6 +34,7 @@ public class ReportsController {
                         "EXTRACT(MONTH FROM  route.start_time) as cur_month, " +
                         "EXTRACT (YEAR FROM  route.start_time) as cur_year, sum(total_price) as total " +
                         "FROM route " +
+                        "WHERE route.start_time IS NOT NULL " +
                         "GROUP BY cur_month,cur_year  " +
                         "ORDER BY cur_month desc";
             }
