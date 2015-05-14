@@ -14,6 +14,7 @@ import com.teamd.taxi.models.admin.DriverPageModel;
 import com.teamd.taxi.service.AdminPagesUtil;
 import com.teamd.taxi.service.CarService;
 import com.teamd.taxi.service.DriverService;
+import com.teamd.taxi.validation.DriverValidateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -23,7 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,8 +34,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created on 07-May-15.
@@ -65,6 +65,9 @@ public class DriverAdminController {
 
     @Autowired
     private AdminPagesUtil pagesUtil;
+
+    @Autowired
+    DriverValidateUtil validateUtil;
 
     private Gson gson = new GsonBuilder()
             .registerTypeAdapter(DriverInfoResponseModel.class, new DriverInfoResponseModelSerializer())
@@ -128,10 +131,11 @@ public class DriverAdminController {
         if (bindingResult.hasErrors()) {
             System.out.println("Error in binding driver data");
             //TODO: Make one error message per field
+
             StringBuilder errors = new StringBuilder();
-            for (ObjectError e : bindingResult.getAllErrors()) {
+            for (FieldError fieldError : validateUtil.filterErrors(bindingResult.getFieldErrors())) {
                 errors.append("<p>");
-                errors.append(e.getDefaultMessage());
+                errors.append(fieldError.getDefaultMessage());
                 errors.append("</p>");
             }
             return response.setContent(errors.toString());

@@ -28,16 +28,16 @@ public class DriverModel {
     private String lastName;
 
     @NotBlank(message = "Please enter driver email.")
-    @Email(regexp = "^(.+)@(.+)$",message = "Email address contains illegal characters")
+    @Email(regexp = "^(.+)@(.+)$", message = "Email address contains illegal characters")
     @UniqueDriverEmail
     private String email;
 
-    @Phone
     @NotBlank(message = "Please enter driver phone number.")
+    @Phone
     private String phoneNumber;
 
-    @License
     @NotBlank(message = "Please enter driver license serial.")
+    @License
     private String license;
 
     private boolean isEnabled;
@@ -47,8 +47,8 @@ public class DriverModel {
     @NotNull
     private Sex sex;
 
-    @DriverFeatures
     @NotNull
+    @DriverFeatures
     private List<Feature> features;
 
 
@@ -119,7 +119,6 @@ public class DriverModel {
         this.sex = sex;
     }
 
-//    @DriverFeatures
     public List<Feature> getFeatures() {
         return features;
     }
