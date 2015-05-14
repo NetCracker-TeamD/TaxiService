@@ -24,7 +24,7 @@ var Templates = (function () {
             return container
         },
         getContentContainer = function () {
-            var container = $('<div class="container content"></div>')
+            var container = $('<div class="container content"></div')
             return container
         },
         getLoader = function (text) {
@@ -45,7 +45,7 @@ var Templates = (function () {
     getOrderPage = function () {
         var container = $('<div class="col-sm-5 col-sm-offset-1">\
 					<h2>Create order</h2>\
-					<form class="form-horizontal" id="orderForm" method="POST" action="/test">\
+					<form class="form-horizontal" id="orderForm" method="POST" action="/makeOrder">\
 						<div class="form-group">\
 							<label for="serviceType">Chose service type</label>\
 							<select id="serviceType" name="serviceType" class="form-control">\
@@ -122,7 +122,7 @@ var Templates = (function () {
                 container.append(getDropDownAddressHTML(locationsList, isRemovable))
                 if (hasCarsAmount) {
                     //TODO: style spinner input, now it looks very bad
-                    container.append(getSpinerInput("cars", 1))
+                    container.append(getSpinerInput("cars_amount", 1))
                 }
                 return container;
             }
@@ -151,7 +151,7 @@ var Templates = (function () {
 						</div>'),
                     picker = getDateTimePicker("time_specified", "", {
                         locale: 'en',
-                        minDate: new Date()
+                        minDate: new Date(),
                     })
                 pickerWrap.append(picker)
                 container.append(pickerWrap)
@@ -177,7 +177,7 @@ var Templates = (function () {
             } else if (isCustom) {
                 container.append(getDateTimePicker("time_specified", "", {
                     locale: 'en',
-                    minDate: new Date()
+                    minDate: new Date(),
                 }))
             } else {
                 container.attr("class", "") //remove spaceing
@@ -270,7 +270,7 @@ var Templates = (function () {
                 filter()
             })
             return container
-        }
+        };
     getCarsAmount = function (minValue) {
         if (minValue === null || minValue === undefined || parseInt(minValue).isNaN) {
             minValue = 1

@@ -175,8 +175,9 @@ public class PriceCountService {
         List<TariffByTime> dayOfYearTariffs = tariffRepository.findByTariffType(TariffType.DAY_OF_YEAR);
         List<TariffByTime> dayOfWeekTariffs = tariffRepository.findByTariffType(TariffType.DAY_OF_WEEK);
         List<TariffByTime> timeOfDayTariffs = tariffRepository.findByTariffType(TariffType.TIME_OF_DAY);
-        return countRoutePrice(route, dayOfYearTariffs, dayOfWeekTariffs, timeOfDayTariffs)
+        float price = countRoutePrice(route, dayOfYearTariffs, dayOfWeekTariffs, timeOfDayTariffs)
                 + countStartIdlePrice(route);
+        return Math.max(price, order.getServiceType().getMinPrice());
     }
 
     private List<Route> reorderAndFilterRoutes(List<Route> original) {
@@ -255,7 +256,7 @@ public class PriceCountService {
                     - routes.get(i - 1).getCompletionTime().getTimeInMillis();
             price += idleCoeff * (difference / (1000 * 60.0));
         }
-        return price;
+        return Math.max(price, order.getServiceType().getMinPrice());
     }
 
     private static class TimeCoeffPair {

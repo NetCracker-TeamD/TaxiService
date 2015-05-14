@@ -12,8 +12,10 @@ public interface FeatureRepository extends JpaRepository<Feature, Integer> {
 
     List<Feature> findAllByFeatureType(FeatureType type);
 
+    //WTF???
     @Query("SELECT f FROM Feature f WHERE f.id = ?1")
     List<Feature> getFeaturesByCarID(int id);
 
-
+    @Query("SELECT f FROM Feature f WHERE f.id IN(?1)")
+    List<Feature> findByIdList(List<Integer> ids);
 }
