@@ -13,7 +13,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -160,16 +159,4 @@ public class HistoryDriverController {
             });
         }
     }
-    /*private Map<String,Integer> allowedServiceType=new HashMap<String,Integer>(){{
-        put("Taxi asap",1);
-        put("Taxi in advance",2);
-        put("Sober driver",3);
-        put("Convey corp. emps.",4);
-        put("Cargo taxi",5);
-        put("Taxi for long term",6);
-        put("Meet my guest",7);
-        put("Celebration taxi",8);
-        put("Foodstuff delivery",9);
-        put("Guest Delivery",10);
-    }};*/
 }
