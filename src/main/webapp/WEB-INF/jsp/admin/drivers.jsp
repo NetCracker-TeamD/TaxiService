@@ -31,10 +31,10 @@
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li><a href="#">Users</a></li>
-                <li><a href="/admin/drivers">Groups</a></li>
-                <li class="active"><a href="#">Drivers</a></li>
+                <li><a href="">Groups</a></li>
+                <li class="active"><a href="/admin/drivers">Drivers</a></li>
                 <li><a href="/admin/cars">Cars</a></li>
-                <li><a href="#">Tariffs</a></li>
+                <li><a href="">Tariffs</a></li>
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Reports
                         <span class="caret"></span></a>
@@ -61,7 +61,8 @@
                 <h4 class="modal-title">New Driver</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger alert-dismissible modal-error" onclick="hideErrorModal($('#create_driver'))">
+                <div class="alert alert-danger alert-dismissible modal-error"
+                     onclick="hideErrorModal($('#create_driver'))">
                     <p>Error-Message</p>
                 </div>
                 <form>
@@ -106,7 +107,7 @@
                     <c:forEach var="feauture" items="${driverFeatures}">
                         <div class="checkbox">
                             <label>
-                                <input  class="feature" type="checkbox" value="${feauture.id}">
+                                <input class="feature" type="checkbox" value="${feauture.id}">
                                     ${feauture.name}
                             </label>
                         </div>
@@ -118,12 +119,9 @@
                         <input type="text" class="form-control" id="driver_license_serial">
                     </div>
                     <div class="form-group">
-                        <label for="car_driver" class="control-label">Car:</label>
-                        <select id="car_driver" class="form-control">
-                            <option selected="selected">No Car</option>
-                            <option>Car 1</option>
-                            <option>Car 2</option>
-                        </select>
+                        <label for="driver_car" class="control-label">Car:</label>
+                        <%--<select id="driver_car" class="form-control" onclick="getFreeCars()"></select>--%>
+                        <select id="driver_car" class="form-control"></select>
                     </div>
                 </form>
             </div>

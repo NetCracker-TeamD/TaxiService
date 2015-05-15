@@ -14,7 +14,7 @@ $(document).ready(function () {
             data: data,
             success: function (responseData) {
                 if (responseData.authenticationStatus === true) {
-                    location.reload();
+                    location.href = '/index';
                 } else {
                     alert('Authentication failed');
                 }

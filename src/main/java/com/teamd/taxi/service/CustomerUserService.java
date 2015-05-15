@@ -1,15 +1,19 @@
 package com.teamd.taxi.service;
 
+import com.teamd.taxi.controllers.IndexAndRegistrationController;
 import com.teamd.taxi.entity.User;
 import com.teamd.taxi.entity.UserRole;
 import com.teamd.taxi.exception.UserAlreadyConfirmedException;
 import com.teamd.taxi.persistence.repository.UserRepository;
-import com.teamd.taxi.service.email.EmailService;
+import com.teamd.taxi.service.email.MailService;
+import com.teamd.taxi.service.email.Notification;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
+import javax.mail.MessagingException;
 import java.util.List;
 import java.util.Random;
 
@@ -27,13 +31,13 @@ public class CustomerUserService {
     private UserRepository userRepository;
 
     @Autowired
-    private EmailService emailService;
+    private MailService service;
 
     @Autowired
     private PasswordEncoder encoder;
 
 
-    public User registerNewCustomerUser(User newUser) {
+    public User registerNewCustomerUser(User newUser) throws MessagingException {
         //create confirmation code for user and attach it to the entity
         newUser.setConfirmed(false);
         String confirmationCode = null;
@@ -46,12 +50,22 @@ public class CustomerUserService {
         newUser.setConfirmationCode(confirmationCode);
         newUser.setUserRole(UserRole.ROLE_CUSTOMER);
         newUser.setUserPassword(encoder.encode(newUser.getUserPassword()));
-        //TODO:send notification email
         //save it
         newUser = userRepository.save(newUser);
+        //notification email
+        service.sendNotification(newUser.getEmail(), Notification.REGISTRATION, generateConfirmationURL(confirmationCode));
+
         logger.info("User[" + newUser.getId() + "]" +
                 " registered with [" + confirmationCode + "] confirmation code");
         return newUser;
+    }
+
+    private String generateConfirmationURL(String confirmationCode) {
+        String url = MvcUriComponentsBuilder
+                .fromMethodName(IndexAndRegistrationController.class, "confirmUser", confirmationCode, null)
+                .toUriString();
+        System.out.println("url = " + url);
+        return url;
     }
 
     public boolean confirmUser(String confirmationCode) throws UserAlreadyConfirmedException {
@@ -78,5 +92,9 @@ public class CustomerUserService {
 
     public User findById(Long id) {
         return userRepository.findOne(id);
+    }
+
+    public User save(User user) {
+        return userRepository.save(user);
     }
 }

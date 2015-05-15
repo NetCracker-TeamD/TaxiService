@@ -41,9 +41,14 @@ public class TaxiOrderService {
     private ServiceTypeRepository serviceTypeRepository;
 
     @Autowired
+    private RandomStringGenerator stringGenerator;
+
+    @Autowired
     private MapService mapService;
 
-    Logger logger = Logger.getLogger(TaxiOrderService.class);
+    private static final int KEY_LENGTH = 20;
+
+    private static final Logger logger = Logger.getLogger(TaxiOrderService.class);
 
     @Transactional
     public Page<TaxiOrder> findTaxiOrderByUser(long id, Pageable pageable) {
@@ -193,6 +198,11 @@ public class TaxiOrderService {
         order.setPaymentType(form.getPaymentType());
         order.setExecutionDate(form.getExecDate());
         order.setFeatures(form.getFeatures());
+        //создание ключа для анон. пользователя
+        if (user.getUserRole() == UserRole.ROLE_ANONYMOUS) {
+            String secretKey = stringGenerator.generateString(KEY_LENGTH);
+            order.setSecretViewKey(secretKey);
+        }
         order = orderRepository.save(order);
 
         logger.info("saved order: " + order);

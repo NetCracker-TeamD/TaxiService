@@ -7,7 +7,14 @@ $(function () {
             method: 'POST',
             data: data,
             success: function (data) {
-                console.log(data);
+                if (data.success) {
+                    alert('Registration completed successful. Check your email.');
+                    $('#registrationForm')[0].reset()
+                    $('#t_and_c_m').modal('hide');
+                } else {
+                    alert('Validation errors');
+                    console.log(data);
+                }
             }
         })
     });

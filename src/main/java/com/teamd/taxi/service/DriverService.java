@@ -43,6 +43,7 @@ public class DriverService {
         Hibernate.initialize(driver.getRoutes());
         return driver;
     }
+
     @Transactional
     public Page<Driver> getDrivers(Pageable pageable) {
         Page<Driver> page = driverRepository.findAll(pageable);
@@ -67,14 +68,10 @@ public class DriverService {
 //        System.out.println(Arrays.toString(driver.getFeatures().toArray()));
         driverRepository.delete(id);
     }
-
     @Transactional
-    public void save(Driver r){
-        driverRepository.save(r);
+    public void updatePassword(int id,String newpass,String oldpass){
+        driverRepository.updatePasswordByDriverId(id, encoder.encode(newpass),encoder.encode(oldpass));
     }
-
-
-
     public void createDriverAccount(Driver driver) {
         String password = stringGenerator.generateString(DRIVER_PASS_LENGTH);
         //TODO send pass to driver mail address
