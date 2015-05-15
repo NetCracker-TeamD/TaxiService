@@ -68,9 +68,8 @@ public class DriverService {
 //        System.out.println(Arrays.toString(driver.getFeatures().toArray()));
         driverRepository.delete(id);
     }
-    @Transactional
-    public void updatePassword(int id,String newpass,String oldpass){
-        driverRepository.updatePasswordByDriverId(id, encoder.encode(newpass),encoder.encode(oldpass));
+    public void save(Driver driver){
+        driverRepository.save(driver);
     }
     public void createDriverAccount(Driver driver) {
         String password = stringGenerator.generateString(DRIVER_PASS_LENGTH);
