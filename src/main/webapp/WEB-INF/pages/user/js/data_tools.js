@@ -1,6 +1,6 @@
 var DataTools = (function(){
 	var 
-		serverAddress = "",//http://localhost:8000",
+		serverAddress = "",//"http://localhost:8000",
 		userLocation = null,
 		services = {
 			"cache" : null,
@@ -106,6 +106,15 @@ var DataTools = (function(){
 				}
 			})
 		},
+		getUser = function(){
+			return {
+				"isLogged":false,
+				"name":"Vasja",
+				"isBlocked":false,
+				"email":"Vasja.the.best@gmail.com",
+
+			}
+		},
 		////////////////////
 		// init
 		////////////////////
@@ -195,6 +204,7 @@ var DataTools = (function(){
 		"getFeatureList" : getFeatureList,
 		"setUserLocation" : setUserLocation,
 		"getServiceDescription" : getServiceDescription,
-		"getFeatureList" : getFeatureList
+		"getFeatureList" : getFeatureList,
+		"getUser" : getUser
 	}
 })()

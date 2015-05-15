@@ -5,24 +5,126 @@ var App = (function(){
 		blocks = {
 			"body" : null,
 			"header" : null,
-			"content" : null
+			"header_items" : null,
+			"header_actinos" : null,
+			"content" : null,
 		},
+		current_page_name = "",
 		controls = {},
+		lockAllControls = function(holder){
+			holder.find(":input").prop({'readonly': true, 'disabled': true});
+		},
+		unlockAllControls = function(holder){
+			holder.find(":input").prop({'readonly': false, 'disabled': false});
+		},
 		showLoadPage = function(){
 			blocks.content.html("")
 			blocks.content.append(Templates.getLoader("Page is loading, please wait"))
 		},
-		loadPage = function(pageName){
+		showBlockedPage = function(){
+			blocks.content.html("")
+			blocks.content.append(Templates.getBlocked())
+		},
+		loadPage = function(pageName, addition_data){
+			//TODO: add history api support
 			showLoadPage()
-			if (pageName == "new-order"){
-				var loader = new Loader()
-				loader.addCallBack(function(){
-					console.log("hi")
-					showOrderPage(blocks.content)
-				})
-				DataTools.init(null, loader)
+			current_page_name = pageName
+			updateHeader()
 
+			//if logout
+			//if about
+			var user = DataTools.getUser() 
+			if (user.isBlocked){
+				showBlockedPage()
+				return;
 			}
+			switch (pageName){
+				case "new-order": 
+					var loader = new Loader()
+					loader.addCallBack(function(){ showOrderPage(blocks.content) })
+					DataTools.init(null, loader)
+					break;
+				case "login":
+					showLoginPage(blocks.content, addition_data)
+					break;
+				case "register":
+					showRegisterPage(blocks.content, addition_data)
+					break;
+				case "about": 
+					showAboutPage(blocks.content, addition_data)
+					break;
+				case "account":
+					showEditAccountPage(blocks.content, addition_data)
+					break;
+				case "order":
+					showViewOrderPage(blocks.content, addition_data)
+					break;
+				case "history":
+					showHistoryPage(blocks.content, addition_data)
+					break;
+				default :
+					loadPage("new-order", addition_data)
+					break;
+			}
+		},
+		updateHeader = function(key, value){
+			var user = DataTools.getUser(),
+				items = [],
+				actions = []
+			
+			items.push(Templates.getHeaderItem("About","/about", "about"))
+			items.push(Templates.getHeaderItem("Make order","/new-order", "new-order"))
+			if (user.isLogged){
+				//TODO:add username
+				items.push(Templates.getHeaderItem("View History","/history", "history"))
+				items.push(Templates.getHeaderItem("Edit Account","/edit-account", "account"))
+				actions.push(Templates.getHeaderItemIcon("Logout","/logout", "logout", "log-out"))
+			} else {
+				actions.push(Templates.getHeaderItemIcon("Register","/register", "register", "user"))
+				actions.push(Templates.getHeaderItemIcon("Login","/login", "login", "log-in"))
+			}
+			//fill pages
+			blocks.header_items.html("")
+			for(var i in items){
+				var item = items[i]
+				blocks.header_items.append(item)
+				//TODO: make better selector
+				if (item.attr("data-action")==current_page_name ||
+					item.find('[data-action="'+current_page_name+'"]').length>0){
+					item.addClass("active")
+				}
+			}
+			//fill action
+			blocks.header_actions.html("")
+			for(var i in actions){
+				var action = actions[i]
+				blocks.header_actions.append(action)
+				if (action.attr("data-action")==current_page_name ||
+					action.find('[data-action="'+current_page_name+'"]').length>0){
+					action.addClass("active")
+				}
+			}
+			console.log(current_page_name)
+		},
+		initHeader = function(){
+			blocks.header = Templates.getHeaderContainer()
+			blocks.header_items = blocks.header.find('[data-type="menu-list"]')
+			blocks.header_actions = blocks.header.find('[data-type="action-list"]')
+			var toggleBtn = blocks.header.find(".navbar-toggle"),
+				menuOnClick = function(e){
+					e.preventDefault() 
+					var target = $(e.target),
+						new_page = target.attr("data-action")
+					if (new_page != current_page_name){
+						if (toggleBtn.css("display")!="none"){
+							toggleBtn.click()
+						}
+						loadPage(new_page)
+					}
+				}
+			blocks.header_items.bind("click", menuOnClick)
+			blocks.header_actions.bind("click", menuOnClick)
+			updateHeader()
 		},
 		updateRoutes = function(invoker, place){
 			var id = $(invoker).attr("data-number"),
@@ -90,11 +192,14 @@ var App = (function(){
 		createInputsForServiceType = function(holder, serviceDescription, featuresList) {
 			MapTools.clearAllMarker()
 			MapTools.markersFitWindow()
-			var SD = serviceDescription
+			var SD = serviceDescription,
+				user = DataTools.getUser()
 			//create DOM
 			holder.html("")
 			//add contacts
-			holder.append(Templates.getContacts())
+			if (!user.isLogged){
+				holder.append(Templates.getContacts())
+			}
 			holder.append(Templates.getTime(SD.timing.indexOf("now")>-1, SD.timing.indexOf("specified")>-1))
 			var locationsList = DataTools.getFavLocations()
 			//add addresses
@@ -153,9 +258,21 @@ var App = (function(){
 			
 			makeOrderBtn.bind("click", function(e){
 				//TODO : add validation
+				if (makeOrderBtn.attr("disabled") !== undefined) return;
 				var method = orderForm.attr("method").toLowerCase(),
 					url = orderForm.attr("action"),
-					data = JSON.stringify(orderForm.serializeObject())
+					data = JSON.stringify(orderForm.serializeObject()),
+					onQueryEnded = function(status){
+						//enable form
+						unlockAllControls(orderForm);
+						makeOrderBtn.removeClass("active")
+						makeOrderBtn.removeAttr("disabled")
+					}
+				//lock form
+				lockAllControls(orderForm);
+				makeOrderBtn.addClass("active")
+				makeOrderBtn.attr("disabled","")
+
 				method = (method != "get" && method != "post") ? "post" : method
 				console.log(data)
 				$.ajax({
@@ -167,6 +284,7 @@ var App = (function(){
             		processData:false,
 					success : function(response){
 						console.log("response is '"+response+"'")
+						onQueryEnded("success")
 						var watchIt = function(){
 							console.log("go to track link")
 						}
@@ -197,6 +315,7 @@ var App = (function(){
 					},
 					error : function(response){
 						console.log(response)
+						onQueryEnded("error")
 						BootstrapDialog.show({
 							type: BootstrapDialog.TYPE_DANGER,
 							title: "Server error",
@@ -233,9 +352,138 @@ var App = (function(){
 						
 			updateLocationsLists()
 		},
+		showLoginPage = function(holder){
+			var container = Templates.getLogin(),
+				loginForm = container.find("#login-form"),
+				loginBtn = container.find('[data-action="login"]')
+			
+			loginBtn.bind("click", function(e){
+				//TODO : add validation
+				if (loginBtn.attr("disabled") !== undefined) return;
+				var method = loginForm.attr("method").toLowerCase(),
+					url = loginForm.attr("action"),
+					data = JSON.stringify(loginForm.serializeObject()),
+					onQueryEnded = function(status){
+						//enable form
+						unlockAllControls(loginForm);
+						loginBtn.removeClass("active")
+						loginBtn.removeAttr("disabled")
+					}
+				//lock form
+				lockAllControls(loginForm);
+				loginBtn.addClass("active")
+				loginBtn.attr("disabled","")
+
+				method = (method != "get" && method != "post") ? "post" : method
+				console.log(data)
+				$.ajax({
+					type: method,
+					url: url,
+					contentType: "application/json; charset=utf-8",
+					data: data,
+					cache: false,
+            		processData:false,
+					success : function(response){
+						console.log("response is '"+response+"'")
+						//TODO: check response
+						onQueryEnded("success")
+						//loadPage("new-order")
+					},
+					error : function(response){
+						console.log(response)
+						onQueryEnded("error")
+						BootstrapDialog.show({
+							type: BootstrapDialog.TYPE_DANGER,
+							title: "Server error",
+							message: "Server returns error with status '"+response.statusText+"'",
+						})
+					}
+				})
+			})
+
+			//fill page
+			holder.html("")
+			holder.append(container)
+		},
+		showRegisterPage = function(holder){
+			var container = Templates.getRegistration(),
+				form = container.find("#reg-form"),
+				submBtn = container.find('[data-action="reg"]')
+			
+			submBtn.bind("click", function(e){
+				//TODO : add validation
+				if (submBtn.attr("disabled") !== undefined) return;
+				var method = form.attr("method").toLowerCase(),
+					url = form.attr("action"),
+					data = JSON.stringify(form.serializeObject()),
+					onQueryEnded = function(status){
+						//enable form
+						unlockAllControls(form);
+						submBtn.removeClass("active")
+						submBtn.removeAttr("disabled")
+					}
+				//lock form
+				lockAllControls(form);
+				submBtn.addClass("active")
+				submBtn.attr("disabled","")
+
+				method = (method != "get" && method != "post") ? "post" : method
+				console.log(data)
+				$.ajax({
+					type: method,
+					url: url,
+					contentType: "application/json; charset=utf-8",
+					data: data,
+					cache: false,
+            		processData:false,
+					success : function(response){
+						console.log("response is '"+response+"'")
+						//TODO: check response
+						onQueryEnded("success")
+						//loadPage("new-order")
+					},
+					error : function(response){
+						console.log(response)
+						onQueryEnded("error")
+						BootstrapDialog.show({
+							type: BootstrapDialog.TYPE_DANGER,
+							title: "Server error",
+							message: "Server returns error with status '"+response.statusText+"'",
+						})
+					}
+				})
+			})
+			//fill page
+			holder.html("")
+			holder.append(container)
+		},
+		showAboutPage = function(holder){
+			var container = Templates.getAbout()
+			//fill page
+			holder.html("")
+			holder.append(container)
+		},
+		showViewOrderPage = function(holder){
+			var container = Templates.getViewOrder()
+			//fill page
+			holder.html("")
+			holder.append(container)
+		}
+		showHistoryPage = function(holder){
+			var container = Templates.getViewHistory()
+			//fill page
+			holder.html("")
+			holder.append(container)
+		}
+		showEditAccountPage = function(holder){
+			var container = Templates.getEditAccount()
+			//fill page
+			holder.html("")
+			holder.append(container)			
+		}
 		initBasePage = function(){
 			//binding elements
-			blocks.header = Templates.getHeader()
+			initHeader()
 			blocks.content = Templates.getContentContainer()
 			blocks.body = $("body")
 			//fill page
