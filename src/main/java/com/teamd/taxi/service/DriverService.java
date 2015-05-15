@@ -1,10 +1,8 @@
 package com.teamd.taxi.service;
 
-import com.teamd.taxi.entity.Car;
 import com.teamd.taxi.entity.Driver;
 import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.entity.FeatureType;
-import com.teamd.taxi.persistence.repository.CarRepository;
 import com.teamd.taxi.persistence.repository.DriverRepository;
 import com.teamd.taxi.persistence.repository.FeatureRepository;
 import org.hibernate.Hibernate;
@@ -14,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -29,6 +26,7 @@ public class DriverService {
     @Autowired
     private PasswordEncoder encoder;
 
+
     @Autowired
     private RandomStringGenerator stringGenerator;
 
@@ -37,9 +35,6 @@ public class DriverService {
 
     @Autowired
     private FeatureRepository featureRepository;
-
-    @Autowired
-    private CarRepository carRepository;
 
     @Transactional
     public Driver getDriver(int id) {
@@ -73,21 +68,15 @@ public class DriverService {
 //        System.out.println(Arrays.toString(driver.getFeatures().toArray()));
         driverRepository.delete(id);
     }
-    @Transactional
-    public void updatePassword(int id,String newpass,String oldpass){
-        driverRepository.updatePasswordByDriverId(id, encoder.encode(newpass),encoder.encode(oldpass));
+    public void save(Driver driver){
+        driverRepository.save(driver);
     }
-
-    @Transactional
     public void createDriverAccount(Driver driver) {
         String password = stringGenerator.generateString(DRIVER_PASS_LENGTH);
         //TODO send pass to driver mail address
 
         driver.setPassword(encoder.encode(password));
         driverRepository.save(driver);
-        Car car = carRepository.findOne(driver.getCar().getCarId());
-        car.setDriver(new Driver(driver.getId()));
-        carRepository.save(car);
     }
 
 }

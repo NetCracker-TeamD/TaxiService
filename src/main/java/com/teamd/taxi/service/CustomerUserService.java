@@ -85,7 +85,6 @@ public class CustomerUserService {
         }
         return false;
     }
-
     public User findById(Long id) {
         return userRepository.findOne(id);
     }

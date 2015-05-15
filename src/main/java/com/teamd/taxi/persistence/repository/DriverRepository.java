@@ -9,8 +9,4 @@ public interface DriverRepository extends PagingAndSortingRepository<Driver, Int
 
     Driver findByEmail(String email);
 
-    @Modifying
-    @Query("update Driver d set d.password=?2 where d.id=?1 and d.password=?3")
-    void updatePasswordByDriverId(int id, String password, String oldpass);
-
 }

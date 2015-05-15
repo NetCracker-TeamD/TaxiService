@@ -1,6 +1,8 @@
 package com.teamd.taxi.controllers.driver;
 
+import com.teamd.taxi.authentication.AuthenticatedUser;
 import com.teamd.taxi.entity.*;
+import com.teamd.taxi.service.DriverService;
 import com.teamd.taxi.service.ServiceTypeService;
 import com.teamd.taxi.service.TaxiOrderService;
 import com.teamd.taxi.service.TaxiOrderSpecificationFactory;
@@ -12,8 +14,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,6 +37,10 @@ public class HistoryDriverController {
     private TaxiOrderSpecificationFactory factory;
     @Autowired
     private ServiceTypeService service;
+
+    @Autowired
+    private DriverService driverService;
+
     private List<ServiceType> typeList;
     Logger logger=Logger.getLogger(HistoryDriverController.class);
     @RequestMapping(value = "/history", method = RequestMethod.GET)
@@ -42,22 +51,27 @@ public class HistoryDriverController {
 
         String sort = checkSort(requestParam.get("sort"));
         int numberOfRows = 7;
-        int idDriver=2;
-        typeList=service.findAll();
-        Pageable pageable=new PageRequest(page,numberOfRows, Sort.Direction.ASC, sort);
-        Page<TaxiOrder> orderList = orderService.findTaxiOrderByDriver(
-                resolveSpecification(requestParam, idDriver),
-                pageable
-        );
-        if(orderList==null){
-            //redirect error page
-        }
-        List<TaxiOrder> orders = orderList.getContent();
-        setFilteringOFRoutesForDriver(orders, idDriver);
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication = context.getAuthentication();
+        AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
+        if(authentication.getAuthorities().contains(new SimpleGrantedAuthority("DRIVER_ROLE"))) {
+            Driver driver = driverService.getDriver((int) auth.getId());
+            typeList = service.findAll();
+            Pageable pageable = new PageRequest(page, numberOfRows, Sort.Direction.ASC, sort);
+            Page<TaxiOrder> orderList = orderService.findTaxiOrderByDriver(
+                    resolveSpecification(requestParam, driver.getId()),
+                    pageable
+            );
+            if (orderList == null) {
+                //redirect error page
+            }
+            List<TaxiOrder> orders = orderList.getContent();
+            setFilteringOFRoutesForDriver(orders, driver.getId());
 
-        model.addAttribute("orderList", orders);
-        model.addAttribute("pages", orderList.getTotalPages());
-        model.addAttribute("serviceTypes", typeList);
+            model.addAttribute("orderList", orders);
+            model.addAttribute("pages", orderList.getTotalPages());
+            model.addAttribute("serviceTypes", typeList);
+        }
         return "driver/drv-history";
     }
     private Specification<TaxiOrder> resolveSpecification(Map<String, String> params,int idDriver) {
@@ -160,16 +174,4 @@ public class HistoryDriverController {
             });
         }
     }
-    /*private Map<String,Integer> allowedServiceType=new HashMap<String,Integer>(){{
-        put("Taxi asap",1);
-        put("Taxi in advance",2);
-        put("Sober driver",3);
-        put("Convey corp. emps.",4);
-        put("Cargo taxi",5);
-        put("Taxi for long term",6);
-        put("Meet my guest",7);
-        put("Celebration taxi",8);
-        put("Foodstuff delivery",9);
-        put("Guest Delivery",10);
-    }};*/
 }
