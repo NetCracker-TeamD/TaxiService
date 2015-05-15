@@ -61,6 +61,8 @@ var createDriverModal = $('#create_driver');
 var removeDriverModal = $('#remove_driver');
 var successModal = $('#successModal');
 
+var newDriverCarSelect = $('#driver_car');
+
 function openDriverInfo(node, driverId) {
     // ignore if mailto click
     if ($(node.target).is('a')) {
@@ -193,6 +195,31 @@ function openDriverInfo(node, driverId) {
         error: function () {
             alert("Error 2: No answer");
             //showError(removeCarModal, "Something went wrong... Try again later");
+        }
+    });
+}
+
+function getFreeCars() {
+    if (newDriverCarSelect.attr('completed') === 'true') {
+        return;
+    }
+    $.ajax('/admin/cars-get', {
+        type: 'post',
+        dataType: 'json',
+        data: {},
+        success: function (response) {
+            if (response.result == "success") {
+                //alert(JSON.stringify(response.content));
+                $.each(response.content, function (key, value) {
+                    newDriverCarSelect.append($("<option></option>").attr("value", key).text(value));
+                });
+                newDriverCarSelect.attr('completed','true');
+            } else {
+                showError(createDriverModal, "Something on server side went wrong... Try again later");
+            }
+        },
+        error: function () {
+            showError(createDriverModal, "Server error");
         }
     });
 }
@@ -388,6 +415,8 @@ function createDriver() {
     var enabled = $('#driver_enabled').is(":checked");
     var atWork = $('#driver_at_work').is(":checked");
 
+    var carId = newDriverCarSelect.find('option:selected').val();
+
     var features = [];
     createDriverModal.find('.feature').filter(':checked').each(function (indx, element) {
         features.push($(element).val());
@@ -404,7 +433,8 @@ function createDriver() {
             license: license,
             enabled: enabled,
             atWork: atWork,
-            features: features.toString()
+            features: features.toString(),
+            carId: carId
         },
         success: function (response) {
             if (response.result == "success") {
@@ -482,6 +512,9 @@ createDriverModal.on('shown.bs.modal', function () {
 
 createDriverModal.on('show.bs.modal', function () {
     createDriverModal.find('.modal-error').hide();
+    newDriverCarSelect.html('<option value="" selected="selected">No Car</option>');
+    newDriverCarSelect.attr('completed', 'false');
+    getFreeCars();
 });
 
 successModal.on('hidden.bs.modal', function (event) {
@@ -491,6 +524,3 @@ successModal.on('hidden.bs.modal', function (event) {
 function hideErrorModal(modalId) {
     modalId.find('.modal-error').hide(1000);
 }
-
-
-

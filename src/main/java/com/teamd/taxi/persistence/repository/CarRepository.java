@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 
 /**
  * Created on 02-May-15.
@@ -14,4 +16,6 @@ import org.springframework.stereotype.Repository;
  * @author Nazar Dub
  */
 public interface CarRepository extends PagingAndSortingRepository<Car, Integer> {
+
+    public List<Car> findByDriverId(Integer driverId);
 }

@@ -69,11 +69,16 @@ public class DriverAdminController {
     @Autowired
     DriverValidateUtil validateUtil;
 
-    private Gson gson = new GsonBuilder()
+    private Gson driverInfoGson = new GsonBuilder()
             .registerTypeAdapter(DriverInfoResponseModel.class, new DriverInfoResponseModelSerializer())
             .registerTypeAdapter(Driver.class, new DriverSerializer())
             .registerTypeAdapter(Car.class, new CarSerializer())
             .registerTypeAdapter(FeatureListSerializer.featuresType, new FeatureListSerializer())
+            .create();
+
+    private Gson driverCarGson = new GsonBuilder()
+            .registerTypeAdapter(AdminResponseModel.class, new AdminResponseModelSerializer())
+            .registerTypeAdapter(CarListSerializer.carsType, new CarListSerializer())
             .create();
 
     //URL example: drivers?page=1&order=last_name
@@ -106,7 +111,16 @@ public class DriverAdminController {
         response.setResultSuccess();
         response.setContent(driver);
 
-        return gson.toJson(response);
+        return driverInfoGson.toJson(response);
+    }
+
+    @RequestMapping(value = "/cars-get", method = RequestMethod.POST)
+    @ResponseBody
+    public Object getCars() {
+        AdminResponseModel<List<Car>> response = new AdminResponseModel<>();
+        List<Car> cars = carService.getFreeCars();
+        response.setContent(cars).setResultSuccess();
+        return driverCarGson.toJson(response);
     }
 
     //URL example: driver-delete?id=5
@@ -208,6 +222,73 @@ public class DriverAdminController {
 
         @Override
         public List<Feature> read(JsonReader in) throws IOException {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class AdminResponseModelSerializer implements JsonSerializer<AdminResponseModel<List<Car>>> {
+
+        @Override
+        public JsonElement serialize(AdminResponseModel<List<Car>> src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject json = new JsonObject();
+            json.addProperty("result", src.getResult());
+            json.add("content", context.serialize(src.getContent(), CarListSerializer.carsType));
+            return json;
+        }
+    }
+
+    private static class TestResponseSerializer implements JsonSerializer<TestResponse> {
+
+        @Override
+        public JsonElement serialize(TestResponse src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject json = new JsonObject();
+            json.addProperty("result", src.getResult());
+            json.add("content", context.serialize(src.getCars(), CarListSerializer.carsType));
+            return json;
+        }
+    }
+
+    private static class TestResponse {
+        private String result = "success";
+        private List<Car> cars;
+
+        public TestResponse() {
+        }
+
+        public String getResult() {
+            return result;
+        }
+
+        public void setResult(String result) {
+            this.result = result;
+        }
+
+        public List<Car> getCars() {
+            return cars;
+        }
+
+        public void setCars(List<Car> cars) {
+            this.cars = cars;
+        }
+    }
+
+    private static class CarListSerializer extends TypeAdapter<List<Car>> {
+
+        public static final Type carsType = new TypeToken<List<Car>>() {
+        }.getType();
+
+        @Override
+        public void write(JsonWriter out, List<Car> value) throws IOException {
+            out.beginObject();
+            for (Car c : value) {
+                out.name(c.getCarId().toString());
+                out.value(c.getModel());
+            }
+            out.endObject();
+        }
+
+        @Override
+        public List<Car> read(JsonReader in) throws IOException {
             throw new UnsupportedOperationException();
         }
     }

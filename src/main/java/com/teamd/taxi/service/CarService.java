@@ -42,4 +42,8 @@ public class CarService {
         return featureRepository.getFeaturesByCarID(id);
     }
 
+    public List<Car> getFreeCars() {
+        return carRepository.findByDriverId(null);
+    }
+
 }

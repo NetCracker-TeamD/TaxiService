@@ -15,7 +15,7 @@ public class DriverValidateUtil extends HierarchyValidationUtil {
     private final static Set<String> VALIDATION_LEVEL_ONE =
             new HashSet<>(Arrays.asList("NotBlank", "NotNull"));
     private final static Set<String> VALIDATION_LEVEL_TWO =
-            new HashSet<>(Arrays.asList("DriverFeatures", "License", "Phone", "Email"));
+            new HashSet<>(Arrays.asList("DriverFeatures", "License", "Phone", "Email", "FreeCarId"));
     private final static Set<String> VALIDATION_LEVEL_THREE =
             new HashSet<>(Arrays.asList("NotBlank", "UniqueDriverEmail"));
 

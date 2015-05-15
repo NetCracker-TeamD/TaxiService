@@ -1,12 +1,10 @@
 package com.teamd.taxi.models.admin;
 
+import com.teamd.taxi.entity.Car;
 import com.teamd.taxi.entity.Driver;
 import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.entity.Sex;
-import com.teamd.taxi.validation.DriverFeatures;
-import com.teamd.taxi.validation.License;
-import com.teamd.taxi.validation.Phone;
-import com.teamd.taxi.validation.UniqueDriverEmail;
+import com.teamd.taxi.validation.*;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -50,6 +48,9 @@ public class DriverModel {
     @NotNull
     @DriverFeatures
     private List<Feature> features;
+
+    @FreeCarId
+    private Integer carId;
 
 
     public DriverModel() {
@@ -130,6 +131,14 @@ public class DriverModel {
         this.features = featureList;
     }
 
+    public Integer getCarId() {
+        return carId;
+    }
+
+    public void setCarId(Integer carId) {
+        this.carId = carId;
+    }
+
     public Driver toDriver() {
         Driver d = new Driver();
         d.setFirstName(firstName);
@@ -141,6 +150,8 @@ public class DriverModel {
         d.setAtWork(atWork);
         d.setLicense(license);
         d.setFeatures(features);
+        if (carId != null)
+            d.setCar(new Car(carId));
         return d;
     }
 
@@ -156,6 +167,7 @@ public class DriverModel {
                 ", atWork=" + atWork +
                 ", sex=" + sex +
                 ", features=" + features +
+                ", carId=" + carId +
                 '}';
     }
 }
