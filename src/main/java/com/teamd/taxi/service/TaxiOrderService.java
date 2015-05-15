@@ -133,6 +133,9 @@ public class TaxiOrderService {
         Boolean isChain = serviceType.isDestinationLocationsChain();
         if (isChain != null && isChain) {
             List<String> intermediate = form.getIntermediate();
+            if (intermediate == null) {
+                intermediate = new ArrayList<>();
+            }
             intermediate.add(0, form.getSource().get(0));
             intermediate.add(form.getDestination().get(0));
             addressesToCheck = intermediate;

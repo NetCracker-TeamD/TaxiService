@@ -70,17 +70,8 @@ public class OrderController {
     }
 
     private List<String> readStringList(JsonObject jsonObject, String propName, boolean checkEmpty) throws PropertyNotFoundException {
-        JsonElement jsonElement = getAndCheck(jsonObject, propName);
-        List<String> list;
-        if (jsonElement.isJsonArray()) {
-            JsonArray jsonArray = jsonElement.getAsJsonArray();
-            list = new ArrayList<>(jsonArray.size());
-            for (int i = 0; i < jsonArray.size(); i++) {
-                list.add(jsonArray.get(i).getAsString());
-            }
-        } else if (jsonElement.isJsonPrimitive()) {
-            list = Arrays.asList(jsonElement.getAsJsonPrimitive().getAsString());
-        } else {
+        List<String> list = getStrings(getAndCheck(jsonObject, propName));
+        if (list == null) {
             throw new PropertyNotFoundException(propName + " has incorrect type");
         }
         if (checkEmpty && list.isEmpty()) {
@@ -96,6 +87,20 @@ public class OrderController {
         }
         if (checkEmpty && list.isEmpty()) {
             throw new PropertyNotFoundException(propName + " is empty");
+        }
+        return list;
+    }
+
+    private List<String> getStrings(JsonElement jsonElement) {
+        List<String> list = null;
+        if (jsonElement.isJsonArray()) {
+            JsonArray jsonArray = jsonElement.getAsJsonArray();
+            list = new ArrayList<>(jsonArray.size());
+            for (int i = 0; i < jsonArray.size(); i++) {
+                list.add(jsonArray.get(i).getAsString());
+            }
+        } else if (jsonElement.isJsonPrimitive()) {
+            list = Arrays.asList(jsonElement.getAsJsonPrimitive().getAsString());
         }
         return list;
     }
@@ -143,7 +148,10 @@ public class OrderController {
         //промежуточные точки
         Boolean isChain = serviceType.isDestinationLocationsChain();
         if (isChain != null && isChain) {
-            form.setIntermediate(readStringList(orderObject, "intermediate_addresses", false));
+            JsonElement intermediateElement = orderObject.get("intermediate_addresses");
+            if (intermediateElement != null) {
+                form.setIntermediate(getStrings(intermediateElement));
+            }
         }
         //точки назначения
         if (serviceType.isDestinationRequired()) {
