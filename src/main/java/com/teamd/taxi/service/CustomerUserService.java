@@ -89,4 +89,8 @@ public class CustomerUserService {
     public User findById(Long id) {
         return userRepository.findOne(id);
     }
+
+    public User save(User user) {
+        return userRepository.save(user);
+    }
 }

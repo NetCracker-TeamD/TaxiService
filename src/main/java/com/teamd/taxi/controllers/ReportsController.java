@@ -70,9 +70,9 @@ public class ReportsController {
     @RequestMapping(value = "/newOrdersPerPeriod")
     @ResponseBody
     public List<Map<String, Object>> generateNewOrdersPerPeriodReport(@RequestParam("startDate") final String startDate,
-                                                                      @RequestParam("endDate")final String  endDate) {
-        final String from=startDate+" 00:00:00";
-        final String to=endDate+" 00:00:00";
+                                                                      @RequestParam("endDate") final String endDate) {
+        final String from = startDate + " 00:00:00";
+        final String to = endDate + " 00:00:00";
         return reportsRepository.getReport(new ReportResolver() {
             @Override
             public String getQuery() {
@@ -107,6 +107,7 @@ public class ReportsController {
                     }
                 };
             }
+
             @Override
             public Object[] getParams() {
                 return new Object[]{Timestamp.valueOf(from), Timestamp.valueOf(to)};
@@ -238,61 +239,62 @@ public class ReportsController {
             }
         });
     }
-/*
-    @RequestMapping(value = "/mostProfitableService")
-    @ResponseBody
-    public List<Map<String, Object>> generateMostProfitableServiceReport(@RequestParam("period") final String period) {
-        return reportsRepository.getReport(new ReportResolver() {
-            @Override
-            public String getQuery() {
-                return "SELECT  service_type.name as service_name ,SUM(route.total_price) as profit " +
-                        "FROM service_type " +
-                        "JOIN taxi_order ON service_type.id=taxi_order.service_type " +
-                        "JOIN route ON taxi_order.id=route.order_id " +
-                        "WHERE taxi_order.execution_date BETWEEN ? AND ?  " +
-                        "GROUP BY service_type.name " +
-                        "ORDER BY profit desc";
-            }
-            @Override
-            public RowMapper getRowMapper() {
-                RowMapper<Map<String, Object>> mapper = new RowMapper<Map<String, Object>>() {
-                    @Override
-                    public Map<String, Object> mapRow(ResultSet resultSet, int i) throws SQLException {
-                        String serviceType = resultSet.getString("service_name");
-                        String profit = resultSet.getString("profit");
-                        Map<String, Object> result = new TreeMap<String, Object>();
-                        result.put("Service name", serviceType);
-                        result.put("Profit", profit);
-                        LocalDateTime endDate = LocalDateTime.now();
-                        LocalDateTime startDate=findEndDate(period);
-                        result.put("Period of time", startDate.toLocalDate().toString()+" - "+endDate.toLocalDate().toString());
-                        return result;
-                    }
-                };
-                return mapper;
-            }
-            @Override
-            public Object[] getParams() {
-                LocalDateTime endDate = LocalDateTime.now();
-                LocalDateTime startDate=findEndDate(period);
-                return new Object[]{Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)};
-            }
-        });
-    }
 
-    private LocalDateTime findEndDate(final String  period){
-        LocalDateTime startDate;
-        if (period.equals("MONTH")) {
-            startDate = LocalDateTime.now().minusMonths(1);
-        } else if (period.equals("DECADE")) {
-            LocalDateTime half = LocalDateTime.now().minusMonths(2);
-            startDate = half.minusWeeks(2);
-        } else {
-            startDate = LocalDateTime.now().minusWeeks(1);
+    /*
+        @RequestMapping(value = "/mostProfitableService")
+        @ResponseBody
+        public List<Map<String, Object>> generateMostProfitableServiceReport(@RequestParam("period") final String period) {
+            return reportsRepository.getReport(new ReportResolver() {
+                @Override
+                public String getQuery() {
+                    return "SELECT  service_type.name as service_name ,SUM(route.total_price) as profit " +
+                            "FROM service_type " +
+                            "JOIN taxi_order ON service_type.id=taxi_order.service_type " +
+                            "JOIN route ON taxi_order.id=route.order_id " +
+                            "WHERE taxi_order.execution_date BETWEEN ? AND ?  " +
+                            "GROUP BY service_type.name " +
+                            "ORDER BY profit desc";
+                }
+                @Override
+                public RowMapper getRowMapper() {
+                    RowMapper<Map<String, Object>> mapper = new RowMapper<Map<String, Object>>() {
+                        @Override
+                        public Map<String, Object> mapRow(ResultSet resultSet, int i) throws SQLException {
+                            String serviceType = resultSet.getString("service_name");
+                            String profit = resultSet.getString("profit");
+                            Map<String, Object> result = new TreeMap<String, Object>();
+                            result.put("Service name", serviceType);
+                            result.put("Profit", profit);
+                            LocalDateTime endDate = LocalDateTime.now();
+                            LocalDateTime startDate=findEndDate(period);
+                            result.put("Period of time", startDate.toLocalDate().toString()+" - "+endDate.toLocalDate().toString());
+                            return result;
+                        }
+                    };
+                    return mapper;
+                }
+                @Override
+                public Object[] getParams() {
+                    LocalDateTime endDate = LocalDateTime.now();
+                    LocalDateTime startDate=findEndDate(period);
+                    return new Object[]{Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)};
+                }
+            });
         }
-        return startDate;
-    }
-*/
+
+        private LocalDateTime findEndDate(final String  period){
+            LocalDateTime startDate;
+            if (period.equals("MONTH")) {
+                startDate = LocalDateTime.now().minusMonths(1);
+            } else if (period.equals("DECADE")) {
+                LocalDateTime half = LocalDateTime.now().minusMonths(2);
+                startDate = half.minusWeeks(2);
+            } else {
+                startDate = LocalDateTime.now().minusWeeks(1);
+            }
+            return startDate;
+        }
+    */
     @RequestMapping
     public ModelAndView viewStatistic(Model model, HttpServletRequest request) {
         return new ModelAndView("statistic");

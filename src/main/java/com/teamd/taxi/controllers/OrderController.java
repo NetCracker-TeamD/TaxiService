@@ -2,6 +2,7 @@ package com.teamd.taxi.controllers;
 
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
+import com.teamd.taxi.authentication.AuthenticatedUser;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
 import com.teamd.taxi.models.TaxiOrderForm;
@@ -10,6 +11,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -192,6 +194,18 @@ public class OrderController {
             form.setExecDate(parseDate(specifiedPrimitive.getAsString()));
         } else {
             throw new PropertyNotFoundException("timing");
+        }
+        //находим или создаем пользователя
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        User user;
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            user = new User(null, "", "", UserRole.ROLE_ANONYMOUS, "");
+            user = userService.save(user);
+        } else {
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) authentication.getPrincipal();
+            user = userService.findById(authenticatedUser.getId());
         }
         //вносим заказ в базу
         System.out.println("Form: " + form.toString());
