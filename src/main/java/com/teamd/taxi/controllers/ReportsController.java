@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
+
 import java.util.*;
 
 @Controller
@@ -263,9 +263,10 @@ public class ReportsController {
                         Map<String, Object> result = new TreeMap<String, Object>();
                         result.put("Service name", serviceType);
                         result.put("Profit", profit);
-                        LocalDateTime endDate = LocalDateTime.now();
-                        LocalDateTime startDate=findEndDate(period);
-                        result.put("Period of time", startDate.toLocalDate().toString()+" - "+endDate.toLocalDate().toString());
+                      Calendar endDate= new GregorianCalendar();
+                        Calendar startDate=findDate(period);
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                        result.put("Period of time", sdf.format(startDate.getTime())+ " - " + sdf.format(endDate.getTime()));
                         return result;
                     }
                 };
@@ -273,25 +274,29 @@ public class ReportsController {
             }
             @Override
             public Object[] getParams() {
-                LocalDateTime endDate = LocalDateTime.now();
-                LocalDateTime startDate=findEndDate(period);
-                return new Object[]{Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)};
+                Calendar c = new GregorianCalendar();
+                Calendar c2=findDate(period);
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                String from=sdf.format(c2.getTime())+" 00:00:0";
+                String to =sdf.format(c.getTime())+" 00:00:0";
+                return new Object[]{Timestamp.valueOf(from), Timestamp.valueOf(to)};
             }
         });
     }
 
-    private LocalDateTime findEndDate(final String  period){
-        LocalDateTime startDate;
+    private  Calendar findDate(final  String period){
+        Calendar c = new GregorianCalendar();
         if (period.equals("MONTH")) {
-            startDate = LocalDateTime.now().minusMonths(1);
+            c .add(Calendar.MONTH,-1);
         } else if (period.equals("DECADE")) {
-            LocalDateTime half = LocalDateTime.now().minusMonths(2);
-            startDate = half.minusWeeks(2);
+            c .add(Calendar.MONTH,-2);
+            c.add(Calendar.DAY_OF_MONTH,-14);
         } else {
-            startDate = LocalDateTime.now().minusWeeks(1);
+            c.add(Calendar.DAY_OF_MONTH,-7);
         }
-        return startDate;
+        return c;
     }
+
 
     @RequestMapping
     public ModelAndView viewStatistic(Model model, HttpServletRequest request) {
