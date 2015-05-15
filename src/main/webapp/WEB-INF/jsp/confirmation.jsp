@@ -1,4 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -33,14 +35,11 @@
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Home</a></li>
                 <li><a href="#about">About</a></li>
-                <li><a href="/order">Order</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
 
             <div class="navbar-form navbar-right">
                 <button type="button" class="btn btn-success" data-toggle="modal" data-target="#login_modal">Log in
-                </button>
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#t_and_c_m">Sign up
                 </button>
             </div>
 
@@ -70,12 +69,9 @@
     <!-- Example row of columns -->
     <div class="jumbotron">
 
-        <p>A taxicab, also known as a taxi or a cab, is a type of vehicle for hire with a driver,
-            used by a single passenger or small group of passengers, often for a non-shared ride.
-            A taxicab conveys passengers between locations of their choice.
-            This differs from other modes of public transport where the pick-up and drop-off locations are determined by
-            the service provider, not by the passenger, although demand responsive transport and share taxis provide a
-            hybrid bus/taxi mode.</p>
+        <p>
+            ${message}
+        </p>
     </div>
 
     <hr>
@@ -84,77 +80,6 @@
         <p>&#169 TeamD 2015</p>
     </footer>
 </div>
-
-<!-- Registratin Modal -->
-<div class="modal fade" id="t_and_c_m" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-                <h2 class="modal-title" id="myModalLabel">Registration</h2>
-            </div>
-            <form action="${pageContext.request.contextPath}/register" id="registrationForm"
-                  method="post">
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-xs-12 col-sm-6 col-md-6">
-                            <div class="form-group">
-                                <input type="text" name="firstName" placeholder="First Name"
-                                       class="form-control input-lg"
-                                       id="first_name" tabindex="1"/>
-                            </div>
-                        </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6">
-                            <div class="form-group">
-                                <input type="text" name="lastName" placeholder="Last Name" class="form-control input-lg"
-                                       id="last_name" tabindex="2"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" name="email" placeholder="Email Address" id="email"
-                               class="form-control input-lg"
-                               tabindex="3"/>
-                    </div>
-                    <div class="form-group">
-                        <input name="phoneNumber" placeholder="Phone Number" id="phoneNumber"
-                               class="form-control input-lg" tabindex="4"/>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-12 col-sm-6 col-md-6">
-                            <div class="form-group">
-                                <input type="password" name="password" id="password"
-                                       class="form-control input-lg"
-                                       placeholder="Password" tabindex="5"/>
-                            </div>
-                        </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6">
-                            <div class="form-group">
-                                <input type="password" name="passwordConfirmation" id="password-confirm"
-                                       class="form-control input-lg"
-                                       placeholder="Confirm Password" tabindex="6"/>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="modal-footer">
-                    <div>
-                        <button id="reg" type="submit" class="btn btn-success">Register</button>
-                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
-                    </div>
-                </div>
-            </form>
-
-        </div>
-        <!-- /.modal-content -->
-    </div>
-    <!-- /.modal-dialog -->
-</div>
-<!-- /.modal -->
-
 
 <!-- Login Modal -->
 <div class="modal fade" id="login_modal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel"

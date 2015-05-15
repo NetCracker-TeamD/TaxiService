@@ -238,7 +238,7 @@ public class ReportsController {
             }
         });
     }
-
+/*
     @RequestMapping(value = "/mostProfitableService")
     @ResponseBody
     public List<Map<String, Object>> generateMostProfitableServiceReport(@RequestParam("period") final String period) {
@@ -263,10 +263,9 @@ public class ReportsController {
                         Map<String, Object> result = new TreeMap<String, Object>();
                         result.put("Service name", serviceType);
                         result.put("Profit", profit);
-                      Calendar endDate= new GregorianCalendar();
-                        Calendar startDate=findDate(period);
-                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-                        result.put("Period of time", sdf.format(startDate.getTime())+ " - " + sdf.format(endDate.getTime()));
+                        LocalDateTime endDate = LocalDateTime.now();
+                        LocalDateTime startDate=findEndDate(period);
+                        result.put("Period of time", startDate.toLocalDate().toString()+" - "+endDate.toLocalDate().toString());
                         return result;
                     }
                 };
@@ -274,30 +273,26 @@ public class ReportsController {
             }
             @Override
             public Object[] getParams() {
-                Calendar c = new GregorianCalendar();
-                Calendar c2=findDate(period);
-                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-                String from=sdf.format(c2.getTime())+" 00:00:0";
-                String to =sdf.format(c.getTime())+" 00:00:0";
-                return new Object[]{Timestamp.valueOf(from), Timestamp.valueOf(to)};
+                LocalDateTime endDate = LocalDateTime.now();
+                LocalDateTime startDate=findEndDate(period);
+                return new Object[]{Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)};
             }
         });
     }
 
-    private  Calendar findDate(final  String period){
-        Calendar c = new GregorianCalendar();
+    private LocalDateTime findEndDate(final String  period){
+        LocalDateTime startDate;
         if (period.equals("MONTH")) {
-            c .add(Calendar.MONTH,-1);
+            startDate = LocalDateTime.now().minusMonths(1);
         } else if (period.equals("DECADE")) {
-            c .add(Calendar.MONTH,-2);
-            c.add(Calendar.DAY_OF_MONTH,-14);
+            LocalDateTime half = LocalDateTime.now().minusMonths(2);
+            startDate = half.minusWeeks(2);
         } else {
-            c.add(Calendar.DAY_OF_MONTH,-7);
+            startDate = LocalDateTime.now().minusWeeks(1);
         }
-        return c;
+        return startDate;
     }
-
-
+*/
     @RequestMapping
     public ModelAndView viewStatistic(Model model, HttpServletRequest request) {
         return new ModelAndView("statistic");
