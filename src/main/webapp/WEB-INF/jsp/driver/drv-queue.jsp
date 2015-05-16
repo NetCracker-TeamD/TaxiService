@@ -38,17 +38,20 @@
                     <div class="col-sm-4">{{:order.executionDate}}</div>
                     <div class="col-sm-4">{{:order.serviceType.name}}</div>
                     <div class="col-sm-2">{{:order.paymentType}}</div>
-                    <div class="col-sm-2"></a>
+                    <div class="col-sm-2">
                         <button type="button" id="view" data-toggle="collapse" class="btn btn-info"
-                        title="View details">
-                        <i class="glyphicon glyphicon-eye-open"></i>
+                                 title="View details">
+                                <i class="glyphicon glyphicon-eye-open"></i>
                         </button>
-
+                        {{if order.serviceType.isDestinationLocationsChain === true}}
+                            <a class="btn btn-success" href="assign?id={{:order.id}}" ${activeOrder ? "disabled=\"on\"" : ""}>
+                            <i class="glyphicon glyphicon-link"></i></a>
+                        {{/if}}
                     </div>
                 </strong>
             </div>
         </div>
-        <div class="panel-body free-route" style="padding: 0px; display:none;">
+        <div class="panel-body free-route" style="padding: 5px; display:none;">
             <div class="panel">
                 <table class="table table-hover table-bordered">
                     <thead>
@@ -57,28 +60,25 @@
                             <th class="col-sm-3">Destination address</th>
                             <th class="col-sm-2">Cars</th>
                             <th class="col-sm-2">Distance</th>
-
                             <th class="col-sm-2">Accept</th>
                         </tr>
                     </thead>
                     <tbody>
                         {{for assembledRoutes }}
+
                             <tr class="info">
                                 <td class="col-sm-3">{{:sourceAddress}}</td>
                                 <td class="col-sm-3">{{:destinationAddress}}</td>
                                 <td class="col-sm-2">{{:totalCars}}</td>
                                 <td class="col-sm-2">{{:totalDistance}}</td>
                                 <td class="col-sm-2">
-                                    <div>
-                                        {{if #parent.parent.data.order.serviceType.isDestinationLocationsChain === true}}
-                                            <a class="btn btn-success" href="assign?id={{:#parent.parent.parent.data.order.id}}">
-                                            <i class="glyphicon glyphicon-road"></i></a>
-                                        {{else}}
-                                            <a class="btn btn-success" href="assign?id={{:#parent.parent.parent.data.order.id}}&source={{:~encodeLocation(sourceAddress)}}&dest={{:~encodeLocation(destinationAddress)}}">
-                                            <i class="glyphicon glyphicon-plus"></i></a>
-                                        {{/if}}
-                                    </div>
+                                     {{if #parent.parent.data.order.serviceType.isDestinationLocationsChain !== true}}
+                                        <a class="btn btn-success" href="assign?id={{:#parent.parent.parent.data.order.id}}&source={{:sourceAddress}}&dest={{:destinationAddress}}"
+                                        ${activeOrder ? "disabled=\"on\"" : ""}>
+                                        <i class="glyphicon glyphicon-plus"></i></a>
+                                    {{/if}}
                                 </td>
+
                             </tr>
                         {{/for}}
                     </tbody>
@@ -86,8 +86,8 @@
             </div>
         </div>
     </div>
-
     </script>
+
 </head>
 <body>
 <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -157,7 +157,7 @@
                                 <br>
                             </c:forEach>
                             <button type="submit" class="btn btn-info" name="submit" value="search" id="search">
-                                <span class="glyphicon glyphicon-search" aria-hidden="true"> Search</span>
+                                <span class="glyphicon glyphicon-search" aria-hidden="true" > Search</span>
                             </button>
                         </form>
                     </div>

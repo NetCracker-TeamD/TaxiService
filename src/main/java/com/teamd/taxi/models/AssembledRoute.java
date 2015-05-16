@@ -23,6 +23,7 @@ public class AssembledRoute {
         this.routes = routes;
         this.totalPrice = 0f;
         this.totalCars = routes.size();
+
         for (Route route : routes) {
             Float routePrice = route.getTotalPrice();
             if (routePrice == null) {

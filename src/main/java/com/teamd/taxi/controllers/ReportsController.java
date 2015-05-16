@@ -281,7 +281,6 @@ public class ReportsController {
                 }
             });
         }
-
         private LocalDateTime findEndDate(final String  period){
             LocalDateTime startDate;
             if (period.equals("MONTH")) {

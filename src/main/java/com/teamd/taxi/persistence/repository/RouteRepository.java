@@ -23,4 +23,10 @@ public interface RouteRepository extends JpaRepository<Route, Long>, CrudReposit
 
     @Query("SELECT r FROM Route r WHERE r.order.id = :orderId AND r.driver.id = :driverId")
     List<Route> findByOrderAndDriver(@Param("orderId") long orderId, @Param("driverId") long driverId);
+
+
+    //потім видалю
+    @Query("SELECT r FROM Route r WHERE r.order.id = :orderId AND r.driver.id = :driverId")
+    List<Route> findByOrderAndDriver1(@Param("orderId") long orderId, @Param("driverId") int driverId);
+
 }

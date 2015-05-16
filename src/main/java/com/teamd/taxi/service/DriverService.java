@@ -26,7 +26,6 @@ public class DriverService {
     @Autowired
     private PasswordEncoder encoder;
 
-
     @Autowired
     private RandomStringGenerator stringGenerator;
 
@@ -68,6 +67,8 @@ public class DriverService {
 //        System.out.println(Arrays.toString(driver.getFeatures().toArray()));
         driverRepository.delete(id);
     }
+
+
     public void save(Driver driver){
         driverRepository.save(driver);
     }

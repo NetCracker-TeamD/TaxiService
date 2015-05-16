@@ -234,4 +234,18 @@ public class TaxiOrderService {
         clone.setCustomerLate(route.isCustomerLate());
         return clone;
     }
+
+    @Transactional
+    public TaxiOrder findCurrentOrderByDriverId(int id) {
+        List<TaxiOrder> orders = orderRepository.findCurrentOrderByDriverId(id);
+        if(orders.isEmpty()){
+            return null;
+        }
+        TaxiOrder order = orders.get(0);
+        Hibernate.initialize(order.getFeatures());
+        Hibernate.initialize(order.getRoutes());
+        Hibernate.initialize(order.getServiceType());
+        return order;
+    }
+
 }

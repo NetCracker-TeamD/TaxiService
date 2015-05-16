@@ -44,7 +44,7 @@ import static org.springframework.data.jpa.domain.Specifications.where;
 public class QueueController {
 
     public final static String SORT_BY = "executionDate";
-    public final static int PAGE_SIZE = 3;
+    public final static int PAGE_SIZE = 20;
     private Gson gson;
 
     @Autowired
@@ -81,6 +81,7 @@ public class QueueController {
         Map<ServiceType, Boolean> selectedTypes = getSelectedTypes(params);
         //повертає всі id`s фіч для даного водія і його машини
         List<Integer> featureIds = getIdsAllFeature(driver.getId());
+
         log.info("Featured = " + featureIds);
         //запит на доступні замовлення
         Specifications<TaxiOrder> spec = where(new OrderSpec(featureIds, driver.getCar().getCarClass()))
@@ -92,6 +93,7 @@ public class QueueController {
 
         Page<TaxiOrder> orders = taxiOrderService.findAll(spec, pageable);
         List<TaxiOrder> content = orders.getContent();
+
         HashMap<String, Object> returnValue = new HashMap<>();
         if (content.size() != 0) {
             //remove unnecessary orders
@@ -104,11 +106,14 @@ public class QueueController {
                     }
                 }
             }
+            log.info("Order = " + content);
             //assembling orders
             List<AssembledOrder> assembledOrders = new ArrayList<>(content.size());
             for (TaxiOrder taxiOrder : content) {
                 assembledOrders.add(AssembledOrder.assembleOrder(taxiOrder));
             }
+            log.info("AssembledOrder = " + assembledOrders);
+
             //generating links for paging
             UriComponentsBuilder builder = MvcUriComponentsBuilder.fromMethodName(
                     QueueController.class, "viewCurrentOrder", null, null, null
@@ -140,6 +145,18 @@ public class QueueController {
         pageable = new PageRequest(pageable.getPageNumber(), PAGE_SIZE);
         //вибрані сервіси з TRUE значенням інші з FALSE
         Map<ServiceType, Boolean> selectedTypes = getSelectedTypes(params);
+
+        Driver driver = driverService.getDriver(currentDriverID);
+        TaxiOrder taxiOrder;
+        log.info("PARAMETER "+taxiOrderService.findCurrentOrderByDriverId(driver.getId()));
+        if(!driver.isAtWork() || ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) ){
+            model.addAttribute("activeOrder", true);
+            model.addAttribute("pageable", pageable);
+            model.addAttribute("selectedServices", selectedTypes);
+            System.out.println("CAN NOT RECEIVED ORDER");
+            return "driver/drv-queue";
+        }
+        model.addAttribute("activeOrder", false);
         model.addAttribute("pageable", pageable);
         model.addAttribute("selectedServices", selectedTypes);
         return "driver/drv-queue";
@@ -163,6 +180,11 @@ public class QueueController {
         Car car = driver.getCar();
         List<Feature> merged = new ArrayList<>(driver.getFeatures());
         merged.addAll(car.getFeatures());
+        System.out.print("/nFEATURE = ");
+        for( Feature f :  car.getFeatures()){
+            System.out.print(f.getId()+" __ ");
+        }
+
         List<Integer> featureIds = new ArrayList<>();
         for (Feature f : merged) {
             featureIds.add(f.getId());
@@ -228,28 +250,6 @@ public class QueueController {
         public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
             Join<TaxiOrder, Route> routes = root.join("routes");
             return criteriaBuilder.equal(routes.<RouteStatus>get("status"), RouteStatus.QUEUED);
-        }
-    }
-
-
-    //bad bad code.... don't do this at real projects))
-    //only for testing
-    @RequestMapping("/test")
-    public void test(HttpServletResponse response, Pageable pageable) throws IOException {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(2015, Calendar.MAY, 6, 12, 0);
-        Page<TaxiOrder> page = taxiOrderService.findAll(
-                where(new OrderSpec(Arrays.asList(1, 2, 3, 4), null))
-                        .and(new RouteSpec())
-                        .and(taxiOrderSpecificationFactory.serviceTypeIn(Arrays.asList(1))),
-                pageable
-        );
-        try (Writer writer = response.getWriter()) {
-            for (TaxiOrder taxiOrder : page) {
-                writer.append(taxiOrder.toString())
-                        .append("\n");
-            }
-            writer.append("" + page.getTotalPages());
         }
     }
 
