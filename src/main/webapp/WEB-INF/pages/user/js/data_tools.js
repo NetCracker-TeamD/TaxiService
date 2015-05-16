@@ -1,15 +1,17 @@
+
 var DataTools = (function(){
 	var 
-		serverAddress = "",//"http://localhost:8000",
+		serverAddress = "http://localhost:8000",
 		userLocation = null,
 		services = {
 			"cache" : null,
 		},
+		history = {},
 		favLocations = [
-				/*{
+				{
 					"name" : "Institute",
 					"address" : "Borshchahivska St, 126 Kyiv",
-				},*/
+				},
 			],
 		loadServices = function(loader, threadName){
 			$.ajax(serverAddress+"/services", {
@@ -38,7 +40,14 @@ var DataTools = (function(){
 						var carClasses = service.allowedCarClasses,
 							driverSex = [],
 							payments = [],
-							otherOptions = service.allowedFeatures
+							otherOptions = $.grep(service.allowedFeatures, function(value, key){
+								//console.log(value)
+								var name = value.name.toLowerCase()
+								if (name == "male" || name == "female"){
+									return false
+								}
+								return true
+							})
 
 						//car class
 						featuresList.push({
@@ -106,25 +115,41 @@ var DataTools = (function(){
 				}
 			})
 		},
+		loadHistory = function(loader, threadName, page){
+			var postfix = ""
+			if (page!=undefined && page!=null){
+				postfix+="?page="+page
+			}
+			$.ajax(serverAddress+"/user/loadHistory"+postfix, {
+				'success' : function(response) {
+					console.log(response)
+					history.cache = response.orders,
+					history.pageNumber = response.pageDetails.pageNumber,
+					history.pagesAmount = response.totalPage
+					console.log(history.cache)
+
+					//console.log(services.types)
+					loader.setStatus(threadName, 'success')
+				},
+				'error' : function(obj){
+					console.log("Can`t retrieve history information")
+					console.log(obj)
+					loader.setStatus(threadName, 'error')
+				}
+			})
+		
+		},
+		getHistory = function(){
+			return history
+		},
 		getUser = function(){
 			return {
-				"isLogged":false,
+				"isLogged": true,
 				"name":"Vasja",
-				"isBlocked":false,
+				"isBlocked": false,
 				"email":"Vasja.the.best@gmail.com",
 
 			}
-		},
-		////////////////////
-		// init
-		////////////////////
-		init = function(loadCallBack, loader){
-			if (loader == undefined || loader == null){
-				loader = new Loader()
-			}
-			loader.addCallBack(loadCallBack)
-			loader.addThreadNames("services")
-			loadServices(loader, "services")
 		},
 		getFavLocations = function(){
 			if (userLocation!=null) {
@@ -145,7 +170,9 @@ var DataTools = (function(){
 		},
 		setUserLocation = function(name, address){
 			userLocation = {"name" : name,
-				"address" : address}
+				"address" : address,
+				"isUserLocation" : true,
+			}
 		},
 		getServiceTypes = function(){
 			
@@ -197,7 +224,6 @@ var DataTools = (function(){
 
 
 	return public_interface = {
-		"init" : init,
 		"getFavLocations" : getFavLocations,
 		"addFavLocation" : addFavLocation,
 		"getServiceTypes" : getServiceTypes,
@@ -205,6 +231,9 @@ var DataTools = (function(){
 		"setUserLocation" : setUserLocation,
 		"getServiceDescription" : getServiceDescription,
 		"getFeatureList" : getFeatureList,
-		"getUser" : getUser
+		"getUser" : getUser,
+		"getHistory" : getHistory,
+		"loadServices" : loadServices,
+		"loadHistory" : loadHistory
 	}
 })()

@@ -12,6 +12,11 @@
   color: #BBB;
 }
 
+#loader.white > div {
+  background-color: white;
+}
+
+
 .anim {
   display: inline-block;
   width: 50px;

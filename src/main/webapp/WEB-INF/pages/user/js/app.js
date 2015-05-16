@@ -11,12 +11,6 @@ var App = (function(){
 		},
 		current_page_name = "",
 		controls = {},
-		lockAllControls = function(holder){
-			holder.find(":input").prop({'readonly': true, 'disabled': true});
-		},
-		unlockAllControls = function(holder){
-			holder.find(":input").prop({'readonly': false, 'disabled': false});
-		},
 		showLoadPage = function(){
 			blocks.content.html("")
 			blocks.content.append(Templates.getLoader("Page is loading, please wait"))
@@ -41,8 +35,9 @@ var App = (function(){
 			switch (pageName){
 				case "new-order": 
 					var loader = new Loader()
-					loader.addCallBack(function(){ showOrderPage(blocks.content) })
-					DataTools.init(null, loader)
+					loader.addCallBack(function(){ showOrderPage(blocks.content, addition_data) })
+					loader.addThreadNames("services")
+					DataTools.loadServices(loader, "services")
 					break;
 				case "login":
 					showLoginPage(blocks.content, addition_data)
@@ -60,7 +55,10 @@ var App = (function(){
 					showViewOrderPage(blocks.content, addition_data)
 					break;
 				case "history":
-					showHistoryPage(blocks.content, addition_data)
+					var loader = new Loader()
+					loader.addCallBack(function(){ showHistoryPage(blocks.content, addition_data) })
+					loader.addThreadNames("history")
+					DataTools.loadHistory(loader, "history")
 					break;
 				default :
 					loadPage("new-order", addition_data)
@@ -70,41 +68,33 @@ var App = (function(){
 		updateHeader = function(key, value){
 			var user = DataTools.getUser(),
 				items = [],
-				actions = []
+				actions = [],
+				getItem = Templates.getHeaderItem
 			
-			items.push(Templates.getHeaderItem("About","/about", "about"))
-			items.push(Templates.getHeaderItem("Make order","/new-order", "new-order"))
+			items.push(getItem({ label : "About", action : "about" }))
+			items.push(getItem({ label : "Make order", action : "new-order"}))
 			if (user.isLogged){
 				//TODO:add username
-				items.push(Templates.getHeaderItem("View History","/history", "history"))
-				items.push(Templates.getHeaderItem("Edit Account","/edit-account", "account"))
-				actions.push(Templates.getHeaderItemIcon("Logout","/logout", "logout", "log-out"))
+				items.push(getItem({ label : "View History", action : "history"}))
+				items.push(getItem({ label : "Edit Account", action : "account"}))
+				actions.push(getItem({ label : "Logout", action : "logout", icon : "log-out"}))
 			} else {
-				actions.push(Templates.getHeaderItemIcon("Register","/register", "register", "user"))
-				actions.push(Templates.getHeaderItemIcon("Login","/login", "login", "log-in"))
+				actions.push(getItem({ label : "Register", action : "register", icon : "user"}))
+				actions.push(getItem({ label : "Login", action : "login", icon : "log-in"}))
 			}
+
 			//fill pages
 			blocks.header_items.html("")
-			for(var i in items){
-				var item = items[i]
-				blocks.header_items.append(item)
-				//TODO: make better selector
-				if (item.attr("data-action")==current_page_name ||
-					item.find('[data-action="'+current_page_name+'"]').length>0){
-					item.addClass("active")
-				}
-			}
-			//fill action
 			blocks.header_actions.html("")
-			for(var i in actions){
-				var action = actions[i]
-				blocks.header_actions.append(action)
-				if (action.attr("data-action")==current_page_name ||
-					action.find('[data-action="'+current_page_name+'"]').length>0){
-					action.addClass("active")
+			var place_in = function(items, target){
+				var item;
+				for(var i=0, item = items[i]; i<items.length; i++, item = items[i]){
+					target.append(item)
 				}
+				target.find('[data-action="'+current_page_name+'"]').closest('li').addClass("active")
 			}
-			console.log(current_page_name)
+			place_in(items, blocks.header_items)
+			place_in(actions, blocks.header_actions)
 		},
 		initHeader = function(){
 			blocks.header = Templates.getHeaderContainer()
@@ -113,8 +103,11 @@ var App = (function(){
 			var toggleBtn = blocks.header.find(".navbar-toggle"),
 				menuOnClick = function(e){
 					e.preventDefault() 
-					var target = $(e.target),
-						new_page = target.attr("data-action")
+					var target = $(e.target)
+					if (target.prop("tagName")=="SPAN"){
+						target = target.parent()
+					}
+					var	new_page = target.attr("data-action")
 					if (new_page != current_page_name){
 						if (toggleBtn.css("display")!="none"){
 							toggleBtn.click()
@@ -127,21 +120,20 @@ var App = (function(){
 			updateHeader()
 		},
 		updateRoutes = function(invoker, place){
-			var id = $(invoker).attr("data-number"),
-				location = place.geometry.location
-			MapTools.addMarker(id, location)
+			invoker = $(invoker)
+			var id = invoker.attr("data-number"),
+				location = place.geometry.location,
+				type = invoker.attr('name').split('_')[0]
+			MapTools.addMarker(id, location, type)
 			MapTools.markersFitWindow()
 		}
 		updateLocationsLists = function(){
 			var locationsList = DataTools.getFavLocations()
 			if (locationsList.length>0){
 				$.each(blocks.content.find('[data-type="address-group"] .input-group'),function(i,group){
-					var igb = $(group).find(".input-group-btn"),
-						isRemovable = false
-					if (igb.has('[data-action="remove"]').length>0) {
-						isRemovable = true
-					}
-					igb.remove()
+					var list = $(group).find('[data-type="dropdown-address-list"]'),
+						isRemovable = list.has('[data-action="remove"]').length > 0
+					list.remove()
 					$(group).append(Templates.getDropDownAddressHTML(locationsList, isRemovable))
 				})
 			}
@@ -205,20 +197,20 @@ var App = (function(){
 			//add addresses
 			var addresses = $(Templates.getAddressesContainer())
 			var mult = SD.multipleSourceLocations
-			var addrGroup = $(Templates.getAddressesGroup("Source:","start_addresses", mult, mult, 0))
+			var addrGroup = $(Templates.getAddressesGroup("Source:","start_addresses", mult, mult))
 			addrGroup.find('[data-type="address-group"]').append(Templates.getAddress(locationsList,"start_addresses", mult, false))
 			addresses.append(addrGroup)
 
 			//console.log(SD)
 			if (SD.chain) {
-				addrGroup = $(Templates.getAddressesGroup("Intermediate:","intermediate_addresses", true, false, 100))
+				addrGroup = $(Templates.getAddressesGroup("Intermediate:","intermediate_addresses", true, false))
 				addresses.append(addrGroup)
 			}
 
 			if (SD.destinationRequired) {
 				var mult = SD.multipleDestinationLocations
-				addrGroup = $(Templates.getAddressesGroup("Destination:","destination_addresses", mult, mult, 1000))
-				addrGroup.find('[data-type="address-group"]').append(Templates.getAddress(locationsList,"destination_addresses", false, 1000))
+				addrGroup = $(Templates.getAddressesGroup("Destination:","destination_addresses", mult, mult))
+				addrGroup.find('[data-type="address-group"]').append(Templates.getAddress(locationsList,"destination_addresses", false))
 				addresses.append(addrGroup)
 			}
 
@@ -255,75 +247,49 @@ var App = (function(){
 				map = container.find('[data-type="map"]'),
 				orderForm = container.find('#orderForm'),
 				makeOrderBtn = container.find('[data-action="make-order"]')
-			
-			makeOrderBtn.bind("click", function(e){
-				//TODO : add validation
-				if (makeOrderBtn.attr("disabled") !== undefined) return;
-				var method = orderForm.attr("method").toLowerCase(),
-					url = orderForm.attr("action"),
-					data = JSON.stringify(orderForm.serializeObject()),
-					onQueryEnded = function(status){
-						//enable form
-						unlockAllControls(orderForm);
-						makeOrderBtn.removeClass("active")
-						makeOrderBtn.removeAttr("disabled")
-					}
-				//lock form
-				lockAllControls(orderForm);
-				makeOrderBtn.addClass("active")
-				makeOrderBtn.attr("disabled","")
 
-				method = (method != "get" && method != "post") ? "post" : method
-				console.log(data)
-				$.ajax({
-					type: method,
-					url: url,
-					contentType: "application/json; charset=utf-8",
-					data: data,
-					cache: false,
-            		processData:false,
-					success : function(response){
-						console.log("response is '"+response+"'")
-						onQueryEnded("success")
-						var watchIt = function(){
-							console.log("go to track link")
-						}
-						BootstrapDialog.show({
-							type: BootstrapDialog.TYPE_SUCCESS,
-							title: "Order successfully created",
-							closable: false,
-							message: function(dialog){
-								var msg = $("<div>Your order successfully created<br>You can track it via this link </div>"),
-									link = $("<a href='#''>some link with tracknumber</a>")
-								link.bind("click", function(e){
-									dialog.close()
-									watchIt()
-								})
-								msg.append(link)
-								return msg
-							},
-							buttons: [
-								{
-									label : "Watch it",
-									action: function(dialog){
-										dialog.close()
-										watchIt()
-					                }
-								}
-							],							
-						})
-					},
-					error : function(response){
-						console.log(response)
-						onQueryEnded("error")
-						BootstrapDialog.show({
-							type: BootstrapDialog.TYPE_DANGER,
-							title: "Server error",
-							message: "Server returns error with status '"+response.statusText+"'",
-						})
+   			Templates.makeNiceSubmitButton({
+   				form : orderForm,
+   				button : makeOrderBtn,
+   				success : function(response){
+					console.log("response is '"+response+"'")
+					var watchIt = function(){
+						console.log("go to track link")
 					}
-				})
-			})
+					BootstrapDialog.show({
+						type: BootstrapDialog.TYPE_SUCCESS,
+						title: "Order successfully created",
+						closable: false,
+						message: function(dialog){
+							var msg = $("<div>Your order successfully created<br>You can track it via this link </div>"),
+								link = $("<a href='/somelink''>some link with tracknumber</a>")
+							link.bind("click", function(e){
+								e.preventDefault()
+								dialog.close()
+								watchIt()
+							})
+							msg.append(link)
+							return msg
+						},
+						buttons: [{
+							label : "Watch it",
+							action: function(dialog){
+								dialog.close()
+								watchIt()
+			                }
+						}],							
+					})
+				},
+				error : function(response){
+					console.log(response)
+					onQueryEnded("error")
+					BootstrapDialog.show({
+						type: BootstrapDialog.TYPE_DANGER,
+						title: "Server error",
+						message: "Server returns error with status '"+response.statusText+"'",
+					})
+				}
+   			})
 
 			//fill service types
 			$.each(serviceTypesList, function (i, item) {
@@ -336,6 +302,7 @@ var App = (function(){
 			serviceTypes.bind("change", function(e){
 				var newServiceType = $(e.target).find('option[value="'+$(e.target).val()+'"]').text()
 				//console.log(newServiceType)
+				container.find('[data-type="price-holder"]').hide()
 				createInputsForServiceType(orderDetails, 
 					DataTools.getServiceDescription(newServiceType), 
 					DataTools.getFeatureList(newServiceType))
@@ -347,6 +314,98 @@ var App = (function(){
 
 			//[0] coz new google.maps.Map accepts clear html element, not wraped by jquery
 			MapTools.init(map[0])
+			MapTools.enableDraggableMarkers(true)
+			MapTools.removeListenerChain("onMarkerMoved")
+			MapTools.removeListenerChain("onPlacePicked")
+			MapTools.removeListenerChain("onDistanceChange")
+			MapTools.addListener("onMarkerMoved", function(marker_id, newLocationName){
+				$('[data-number="'+marker_id+'"').val(newLocationName)
+				MapTools.calcAndDrawRoute()
+			})
+
+			MapTools.addListener("onPlacePicked", function(lat, lgn){
+				BootstrapDialog.show({
+					title: 'Address picking',
+					message : function(dialog){
+						var msg = $("<div><p>You picked location on map, chose what to do with it<p></div>"),
+							getButton= function(label_postfix, context, inputs_selector, add_btn_selector){
+								var inputs = context.find(inputs_selector),
+									addBtn = context.find(add_btn_selector),
+									canBeAdded = addBtn.length>0,
+									canBeSetted = false,
+									emptyInput = null
+
+								if (inputs.length==1){//if we heve only 1 input we can set in anyway
+									canBeSetted = true
+									emptyInput = inputs
+								} else {
+									inputs.each(function(i,input){
+										if ($(input).val().length<1) {
+											canBeSetted = true
+											emptyInput = $(input)
+											return false
+										}
+									})
+								}
+								if ((!canBeSetted && !canBeAdded) || (inputs.length==0 && !canBeAdded)) {
+									return null;
+								}
+								var label = '',
+									action = ''
+								if (canBeAdded) {
+									label = "Add as "
+									action = "add"
+								} else {
+									label = "Set as "
+									action = "set"
+								}
+								label += label_postfix
+								var btn = $('<button type="button" class="btn btn-default" data-action="'+action
+									+'" data-target="'+label_postfix+'">'+label+'</button>')
+								btn.bind("click", function(e){
+									var jqDialog = $(dialog.$modalBody)
+									jqDialog.html("")
+									jqDialog.append(Templates.getWhiteLoader())
+									MapTools.getNameForLocation(lat, lgn, function(locationName){
+										if (action=="add"){
+											var startNumber = addBtn.attr('data-start-number'),
+												hasCarsAmount = (addBtn.attr('data-mod')=="addCarsAmount"),
+												name = addBtn.attr("data-name"),
+												newAddressField = Templates.getAddress(DataTools.getFavLocations(), name, hasCarsAmount, true, startNumber)
+											emptyInput = newAddressField.find("input")[0]
+											$(addBtn.parent()).find('[data-type="address-group"]').append(newAddressField)
+											MapTools.modAutocompleteAddressInput(emptyInput, updateRoutes)
+											emptyInput = $(emptyInput)
+										}
+										emptyInput.val(locationName).trigger('change')
+										dialog.close()
+									})
+								})
+								return btn
+							}
+						var context = blocks.content.find('#addressesContainer'),
+							btn = getButton("source", context, 'input[name="start_addresses"]', 'button[data-name="start_addresses"]')
+						if (btn != null){ msg.append(btn) }
+						btn = getButton("intermediate", context, 'input[name="intermediate_addresses"]', 'button[data-name="intermediate_addresses"]')
+						if (btn != null){ msg.append(btn) }
+						btn = getButton("destination", context, 'input[name="destination_addresses"]', 'button[data-name="destination_addresses"]')
+						if (btn != null){ msg.append(btn) }
+						return msg
+					},
+					buttons: [{
+						label: 'Cancel',
+						action: function(dialog){ dialog.close(); }
+					}]
+				})
+			})
+
+			MapTools.addListener("onDistanceChanged", function(newDistance){
+				var priceHolder = container.find('[data-type="price-holder"]'),
+					priceValue = priceHolder.find('[data-type="price-value"]')
+				//console.log(newDistance)
+				priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
+				priceHolder.show()
+			})
 
 			serviceTypes.trigger("change")
 						
@@ -357,49 +416,20 @@ var App = (function(){
 				loginForm = container.find("#login-form"),
 				loginBtn = container.find('[data-action="login"]')
 			
-			loginBtn.bind("click", function(e){
-				//TODO : add validation
-				if (loginBtn.attr("disabled") !== undefined) return;
-				var method = loginForm.attr("method").toLowerCase(),
-					url = loginForm.attr("action"),
-					data = JSON.stringify(loginForm.serializeObject()),
-					onQueryEnded = function(status){
-						//enable form
-						unlockAllControls(loginForm);
-						loginBtn.removeClass("active")
-						loginBtn.removeAttr("disabled")
-					}
-				//lock form
-				lockAllControls(loginForm);
-				loginBtn.addClass("active")
-				loginBtn.attr("disabled","")
-
-				method = (method != "get" && method != "post") ? "post" : method
-				console.log(data)
-				$.ajax({
-					type: method,
-					url: url,
-					contentType: "application/json; charset=utf-8",
-					data: data,
-					cache: false,
-            		processData:false,
-					success : function(response){
-						console.log("response is '"+response+"'")
-						//TODO: check response
-						onQueryEnded("success")
-						//loadPage("new-order")
-					},
-					error : function(response){
-						console.log(response)
-						onQueryEnded("error")
-						BootstrapDialog.show({
-							type: BootstrapDialog.TYPE_DANGER,
-							title: "Server error",
-							message: "Server returns error with status '"+response.statusText+"'",
-						})
-					}
-				})
-			})
+    		Templates.makeNiceSubmitButton({
+    			form : loginForm,
+            	button : loginBtn,
+    			success : function(response){
+					//loadPage("new-order")
+				},
+				error : function(response){
+					BootstrapDialog.show({
+						type: BootstrapDialog.TYPE_DANGER,
+						title: "Server error",
+						message: "Server returns error with status '"+response.statusText+"'",
+					})
+				}
+    		})
 
 			//fill page
 			holder.html("")
@@ -410,41 +440,13 @@ var App = (function(){
 				form = container.find("#reg-form"),
 				submBtn = container.find('[data-action="reg"]')
 			
-			submBtn.bind("click", function(e){
-				//TODO : add validation
-				if (submBtn.attr("disabled") !== undefined) return;
-				var method = form.attr("method").toLowerCase(),
-					url = form.attr("action"),
-					data = JSON.stringify(form.serializeObject()),
-					onQueryEnded = function(status){
-						//enable form
-						unlockAllControls(form);
-						submBtn.removeClass("active")
-						submBtn.removeAttr("disabled")
-					}
-				//lock form
-				lockAllControls(form);
-				submBtn.addClass("active")
-				submBtn.attr("disabled","")
-
-				method = (method != "get" && method != "post") ? "post" : method
-				console.log(data)
-				$.ajax({
-					type: method,
-					url: url,
-					contentType: "application/json; charset=utf-8",
-					data: data,
-					cache: false,
-            		processData:false,
+				Templates.makeNiceSubmitButton({
+					form : form,
+					button : submBtn,
 					success : function(response){
-						console.log("response is '"+response+"'")
-						//TODO: check response
-						onQueryEnded("success")
 						//loadPage("new-order")
 					},
 					error : function(response){
-						console.log(response)
-						onQueryEnded("error")
 						BootstrapDialog.show({
 							type: BootstrapDialog.TYPE_DANGER,
 							title: "Server error",
@@ -452,7 +454,7 @@ var App = (function(){
 						})
 					}
 				})
-			})
+
 			//fill page
 			holder.html("")
 			holder.append(container)
@@ -470,13 +472,38 @@ var App = (function(){
 			holder.append(container)
 		}
 		showHistoryPage = function(holder){
-			var container = Templates.getViewHistory()
+			var container = Templates.getViewHistory(DataTools.getHistory())
 			//fill page
 			holder.html("")
 			holder.append(container)
 		}
 		showEditAccountPage = function(holder){
-			var container = Templates.getEditAccount()
+			var container = Templates.getEditAccount(DataTools.getFavLocations()),
+				saveBtns = container.find('[data-action="save"]'),
+				addresses = container.find('#addresses')
+
+			addresses.bind('click',addressesClick)
+			
+			$.each(saveBtns, function(i,btn){
+				btn = $(btn)
+				var formId = btn.attr("data-form-id")
+				Templates.makeNiceSubmitButton({
+					form : container.find('#'+formId),
+					button : btn,
+					success : function(response){
+						//loadPage("new-order")
+					},
+					error : function(response){
+						BootstrapDialog.show({
+							type: BootstrapDialog.TYPE_DANGER,
+							title: "Server error",
+							message: "Server returns error with status '"+response.statusText+"'",
+						})
+					}
+				})
+
+			})
+			
 			//fill page
 			holder.html("")
 			holder.append(container)			
@@ -493,8 +520,10 @@ var App = (function(){
 		},
 		init = function(){
 			MapTools.addListener("onGeolocationAllowed",function(pos){
-				DataTools.setUserLocation("Your location", pos.latitude+', '+pos.longitude, true)
-				updateLocationsLists()
+				MapTools.getNameForLocation(pos.latitude, pos.longitude, function(name){
+					DataTools.setUserLocation("Your location", name, true)
+					updateLocationsLists()
+				})
 			})
 			initBasePage()
 			loadPage("new-order")		

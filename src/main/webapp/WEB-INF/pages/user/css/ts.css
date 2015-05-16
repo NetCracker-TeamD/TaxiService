@@ -63,7 +63,11 @@ a {
   margin: 0 auto;
 }
 
-
+.center {
+     float: none;
+     margin-left: auto;
+     margin-right: auto;
+}
 
 /*
 Fixes

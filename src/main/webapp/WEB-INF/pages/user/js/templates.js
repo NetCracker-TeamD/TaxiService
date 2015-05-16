@@ -1,5 +1,11 @@
 var Templates = (function () {
     var
+    lockAllControls = function(holder){
+        holder.find(":input").prop({'readonly': true, 'disabled': true});
+    },
+    unlockAllControls = function(holder){
+        holder.find(":input").prop({'readonly': false, 'disabled': false});
+    },
     getHeaderContainer = function () {
         var container = $('<nav class="navbar navbar-inverse navbar-fixed-top">\
 				<div class="container">\
@@ -23,22 +29,38 @@ var Templates = (function () {
 			</nav>')
         return container
     },
-    getHeaderItem = function (label, url, action) {
-        var str = '<li><a href="'+url+'"'
-        if (action !== undefined && action !== null){
-            str += 'data-action="'+action+'"'
+    /*
+        info = {
+            label : "Item text",
+            url : "some/link/to/other/page.html",
+            action : "some action stored in 'data-action' attribute",
+            icon : "icon-name"//bootsrap glyph-icon,
+            right : true //place icon in right of label
         }
-        str += '>'+label+'</a></li>' 
+        if url == null, then url = "/"+action
+    */
+    getHeaderItem = function (info) {
+        var label = info.label,
+            url = info.url,
+            action = info.action,
+            icon = info.icon,
+            right = info.right
+        var str = '<li><a'
+        if (!$.isSet(url) && $.isSet(action)) {
+            url = '/'+action
+        }
+        str += ($.isSet(url) ? ' href="'+url+'"' : '')
+        str += ($.isSet(action) ? ' data-action="'+action+'"' : '')
+        str += '>'
+        if ($.isSet(icon)){
+            var icon_html = '<span class="glyphicon glyphicon-'+icon+'"></span>'
+            str += (right ? label+'&nbsp;'+icon_html : icon_html+'&nbsp;'+label)
+        } else {
+            str += label
+        }
+        str +='</a></li>' 
         var container = $(str)
         return container
-    },
-    getHeaderItemIcon = function (label, url, action, icon) {
-        var item = getHeaderItem(label, url, action)
-        if (icon !== undefined && icon !== null) {
-            var link = item.find('a')
-            link.prepend('<span class="glyphicon glyphicon-'+icon+'"></span>&nbsp;')
-        }
-        return item
     },
     getContentContainer = function () {
         var container = $('<div class="container content"></div>')
@@ -54,10 +76,87 @@ var Templates = (function () {
 					<div class="rect4"></div>\
 					<div class="rect5"></div>\
 		        </div>\
-		        <p class="text">' + text + '</p>\
+		        <p class="text">' +($.isSet(text) ? text : "")+ '</p>\
 		    </div>\
   		</div>')
         return container
+    },
+    getWhiteLoader = function (text) {
+        var container = getLoader()
+        container.addClass("white")
+        return container
+    },
+    /*
+        info = {
+            form : $("formSelector"),
+            button : $("buttonSelector"),
+            success : function(),//callback called after response with success status,
+            error : function(),//callback called after response with error status,
+            validator : function(),//validate data befor sending, if return not true cansels request
+            right : true //place spinner in right
+        }
+    */
+    makeNiceSubmitButton = function(info){
+        var form = info.form,
+            submitBtn = info.button,
+            onSuccess = info.success,
+            onError = info.error,
+            validator = info.validator,
+            right = info.right
+        if (!submitBtn.hasClass("has-spinner")){
+            submitBtn.addClass("has-spinner")
+            var spinnerHtml = '<span class="spinner"><i class="glyphicon glyphicon-refresh glyphicon-spin"></i></span>'
+            if (right) {
+                submitBtn.append('&nbsp;')
+                submitBtn.append(spinnerHtml)
+            } else {
+                submitBtn.prepend('&nbsp;')
+                submitBtn.prepend(spinnerHtml)
+            }
+        }
+        submitBtn.bind("click", function(e){
+            e.preventDefault()
+
+            if ($.isSet(validator)){
+                if (!validator()) {
+                    return;
+                }
+            }
+
+            if ($.isSet(submitBtn.attr("disabled"))) return;
+            var method = form.attr("method").toLowerCase(),
+                url = form.attr("action"),
+                data = JSON.stringify(form.serializeObject()),
+                onQueryEnded = function(){
+                    //enable form
+                    unlockAllControls(form)
+                    submitBtn.removeClass("active")
+                    submitBtn.removeAttr("disabled")
+                }
+            method = (method != "get" && method != "post") ? "post" : method
+            //lock form
+            lockAllControls(form);
+            submitBtn.addClass("active")
+            submitBtn.attr("disabled","")
+            
+            console.log(data)
+            $.ajax({
+                type: method,
+                url: url,
+                contentType: "application/json; charset=utf-8",
+                data: data,
+                cache: false,
+                processData:false,
+                success : function(response){ 
+                    onQueryEnded(); 
+                    if ($.isSet(onSuccess)) { onSuccess(response) }
+                },
+                error : function(response){ 
+                    onQueryEnded(); 
+                    if ($.isSet(onError)) { onError(response)  }
+                }
+            })
+        })
     },
     getOrderPage = function () {
         var container = $('<div class="col-sm-5 col-sm-offset-1">\
@@ -75,22 +174,25 @@ var Templates = (function () {
 				<div class="col-sm-6 map">\
 					<div class="google-map-canvas" data-type="map"></div>\
 				</div>\
-				<div>\
-					<button type="button" class="btn btn-success btn-lg btn-block has-spinner" data-action="make-order">\
-                        <span class="spinner"><i class="glyphicon glyphicon-refresh glyphicon-spin"></i></span>\
-                    Make Order</button>\
+                <div class="clearfix"></div>\
+				<div class="row text-center">\
+                    <div class="col-sm-6 center">\
+                        <h4 data-type="price-holder">The approximate cost of the trip is : <span data-type="price-value"></span>$</h4>\
+					    <button type="button" class="btn btn-success btn-lg btn-block" data-action="make-order">Make Order</button>\
+                    </div>\
 				</div>')
         return container;
     },
     getDropDownAddressHTML = function (items, isRemovable) {
-
-        var str = '<div class="input-group-btn">\
+        var str = '<div data-type="dropdown-address-list" class="input-group-btn">\
 				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>\
 				<ul class="dropdown-menu dropdown-menu-right" role="menu">'
-        if (items.length > 0) {
-            $.each(items, function (i, item) {
-                str += '<li><a>' + item.name + ' <small>' + item.address + '</small></a></li>'
-            })
+        if ($.isSet(items)) {
+            if (items.length > 0) {
+                $.each(items, function (i, item) {
+                    str += '<li><a>' + item.name + ' <small>' + item.address + '</small></a></li>'
+                })
+            } 
         } else {
             str += '<li data-action="none"><small>List is empty</small></li>'
         }
@@ -343,9 +445,7 @@ var Templates = (function () {
                 <span class="input-group-addon glyphicon glyphicon-lock"></span>\
                 <input type="password" class="form-control" name="password" data-type="password" placeholder="Enter your password">\
             </div>\
-            <button class="btn btn-lg btn-primary btn-block has-spinner" data-action="login" type="submit">\
-                <span class="spinner"><i class="glyphicon glyphicon-refresh glyphicon-spin"></i></span>\
-            Sign in</button>\
+            <button class="btn btn-lg btn-primary btn-block" data-action="login" type="submit">Sign in</button>\
         </div></form></div>')
         /*
         <div class="checkbox">
@@ -357,7 +457,7 @@ var Templates = (function () {
     },
     getRegistration = function(){
         var form = $('<form id="reg-form" class="form-signin" method="post" action="/test/wait/3000">\
-            <div class="form-group"><h2 class="form-signin-heading">Please sign un</h2></div></form>');
+            <div class="form-group"><h2 class="form-signin-heading">Please sign up</h2></div></form>');
         form.append($('<div class="form-group">\
             <label>Provide name</label>\
             <div class="input-group">\
@@ -377,9 +477,7 @@ var Templates = (function () {
                 <input type="password" class="form-control" name="password_repeat" data-type="password2" placeholder="Repeat password">\
             </div>\
         </div>'))
-        form.append($('<button class="btn btn-lg btn-primary btn-block has-spinner" data-action="reg" type="submit">\
-                <span class="spinner"><i class="glyphicon glyphicon-refresh glyphicon-spin"></i></span>\
-            Sign up</button>'))
+        form.append($('<button class="btn btn-lg btn-primary btn-block" data-action="reg" type="submit">Sign up</button>'))
         var container = $('<div></div>')
         container.append(form)
         return container
@@ -392,16 +490,95 @@ var Templates = (function () {
         </div>')
         return container
     },
-    getEditAccount = function(){
-    var container = $('<div>Edit account</div>')
+    getEditAccount = function(userFavLocations){
+        var container = $('<div></div>')
+
+        var formContacts = $('<form id="contacts" class="form-signin" method="post" action="/test/wait/3000">\
+            <div class="form-group"><h2 class="form-signin-heading">Change contacts</h2></div></form>');
+        formContacts.find('div').append(getContacts())
+        formContacts.append($('<button class="btn btn-primary pull-right" data-action="save"\
+                data-form-id="contacts" type="submit">Save</button>'))
+        container.append(formContacts)
+
+        var locInputName = "fav_locations",
+            groupAddresses = getAddressesGroup("Your favourite locations :", locInputName, true, false, 1),
+            addressesContainer = groupAddresses.find('[data-type="address-group"]'),
+            formAddresses = $('<form id="addresses" class="form-signin" method="post" action="/test/wait/3000">\
+                <div class="form-group"><h2 class="form-signin-heading">Change locatinos</h2></div></form>')
+        for (var key in userFavLocations){
+            var location = userFavLocations[key]
+            if (!location.isUserLocation){
+                var address = getAddress(null, locInputName, false, true, 1),
+                    input =  address.find('[data-type="address"]')
+                input.val(location.address)
+                addressesContainer.append(address)
+            }
+        }
+        console.log(groupAddresses)
+        formAddresses.find('div').append(groupAddresses)
+        formAddresses.append($('<button class="btn btn-primary pull-right" data-action="save"\
+                data-form-id="addresses" type="submit">Save</button>'))
+        
+        container.append(formAddresses)
         return container
     },
     getViewOrder = function(){
-    var container = $('<div>Edit getViewOrder</div>')
+        var container = $('<div>Edit getViewOrder</div>')
         return container
     },
-    getViewHistory = function(){
-    var container = $('<div>Edit getViewHistory</div>')
+    getViewHistory = function(history){
+        console.log(history)
+        var container = $('<div><h2>Your history</h2></div>')
+        container.append('<h3 class="pull-right">page '+(parseInt(history.pageNumber)+1)+"/"+history.pagesAmount+'</h3>')
+        container.append('<div class="clearfix"></div>')
+
+        var table = $('<table class="table"></table>'),
+            table_wrap = $('<div class="table-responsive"></div>')
+        container.append(table_wrap)
+        table_wrap.append(table)
+        var header = $('<thead class="cf"><tr></tr></thead>')
+        header.append('<th>Service type</th>')
+        header.append('<th>Registration datetime</th>')
+        header.append('<th>Execution datetime</th>')
+        header.append('<th>Payment type</th>')
+        header.append('<th>Options</th>')
+        header.append('<th>Locations</th>')
+        header.append('<th>Cars</th>')
+        header.append('<th>Distance</th>')
+        header.append('<th>Price</th>')
+        table.append(header)
+        if ($.isSet(history.oreders)){
+            for (var i=0; i<history.orders.length; i++){
+                var order = history.orders[i],
+                    height = order.assembledRoutes.length
+                    for (var j=0; j<height; j++){
+                        var row = $('<tr></tr>'),
+                            route = order.assembledRoutes[j]
+                        if (j==0){
+                            row.append('<td colspan="'+height+'">'+order.order.serviceType.name+'</td>')
+                            row.append('<td colspan="'+height+'">'+order.order.registrationDate+'</td>')
+                            row.append('<td colspan="'+height+'">'+order.order.executionDate+'</td>')
+                            row.append('<td colspan="'+height+'">'+order.order.paymentType+'</td>')
+                            row.append('<td colspan="'+height+'">OPTIONS</td>')
+                        }
+                        row.append('<td>'+route.sourceAddress+" -> "+route.destinationAddress+'</td>')
+                        row.append('<td>'+route.totalCars+"/"+route.finishedCars+'</td>')
+                        row.append('<td>'+route.totalDistance+'</td>')
+                        row.append('<td>'+route.totalPrice+'</td>')
+                        table.append(row)
+                    }
+
+                //table
+                /*header.append('<th>Service type</th>')
+                header.append('<th>Registration datetime</th>')
+                header.append('<th>Execution datetime</th>')
+                header.append('<th>Payment type</th>')
+                header.append('<th>Locations</th>')
+                header.append('<th>Options</th>')
+                header.append('<th>Comment</th>')
+                */
+            }
+        }
         return container
     }
 
@@ -421,13 +598,16 @@ var Templates = (function () {
         "getContentContainer": getContentContainer,
         "getOrderPage": getOrderPage,
         "getLoader": getLoader,
+        "getWhiteLoader": getWhiteLoader,
         "getBlocked": getBlocked,
         "getLogin" : getLogin,
         "getRegistration" : getRegistration,
-        "getHeaderItemIcon" : getHeaderItemIcon,
         "getAbout" : getAbout,
         "getEditAccount" : getEditAccount,
         "getViewOrder" : getViewOrder,
         "getViewHistory" : getViewHistory,
+        "lockAllControls" : lockAllControls,
+        "unlockAllControls" : unlockAllControls,
+        "makeNiceSubmitButton" : makeNiceSubmitButton
     }
 })()

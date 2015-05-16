@@ -31,3 +31,7 @@ $.fn.serializeObject = function()
     });
     return o;
 };
+
+$.isSet = function(obj){
+    return (typeof obj !== "undefined" && obj !== null)
+}
