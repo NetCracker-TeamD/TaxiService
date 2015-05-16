@@ -1,7 +1,7 @@
 
 var DataTools = (function(){
 	var 
-		serverAddress = "http://localhost:8000",
+		serverAddress = "",//http://localhost:8000",
 		userLocation = null,
 		services = {
 			"cache" : null,
