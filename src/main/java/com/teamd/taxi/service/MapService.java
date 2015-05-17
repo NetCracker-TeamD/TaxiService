@@ -9,6 +9,8 @@ import com.teamd.taxi.exception.MapServiceNotAvailableException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+
 @Service
 public class MapService {
 
@@ -19,35 +21,42 @@ public class MapService {
         this.apiKey = googleApiKey;
     }
 
-    public Long calculateDistanceInMeters(String from, String to, String[] waypoints) throws Exception {
-        GeoApiContext ctx = new GeoApiContext();
-        ctx.setApiKey(apiKey);
-        DirectionsApiRequest req = DirectionsApi.newRequest(ctx)
-                .mode(TravelMode.DRIVING)
-                .origin(from)
-                .destination(to)
-                .waypoints(waypoints);
+    public Float calculateDistanceInKilometers(String from, String to) throws NotFoundException, MapServiceNotAvailableException {
+        try {
+            GeoApiContext ctx = new GeoApiContext();
+            ctx.setApiKey(apiKey);
+            DirectionsApiRequest req = DirectionsApi.newRequest(ctx)
+                    .mode(TravelMode.DRIVING)
+                    .origin(from)
+                    .destination(to);
 
-        DirectionsRoute[] routes = req.await();
-        if (routes.length > 0) {
-            DirectionsRoute route = routes[0];
-            Long distance = 0L;
-            for (DirectionsLeg leg : route.legs) {
-                distance += leg.distance.inMeters;
+            DirectionsRoute[] routes = req.await();
+            System.out.println("Google response: " + Arrays.toString(routes));
+            if (routes.length > 0) {
+                DirectionsRoute route = routes[0];
+                long distance = 0L;
+                for (DirectionsLeg leg : route.legs) {
+                    distance += leg.distance.inMeters;
+                }
+                float retVal = (float) (distance / 1000.0);
+                //System.out.println("retVal = " + retVal);
+                return retVal;
             }
-            return distance;
+            return null;
+        } catch (NotFoundException nfe) {
+            throw nfe;
+        } catch (Exception e) {
+            throw new MapServiceNotAvailableException(e);
         }
-        return null;
     }
 
-    public boolean isExists(String address) throws MapServiceNotAvailableException {
+    public void checkAdress(String address) throws NotFoundException, MapServiceNotAvailableException {
         try {
-            calculateDistanceInMeters(address, address, null);
+            calculateDistanceInKilometers(address, address);
         } catch (NotFoundException notFound) {
-            return false;
+            throw notFound;
         } catch (Exception ex) {
             throw new MapServiceNotAvailableException(ex);
         }
-        return true;
     }
 }

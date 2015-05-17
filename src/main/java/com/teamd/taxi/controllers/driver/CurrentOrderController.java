@@ -115,8 +115,7 @@ public class CurrentOrderController {
 
     @RequestMapping(value = "/lifeCircleOrder", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public
-    String processOrder(@RequestParam(value = "status") String status) {
+    public String processOrder(@RequestParam(value = "status") String status) {
 
         Driver driver = driverService.getDriver(driverId);
         int drvId = driver.getId();
@@ -159,8 +158,8 @@ public class CurrentOrderController {
                 }
             }
             to.addProperty("status", "stop");
-            for( Route r : routes){
-                if( r.getStatus() == RouteStatus.ASSIGNED || r.getStatus() == RouteStatus.IN_PROGRESS){
+            for (Route r : routes) {
+                if (r.getStatus() == RouteStatus.ASSIGNED || r.getStatus() == RouteStatus.IN_PROGRESS) {
                     to.addProperty("status", "ok");
                     break;
                 }
@@ -177,10 +176,10 @@ public class CurrentOrderController {
         Driver driver = driverService.getDriver(driverId);
         TaxiOrder taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
         List<Route> routes = routeService.getRoutsByOrderAndDriverId(taxiOrder.getId(), driver.getId());
-        String[] addresses = new String[routes.size()+1];
+        String[] addresses = new String[routes.size() + 1];
         addresses[0] = routes.get(0).getSourceAddress();
-        for (int i = 1; i < addresses.length; i++){
-            addresses[i] = routes.get(i-1).getDestinationAddress();
+        for (int i = 1; i < addresses.length; i++) {
+            addresses[i] = routes.get(i - 1).getDestinationAddress();
         }
         return addresses;
     }

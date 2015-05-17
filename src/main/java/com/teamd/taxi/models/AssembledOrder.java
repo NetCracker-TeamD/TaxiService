@@ -3,6 +3,7 @@ package com.teamd.taxi.models;
 import com.teamd.taxi.entity.Route;
 import com.teamd.taxi.entity.ServiceType;
 import com.teamd.taxi.entity.TaxiOrder;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -99,8 +100,11 @@ public class AssembledOrder {
             String destination = sample.getDestinationAddress();
             for (int i = 0; i < originalRoutes.size(); i++) {
                 Route candidate = originalRoutes.get(i);
-                if (candidate.getSourceAddress().equals(source)
-                        && candidate.getDestinationAddress().equals(destination)) {
+                String candidateSource = candidate.getSourceAddress();
+                String candidateDestination = candidate.getDestinationAddress();
+                if (candidateSource.equals(source) && //точки отправления равны
+                        ((destination == null && candidateDestination == null) //точки назначения или обе отсутствуют
+                                || candidateDestination.equals(destination))) { //или равны
                     assembled.add(candidate);
                     originalRoutes.remove(i);
                     i--;

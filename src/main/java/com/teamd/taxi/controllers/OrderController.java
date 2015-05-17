@@ -2,6 +2,7 @@ package com.teamd.taxi.controllers;
 
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
+import com.google.maps.errors.NotFoundException;
 import com.teamd.taxi.authentication.AuthenticatedUser;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -132,7 +134,7 @@ public class OrderController {
     @ResponseBody
     public String makeOrder(Reader reader) throws IOException,
             PropertyNotFoundException, ItemNotFoundException, ParseException,
-            NotCompatibleException, AddressNotFoundException, MapServiceNotAvailableException {
+            NotCompatibleException, NotFoundException, MapServiceNotAvailableException {
         JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
         //тип сервиса
         JsonPrimitive serviceId = (JsonPrimitive) getAndCheck(orderObject, "serviceType");
@@ -175,9 +177,10 @@ public class OrderController {
         //класс автомобиля
         JsonPrimitive carClassPrimitive = orderObject.getAsJsonPrimitive("car_class");
         if (carClassPrimitive != null) {
-            CarClass carClass = carClassService.findById(carClassPrimitive.getAsInt());
+            int carClassId = carClassPrimitive.getAsInt();
+            CarClass carClass = carClassService.findById(carClassId);
             if (carClass == null) {
-                throw new ItemNotFoundException();
+                throw new ItemNotFoundException("carClass: " + carClassId);
             }
             form.setCarClass(carClass);
         }
@@ -209,6 +212,7 @@ public class OrderController {
                 .getAuthentication();
         User user;
         if (authentication instanceof AnonymousAuthenticationToken) {
+            //TODO: add user name, email, phone number
             user = new User(null, "", "", UserRole.ROLE_ANONYMOUS, "");
             user = userService.save(user);
         } else {
@@ -217,12 +221,18 @@ public class OrderController {
         }
         //вносим заказ в базу
         System.out.println("Form: " + form.toString());
+        //TODO: change stub to real user
         TaxiOrder order = taxiOrderService.createNewTaxiOrder(form, userService.findById(2L));
         logger.info(order);
         for (Route r : order.getRoutes()) {
             logger.info(r);
         }
-        return "success";
+        //отправка ответа
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("success", true);
+        //TODO: add real link with MvcComponentsBuilder, don't add a secret key if user is authenticated
+        jsonObject.addProperty("tackLink", "/vieworder?tracknum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
+        return new GsonBuilder().disableHtmlEscaping().create().toJson(jsonObject);
     }
 
     private JsonElement getAndCheck(JsonObject object, String propName) throws PropertyNotFoundException {
@@ -240,12 +250,16 @@ public class OrderController {
             ItemNotFoundException.class,
             ParseException.class,
             NotCompatibleException.class,
-            AddressNotFoundException.class,
+            NotFoundException.class,
             MapServiceNotAvailableException.class
     })
     public void handleException(Exception e, Writer writer) throws IOException {
         logger.error(e);
-        writer.append("{\"error\": \"" + e.getClass() + "\", \"message\":\"" + e.getMessage() + "\"}");
+        writer.append("{" +
+                "\"success\": false" +
+                "\"error\": \"" + e.getClass() + "\", " +
+                "\"message\":\"" + e.getMessage() + "\"" +
+                "}");
     }
 
     private static class ServiceTypeSerializer implements JsonSerializer<ServiceType> {

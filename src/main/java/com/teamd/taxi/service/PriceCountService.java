@@ -3,9 +3,12 @@ package com.teamd.taxi.service;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.InfoNotFoundException;
 import com.teamd.taxi.exception.ItemNotFoundException;
+import com.teamd.taxi.models.AssembledOrder;
+import com.teamd.taxi.models.AssembledRoute;
+import com.teamd.taxi.models.TaxiOrderForm;
 import com.teamd.taxi.persistence.repository.InfoRepository;
 import com.teamd.taxi.persistence.repository.RouteRepository;
-import com.teamd.taxi.persistence.repository.TariffRepository;
+import com.teamd.taxi.persistence.repository.TariffByTimeRepository;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +31,7 @@ public class PriceCountService {
     private RouteRepository routeRepository;
 
     @Autowired
-    private TariffRepository tariffRepository;
+    private TariffByTimeRepository tariffRepository;
 
     @Autowired
     private InfoRepository infoRepository;
@@ -42,8 +45,8 @@ public class PriceCountService {
             List<TariffByTime> dayOfYearTariffs,
             List<TariffByTime> dayOfWeekTariffs,
             List<TariffByTime> timeOfDayTariffs) {
-        Calendar start = route.getStartTime();
-        Calendar complete = route.getCompletionTime();
+        Calendar start = (Calendar) route.getStartTime().clone();
+        Calendar complete = (Calendar) route.getCompletionTime().clone();
         //розбиваємо по дням
         List<TimeCoeffPair> pairs = splitByDays(new TimeCoeffPair(start, complete, 1f));
         //тарифікація по дням року
@@ -51,7 +54,7 @@ public class PriceCountService {
             for (TimeCoeffPair pair : pairs) {
                 int dayOfYear = pair.from.get(DAY_OF_YEAR);
                 if (dayOfYearTariff.getFrom().get(DAY_OF_YEAR) >= dayOfYear
-                        && dayOfYear < dayOfYearTariff.getTo().get(DAY_OF_YEAR)) {
+                        && dayOfYear <= dayOfYearTariff.getTo().get(DAY_OF_YEAR)) {
                     pair.coeff *= dayOfYearTariff.getPrice();
                 }
             }
@@ -61,7 +64,7 @@ public class PriceCountService {
             for (TimeCoeffPair pair : pairs) {
                 int dayOfYear = pair.from.get(DAY_OF_WEEK);
                 if (dayOfWeekTariff.getFrom().get(DAY_OF_WEEK) >= dayOfYear
-                        && dayOfYear < dayOfWeekTariff.getTo().get(DAY_OF_WEEK)) {
+                        && dayOfYear <= dayOfWeekTariff.getTo().get(DAY_OF_WEEK)) {
                     pair.coeff *= dayOfWeekTariff.getPrice();
                 }
             }
@@ -70,21 +73,24 @@ public class PriceCountService {
         List<TimeCoeffPair> processed = new ArrayList<>();
         for (int i = 0; i < pairs.size(); i++) {
             List<TimeCoeffPair> nonProcessed = new ArrayList<>();
-            nonProcessed.add(pairs.get(i));
+            TimeCoeffPair pair = pairs.get(i);
+            nonProcessed.add(pair);
             Queue<TariffByTime> tariffByTimeQueue = new LinkedList<>(timeOfDayTariffs);
             //проходимо по всім тарифам
             while (!tariffByTimeQueue.isEmpty()) {
-                TariffByTime nextTariff = tariffByTimeQueue.poll();
+                TariffByTime nextTariff = shiftToDay(tariffByTimeQueue.poll(), pair.from);
                 //намагаємось знайти відповідність серед необроблених
                 //часових інтервалів
                 for (int j = 0; j < nonProcessed.size(); j++) {
-                    TimeCoeffPair nextPair = nonProcessed.get(i);
-                    boolean leftBoundEntry = nextTariff.getFrom().compareTo(nextPair.from) >= 0;
-                    boolean rightBoundEntry = nextTariff.getTo().compareTo(nextPair.to) < 0;
+                    TimeCoeffPair nextPair = nonProcessed.get(j);
+                    boolean leftBoundEntry = nextTariff.getFrom().compareTo(nextPair.from) >= 0
+                            && nextTariff.getFrom().compareTo(nextPair.to) <= 0;
+                    boolean rightBoundEntry = nextTariff.getTo().compareTo(nextPair.from) >= 0
+                            && nextTariff.getTo().compareTo(nextPair.to) <= 0;
                     if (leftBoundEntry && rightBoundEntry) {
                         //розбиваємо проміжок на 3
-                        TimeCoeffPair[] leftSplit = nextPair.splitWithOneSecondDifference(nextTariff.getFrom());
-                        TimeCoeffPair[] rightSplit = leftSplit[1].splitWithOneSecondDifference(nextTariff.getTo());
+                        TimeCoeffPair[] leftSplit = nextPair.splitWithOneSecondDifference(nextTariff.getFrom(), false);
+                        TimeCoeffPair[] rightSplit = leftSplit[1].splitWithOneSecondDifference(nextTariff.getTo(), true);
                         //оновлюємо ціну
                         rightSplit[0].coeff *= nextTariff.getPrice();
                         //заносимо в потрібний список
@@ -92,19 +98,20 @@ public class PriceCountService {
                         nonProcessed.add(leftSplit[0]);
                         nonProcessed.add(rightSplit[1]);
                     } else if (leftBoundEntry) {
-                        TimeCoeffPair[] leftSplit = nextPair.splitWithOneSecondDifference(nextTariff.getFrom());
+                        TimeCoeffPair[] leftSplit = nextPair.splitWithOneSecondDifference(nextTariff.getFrom(), false);
                         leftSplit[1].coeff *= nextTariff.getPrice();
                         processed.add(leftSplit[1]);
                         nonProcessed.add(leftSplit[0]);
                     } else if (rightBoundEntry) {
-                        TimeCoeffPair[] rightSplit = nextPair.splitWithOneSecondDifference(nextTariff.getTo());
+                        TimeCoeffPair[] rightSplit = nextPair.splitWithOneSecondDifference(nextTariff.getTo(), true);
                         rightSplit[0].coeff *= nextTariff.getPrice();
                         processed.add(rightSplit[0]);
-                        processed.add(rightSplit[1]);
+                        nonProcessed.add(rightSplit[1]);
                     }
                     if (leftBoundEntry || rightBoundEntry) {
                         nonProcessed.remove(j);
-                        break;
+                        break; //більше одного тарифу бути не може
+                        //оскільки вони не перетинаються
                     }
                 }
             }
@@ -137,6 +144,20 @@ public class PriceCountService {
         return (float) price;
     }
 
+    private TariffByTime shiftToDay(TariffByTime tariff, Calendar sample) {
+        int year = sample.get(YEAR);
+        int dayOfYear = sample.get(DAY_OF_YEAR);
+
+        Calendar from = (Calendar) tariff.getFrom().clone();
+        from.set(YEAR, year);
+        from.set(DAY_OF_YEAR, dayOfYear);
+
+        Calendar to = (Calendar) tariff.getTo().clone();
+        to.set(YEAR, year);
+        to.set(DAY_OF_YEAR, dayOfYear);
+        return new TariffByTime(null, from, to, tariff.getPrice(), tariff.getTariffType());
+    }
+
     private float countStartIdlePrice(Route route) throws InfoNotFoundException {
         if (!route.isCustomerLate()) {
             return 0;
@@ -149,9 +170,9 @@ public class PriceCountService {
             throw new InfoNotFoundException(IDLE_FREE_TIME_NAME + " not found");
         }
 
-        long freeTimeMilis = Long.parseLong(idleFreeTimeInfo.getValue()) * 60 * 1000;
+        long freeTimeMillis = Long.parseLong(idleFreeTimeInfo.getValue()) * 60 * 1000;
         long difference = route.getStartTime().getTimeInMillis()
-                - order.getExecutionDate().getTimeInMillis() - freeTimeMilis;
+                - order.getExecutionDate().getTimeInMillis() - freeTimeMillis;
         if (difference > 0) {
             float idlePriceCoeff = order.getCarClass().getIdlePriceCoefficient();
             return (float) (idlePriceCoeff * (difference / (1000 * 60.0)));
@@ -167,7 +188,8 @@ public class PriceCountService {
         }
         TaxiOrder order = route.getOrder();
         ServiceType serviceType = order.getServiceType();
-        if (serviceType.isDestinationLocationsChain()) {
+        Boolean chain = serviceType.isDestinationLocationsChain();
+        if (chain != null && chain) {
             //якщо оформлено замовлення такого виду, потрібно рахувати
             //ціну на все замовлення, а не на окремий маршрут
             throw new RuntimeException("does not make sense");
@@ -177,86 +199,66 @@ public class PriceCountService {
         List<TariffByTime> timeOfDayTariffs = tariffRepository.findByTariffType(TariffType.TIME_OF_DAY);
         float price = countRoutePrice(route, dayOfYearTariffs, dayOfWeekTariffs, timeOfDayTariffs)
                 + countStartIdlePrice(route);
-        return Math.max(price, order.getServiceType().getMinPrice());
+        return price;
     }
 
-    private List<Route> reorderAndFilterRoutes(List<Route> original) {
-        LinkedList<Route> routes = new LinkedList<>(original);
-        LinkedList<Route> reordered = new LinkedList<>();
-        Route globalPivot = routes.pollFirst();
-        reordered.add(globalPivot);
-        Route pivot = globalPivot;
-        boolean found = false;
-        do {
-            for (Iterator<Route> it = routes.iterator(); it.hasNext(); ) {
-                Route element = it.next();
-                if (element.getSourceAddress().equals(pivot.getDestinationAddress())) {
-                    reordered.add(element);
-                    pivot = element;
-                    it.remove();
-                    found = true;
-                    break;
-                }
-            }
-        } while (found);
-        pivot = globalPivot;
-        found = false;
-        do {
-            for (Iterator<Route> it = routes.iterator(); it.hasNext(); ) {
-                Route element = it.next();
-                if (element.getDestinationAddress().equals(pivot.getSourceAddress())) {
-                    reordered.addFirst(element);
-                    pivot = element;
-                    it.remove();
-                    found = true;
-                    break;
-                }
-            }
-        } while (found);
-        routes = reordered;
-        //відкидаємо непотрібні
-        for (Iterator<Route> routeIterator = routes.iterator(); routeIterator.hasNext(); ) {
-            Route next = routeIterator.next();
-            if (next.getStatus() != RouteStatus.COMPLETED) {
+    private void filterByDriverId(List<Route> all, int driverId) {
+        for (Iterator<Route> routeIterator = all.iterator(); routeIterator.hasNext(); ) {
+            Driver driver = routeIterator.next().getDriver();
+            if (driver == null || driver.getId() != driverId) {
                 routeIterator.remove();
             }
+        }
+    }
+
+    private List<Route> getLastChainByDriverId(TaxiOrder order, int driverId) {
+        AssembledOrder assembledOrder = AssembledOrder.assembleOrder(order);
+        List<Route> routes = new ArrayList<>();
+        for (AssembledRoute assembledRoute : assembledOrder.getAssembledRoutes()) {
+            List<Route> allRoutes = assembledRoute.getRoutes();
+            filterByDriverId(allRoutes, driverId);
+            routes.add(allRoutes.get(allRoutes.size() - 1));
         }
         return routes;
     }
 
     @Transactional
-    public Float countPriceForChainOrder(long orderId, long driverId) throws ItemNotFoundException, InfoNotFoundException {
+    public List<Float> countPriceForLastChainOrder(long orderId, int driverId) throws ItemNotFoundException, InfoNotFoundException {
         TaxiOrder order = orderRepository.findOne(orderId);
         if (order == null) {
             throw new ItemNotFoundException();
         }
-        ServiceType serviceType = order.getServiceType();
-        if (!serviceType.isDestinationLocationsChain()) {
+        Boolean chain = order.getServiceType().isDestinationLocationsChain();
+        if (chain == null || !chain) {
             throw new RuntimeException("does not make sense");
         }
-        List<Route> routes = routeRepository.findByOrderAndDriver(orderId, driverId);
-        routes = reorderAndFilterRoutes(routes);
+        List<Route> routes = getLastChainByDriverId(order, driverId);
         if (routes.isEmpty()) {
-            return 0f;
+            return null;
         }
         //рахуємо
         List<TariffByTime> dayOfYearTariffs = tariffRepository.findByTariffType(TariffType.DAY_OF_YEAR);
         List<TariffByTime> dayOfWeekTariffs = tariffRepository.findByTariffType(TariffType.DAY_OF_WEEK);
         List<TariffByTime> timeOfDayTariffs = tariffRepository.findByTariffType(TariffType.TIME_OF_DAY);
-        float price = 0;
-        //ціна безпосередньо за маршрути
-        for (Route route : routes) {
-            price += countRoutePrice(route, dayOfYearTariffs, dayOfWeekTariffs, timeOfDayTariffs);
-        }
-        //додаємо ціну за простій
-        price += countStartIdlePrice(routes.get(0));
+        List<Float> routePrices = new ArrayList<>(routes.size());
+        //ціна на перший маршрут
+        Float price = countStartIdlePrice(routes.get(0));
+        price += countRoutePrice(routes.get(0), dayOfYearTariffs, dayOfWeekTariffs, timeOfDayTariffs);
+        routePrices.add(price);
+        //решта
         float idleCoeff = order.getCarClass().getIdlePriceCoefficient();
         for (int i = 1; i < routes.size(); i++) {
+            price = countRoutePrice(routes.get(i), dayOfYearTariffs, dayOfWeekTariffs, timeOfDayTariffs);
             long difference = routes.get(i).getStartTime().getTimeInMillis()
                     - routes.get(i - 1).getCompletionTime().getTimeInMillis();
-            price += idleCoeff * (difference / (1000 * 60.0));
+            price += (float) (idleCoeff * (difference / (1000 * 60.0)));
+            routePrices.add(price);
         }
-        return Math.max(price, order.getServiceType().getMinPrice());
+        return routePrices;
+    }
+
+    public float approximateOrderPrice(TaxiOrderForm form) {
+        return 0;
     }
 
     private static class TimeCoeffPair {
@@ -270,20 +272,30 @@ public class PriceCountService {
             this.coeff = coeff;
         }
 
-        public TimeCoeffPair[] splitWithOneSecondDifference(Calendar between) {
+        public TimeCoeffPair[] splitWithOneSecondDifference(Calendar between, boolean secondToTheRight) {
             TimeCoeffPair[] pair = new TimeCoeffPair[2];
 
-            pair[0] = new TimeCoeffPair(from, between, coeff);
-
-            between = (Calendar) between.clone();
-            between.add(SECOND, 1);
-            pair[1] = new TimeCoeffPair(between, to, coeff);
-
+            pair[0] = new TimeCoeffPair(from, (Calendar) between.clone(), coeff);
+            pair[1] = new TimeCoeffPair((Calendar) between.clone(), to, coeff);
+            if (secondToTheRight) {
+                pair[1].from.add(SECOND, 1);
+            } else {
+                pair[0].to.add(SECOND, -1);
+            }
             return pair;
         }
 
         public double getDuration() {
             return to.getTimeInMillis() - from.getTimeInMillis();
+        }
+
+        @Override
+        public String toString() {
+            return "TimeCoeffPair{" +
+                    "from=" + from.getTime() +
+                    ", to=" + to.getTime() +
+                    ", coeff=" + coeff +
+                    '}';
         }
     }
 

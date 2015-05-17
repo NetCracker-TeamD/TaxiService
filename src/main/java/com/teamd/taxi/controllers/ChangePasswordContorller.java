@@ -32,16 +32,17 @@ public class ChangePasswordContorller {
 
     @Autowired
     private CustomerUserService userService;
+
     @RequestMapping(value = "/changePassword", method = RequestMethod.POST)
-    public String viewPageChangePassword(Model map, @RequestParam Map<String,String> requestParams){
-        String oldPass=requestParams.get("oldpass");
-        String newpass=requestParams.get("newpass");
-        String repass=requestParams.get("repass");
+    public String viewPageChangePassword(Model map, @RequestParam Map<String, String> requestParams) {
+        String oldPass = requestParams.get("oldpass");
+        String newpass = requestParams.get("newpass");
+        String repass = requestParams.get("repass");
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication authentication = context.getAuthentication();
         AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
-        if(authentication.getAuthorities().contains(new SimpleGrantedAuthority("DRIVER_ROLE"))){
-            Driver driver=driverService.getDriver((int)auth.getId());
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("DRIVER_ROLE"))) {
+            Driver driver = driverService.getDriver((int) auth.getId());
             if (newpass != null && repass != null && newpass.length() > 5 && newpass.equals(repass)
                     && encoder.matches(oldPass, driver.getPassword())) {
                 driver.setPassword(encoder.encode(newpass));
@@ -50,8 +51,8 @@ public class ChangePasswordContorller {
             } else {
                 map.addAttribute("error", "Incorrect password");
             }
-        }else if(authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CUSTOMER"))){
-            User user= userService.findById(auth.getId());
+        } else if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CUSTOMER"))) {
+            User user = userService.findById(auth.getId());
             if (newpass != null && repass != null && newpass.length() > 5 && newpass.equals(repass)
                     && encoder.matches(oldPass, user.getUserPassword())) {
                 user.setUserPassword(encoder.encode(newpass));
@@ -63,8 +64,9 @@ public class ChangePasswordContorller {
         }
         return "changePassword";
     }
+
     @RequestMapping(value = "/changePassword", method = RequestMethod.GET)
-    public String viewPageChangePassword(){
+    public String viewPageChangePassword() {
         return "changePassword";
     }
 

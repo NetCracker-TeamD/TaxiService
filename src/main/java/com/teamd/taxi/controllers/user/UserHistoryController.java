@@ -1,6 +1,7 @@
 package com.teamd.taxi.controllers.user;
 
 import com.google.gson.*;
+import com.teamd.taxi.entity.CarClass;
 import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.entity.ServiceType;
 import com.teamd.taxi.entity.TaxiOrder;
@@ -137,7 +138,7 @@ public class UserHistoryController {
         }
         //"from" date
         List<String> fromVals = params.get("from");
-        if (toVals != null && toVals.size() > 0) {
+        if (fromVals != null && fromVals.size() > 0) {
             try {
                 long fromDate = Long.parseLong(fromVals.get(0));
                 specs.add(factory.registrationDateGreaterThan(getCalendarByTime(fromDate)));
@@ -209,8 +210,8 @@ public class UserHistoryController {
     }
 
     @RequestMapping(value = "/loadHistory", produces = MediaType.APPLICATION_JSON_VALUE)
-     @ResponseBody
-     public String loadHistory(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
+    @ResponseBody
+    public String loadHistory(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
         logger.info("pageable = " + pageable);
         logger.info("All params = " + params);
         //retrieving data from database
@@ -278,7 +279,8 @@ public class UserHistoryController {
             to.addProperty("id", taxiOrder.getId());
             to.addProperty("comment", taxiOrder.getComment());
             to.addProperty("musicStyle", taxiOrder.getMusicStyle());
-            to.addProperty("carClass", taxiOrder.getCarClass().getClassName());
+            CarClass carClass = taxiOrder.getCarClass();
+            to.addProperty("carClass", carClass == null ? null : carClass.getClassName());
             to.addProperty("executionDate", fmt.format(taxiOrder.getExecutionDate().getTime()));
             to.addProperty("registrationDate", fmt.format(taxiOrder.getRegistrationDate().getTime()));
             //lists
