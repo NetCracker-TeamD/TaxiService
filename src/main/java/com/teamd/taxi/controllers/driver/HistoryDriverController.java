@@ -52,10 +52,11 @@ public class HistoryDriverController {
     * */
     @RequestMapping(value = "/history/{driverId}", method = RequestMethod.GET)
     public String getDriverHistoryById(Model model, @RequestParam Map<String, String> requestParam, @PathVariable int driverId) {
-        Driver driver=driverService.getDriver(driverId);
-        setViewHistory(model,requestParam,driver);
+        Driver driver = driverService.getDriver(driverId);
+        setViewHistory(model, requestParam, driver);
         return "driver/drv-history";
     }
+
     @RequestMapping(value = "/history", method = RequestMethod.GET)
     public String getCurrentDriverHistory(Model model, @RequestParam Map<String, String> requestParam) {
         SecurityContext context = SecurityContextHolder.getContext();
@@ -63,12 +64,12 @@ public class HistoryDriverController {
         AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("DRIVER_ROLE"))) {
             Driver driver = driverService.getDriver((int) auth.getId());
-            setViewHistory(model,requestParam,driver);
+            setViewHistory(model, requestParam, driver);
         }
         return "driver/drv-history";
     }
 
-    private void setViewHistory(Model model, Map<String, String> requestParam, Driver driver){
+    private void setViewHistory(Model model, Map<String, String> requestParam, Driver driver) {
         int page = 0;
         if (requestParam.get("page") != null)
             page = Integer.parseInt(requestParam.get("page")) - 1;

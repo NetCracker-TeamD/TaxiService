@@ -39,7 +39,6 @@ public class MapService {
                     distance += leg.distance.inMeters;
                 }
                 float retVal = (float) (distance / 1000.0);
-                //System.out.println("retVal = " + retVal);
                 return retVal;
             }
             return null;
@@ -50,7 +49,7 @@ public class MapService {
         }
     }
 
-    public void checkAdress(String address) throws NotFoundException, MapServiceNotAvailableException {
+    public void checkAddress(String address) throws NotFoundException, MapServiceNotAvailableException {
         try {
             calculateDistanceInKilometers(address, address);
         } catch (NotFoundException notFound) {

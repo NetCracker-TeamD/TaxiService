@@ -257,8 +257,28 @@ public class PriceCountService {
         return routePrices;
     }
 
-    public float approximateOrderPrice(TaxiOrderForm form) {
-        return 0;
+    public float approximateOrderPrice(TaxiOrder order, List<UserGroup> userGroups) {
+        List<Route> routes = order.getRoutes();
+        //цена за фичи
+        List<Feature> features = order.getFeatures();
+        float featurePrice = 0;
+        for (Feature feature : features) {
+            featurePrice += feature.getPrice();
+        }
+        featurePrice *= routes.size();
+        //цена за маршруты
+        float routePrice = 0;
+        ServiceType serviceType = order.getServiceType();
+        CarClass carClass = order.getCarClass();
+        //считать что-то можно только если указан пункт назначения
+        if (serviceType.isDestinationRequired()) {
+            for (Route route : routes) {
+                routePrice += route.getDistance()
+                        * serviceType.getPriceByDistance()
+                        * carClass.getPriceCoefficient();
+            }
+        }
+        return Math.max(routePrice, serviceType.getMinPrice()) + featurePrice;
     }
 
     private static class TimeCoeffPair {

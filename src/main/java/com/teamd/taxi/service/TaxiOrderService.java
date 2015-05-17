@@ -106,11 +106,9 @@ public class TaxiOrderService {
     }
 
     @Transactional
-    public TaxiOrder createNewTaxiOrder(TaxiOrderForm form, User user)
-            throws NotCompatibleException,
-            MapServiceNotAvailableException,
-            PropertyNotFoundException,
-            NotFoundException {
+    public TaxiOrder fillOrder(TaxiOrderForm form, User user)
+            throws PropertyNotFoundException, NotFoundException,
+            MapServiceNotAvailableException, NotCompatibleException {
         TaxiOrder order = new TaxiOrder();
         ServiceType serviceType = form.getServiceType();
         //проверка совместимости класса автомобиля и сервиса
@@ -150,11 +148,7 @@ public class TaxiOrderService {
                         intermediate.get(i),
                         false
                 );
-                /*float distance = mapService.calculateDistanceInKilometers(
-                        route.getSourceAddress(),
-                        route.getDestinationAddress()
-                );
-                System.out.println("distance = " + distance);*/
+                route.setChainPosition(i);
                 route.setDistance(mapService.calculateDistanceInKilometers(
                         route.getSourceAddress(),
                         route.getDestinationAddress()
@@ -175,7 +169,7 @@ public class TaxiOrderService {
             }
         } else {
             String source = form.getSource().get(0);
-            mapService.checkAdress(source);
+            mapService.checkAddress(source);
             routes.add(new Route(null, RouteStatus.QUEUED, source, null, false));
         }
         //размножаем их до необх. количества автомобилей
@@ -212,15 +206,26 @@ public class TaxiOrderService {
         order.setPaymentType(form.getPaymentType());
         order.setExecutionDate(form.getExecDate());
         order.setFeatures(form.getFeatures());
+        order.setRoutes(routes);
+        return order;
+    }
+
+    @Transactional
+    public TaxiOrder createNewTaxiOrder(TaxiOrderForm form, User user)
+            throws NotCompatibleException,
+            MapServiceNotAvailableException,
+            PropertyNotFoundException,
+            NotFoundException {
+        TaxiOrder order = fillOrder(form, user);
+        List<Route> routes = order.getRoutes();
+        order.setRoutes(null);
         //создание ключа для анон. пользователя
         if (user.getUserRole() == UserRole.ROLE_ANONYMOUS) {
             String secretKey = stringGenerator.generateString(KEY_LENGTH);
             order.setSecretViewKey(secretKey);
         }
+        //необходимо отдельно сохранить заказ и все маршруты
         order = orderRepository.save(order);
-
-        logger.info("saved order: " + order);
-
         for (Route route : routes) {
             route.setOrder(order);
         }
@@ -244,6 +249,7 @@ public class TaxiOrderService {
         clone.setStatus(route.getStatus());
         clone.setCustomerLate(route.isCustomerLate());
         clone.setDistance(route.getDistance());
+        clone.setChainPosition(route.getChainPosition());
         return clone;
     }
 

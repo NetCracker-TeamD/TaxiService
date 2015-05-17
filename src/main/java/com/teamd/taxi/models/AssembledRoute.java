@@ -17,12 +17,14 @@ public class AssembledRoute {
     private int finishedCars;
     private int totalCars;
     private List<Route> routes;
+    private Integer chainPosition;
 
-    public AssembledRoute(String source, String destination, List<Route> routes) {
+    public AssembledRoute(String source, String destination, Integer chainPosition, List<Route> routes) {
         this.source = source;
         this.destination = destination;
         this.routes = routes;
         this.totalPrice = 0f;
+        this.chainPosition = chainPosition;
         this.totalCars = routes.size();
 
         for (Route route : routes) {
@@ -101,6 +103,14 @@ public class AssembledRoute {
 
     public Float getTotalDistance() {
         return totalDisance;
+    }
+
+    public Integer getChainPosition() {
+        return chainPosition;
+    }
+
+    public void setChainPosition(Integer chainPosition) {
+        this.chainPosition = chainPosition;
     }
 
     @Override

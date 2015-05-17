@@ -20,6 +20,7 @@ public class TaxiOrderSpecificationFactory {
             }
         };
     }
+
     public Specification<TaxiOrder> registrationDateGreaterThan(final Calendar calendar) {
         return new Specification<TaxiOrder>() {
             @Override
@@ -28,6 +29,7 @@ public class TaxiOrderSpecificationFactory {
             }
         };
     }
+
     public Specification<TaxiOrder> executionDateLessThan(final Calendar calendar) {
         return new Specification<TaxiOrder>() {
             @Override
@@ -36,6 +38,7 @@ public class TaxiOrderSpecificationFactory {
             }
         };
     }
+
     public Specification<TaxiOrder> executionDateGreaterThan(final Calendar calendar) {
         return new Specification<TaxiOrder>() {
             @Override
@@ -44,7 +47,8 @@ public class TaxiOrderSpecificationFactory {
             }
         };
     }
-    public Specification<TaxiOrder> driverIdEqual(final int id){
+
+    public Specification<TaxiOrder> driverIdEqual(final int id) {
         return new Specification<TaxiOrder>() {
             @Override
             public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -55,7 +59,8 @@ public class TaxiOrderSpecificationFactory {
             }
         };
     }
-    public Specification<TaxiOrder> statusRouteEqual(final RouteStatus routeStatus){
+
+    public Specification<TaxiOrder> statusRouteEqual(final RouteStatus routeStatus) {
         return new Specification<TaxiOrder>() {
             @Override
             public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -65,7 +70,8 @@ public class TaxiOrderSpecificationFactory {
             }
         };
     }
-    public Specification<TaxiOrder> serviceTypeEqual(final int idServiceType){
+
+    public Specification<TaxiOrder> serviceTypeEqual(final int idServiceType) {
         return new Specification<TaxiOrder>() {
             @Override
             public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -73,23 +79,25 @@ public class TaxiOrderSpecificationFactory {
             }
         };
     }
-    public Specification<TaxiOrder> taxiOrderEqual(final int id){
+
+    public Specification<TaxiOrder> taxiOrderEqual(final int id) {
         return new Specification<TaxiOrder>() {
             @Override
             public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-                return cb.equal(root.get("id"),id);
+                return cb.equal(root.get("id"), id);
             }
         };
     }
-    public Specification<TaxiOrder> sourceOrDestinationAddressLike(final String address){
+
+    public Specification<TaxiOrder> sourceOrDestinationAddressLike(final String address) {
         return new Specification<TaxiOrder>() {
             @Override
             public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
                 query.distinct(true);
                 Join<TaxiOrder, Route> routeJoin = root.join("routes", JoinType.INNER);
-                Predicate sourcePredicate=cb.like(routeJoin.<String>get("sourceAddress"), "%" + address+ "%");
-                Predicate destinationPredicate=cb.like(routeJoin.<String>get("destinationAddress"), "%" + address+ "%");
-                Predicate srcOrDstPredicate=cb.or(sourcePredicate,destinationPredicate);
+                Predicate sourcePredicate = cb.like(routeJoin.<String>get("sourceAddress"), "%" + address + "%");
+                Predicate destinationPredicate = cb.like(routeJoin.<String>get("destinationAddress"), "%" + address + "%");
+                Predicate srcOrDstPredicate = cb.or(sourcePredicate, destinationPredicate);
                 return srcOrDstPredicate;
             }
         };

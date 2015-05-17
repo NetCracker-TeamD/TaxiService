@@ -166,7 +166,8 @@ var App = (function () {
                     cache: false,
                     processData: false,
                     success: function (response) {
-                        console.log("response is '" + response + "'")
+                        console.log("response is:");
+                        console.log(response)
                         var watchIt = function () {
                             console.log("go to track link")
                         }

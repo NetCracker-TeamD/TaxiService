@@ -15,7 +15,11 @@ public class GroupsService {
     private GroupsRepository groupsRepository;
 
     @Transactional
-    public List<UserGroup> getGroupsList(){
+    public List<UserGroup> getGroupsList() {
         return groupsRepository.findAll();
+    }
+
+    public List<UserGroup> findGroupsByUserId(long userId) {
+        return groupsRepository.findByUserId(userId);
     }
 }

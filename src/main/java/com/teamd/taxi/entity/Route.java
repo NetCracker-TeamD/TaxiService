@@ -37,8 +37,19 @@ public class Route implements Serializable {
     @Column(name = "total_price")
     private Float totalPrice;
 
+    @Column(name = "chain_position")
+    private Integer chainPosition;
+
     @Column(name = "customer_is_late")
     private Boolean customerLate;
+
+    public Integer getChainPosition() {
+        return chainPosition;
+    }
+
+    public void setChainPosition(Integer chainPosition) {
+        this.chainPosition = chainPosition;
+    }
 
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
