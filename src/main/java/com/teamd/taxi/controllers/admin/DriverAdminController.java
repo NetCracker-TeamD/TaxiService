@@ -110,7 +110,7 @@ public class DriverAdminController {
 
         return driverInfoGson.toJson(response);
     }
-/*
+
     @RequestMapping(value = "/cars-get", method = RequestMethod.POST)
     @ResponseBody
     public Object getCars() {
@@ -119,7 +119,7 @@ public class DriverAdminController {
         response.setContent(cars).setResultSuccess();
         return driverCarGson.toJson(response);
     }
-*/
+
     //URL example: driver-delete?id=5
     @RequestMapping(value = "/driver-delete", method = RequestMethod.POST)
     @ResponseBody

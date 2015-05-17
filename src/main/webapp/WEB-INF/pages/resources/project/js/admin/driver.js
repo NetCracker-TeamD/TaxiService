@@ -220,7 +220,7 @@ function getFreeCars() {
             }
         },
         error: function () {
-            showError(createDriverModal, "Server error");
+            showError(createDriverModal, "Unable to get car list");
         }
     });
 }
