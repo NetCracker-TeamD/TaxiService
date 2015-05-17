@@ -6,8 +6,6 @@ import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.entity.Sex;
 import com.teamd.taxi.validation.*;
 import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 import java.util.LinkedList;

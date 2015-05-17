@@ -16,8 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.List;
 
 /**
  * Created by Іван on 06.05.2015.
@@ -76,7 +75,7 @@ public class DriverService {
     }
 
 
-    public void save(Driver driver){
+    public void save(Driver driver) {
         driverRepository.save(driver);
     }
 
@@ -87,9 +86,6 @@ public class DriverService {
 
         driver.setPassword(encoder.encode(password));
         driverRepository.save(driver);
-        Car car = carRepository.findOne(driver.getCar().getCarId());
-        car.setDriver(new Driver(driver.getId()));
-        carRepository.save(car);
     }
 
     @Transactional
@@ -97,9 +93,6 @@ public class DriverService {
         Driver driver = driverRepository.findOne(newDriver.getId());
         driver = newDriver.mergeWith(driver);
         driverRepository.save(driver);
-//        Car car = carRepository.findOne(driver.getCar().getCarId());
-//        car.setDriver(new Driver(driver.getId()));
-//        carRepository.save(car);
     }
 
 
