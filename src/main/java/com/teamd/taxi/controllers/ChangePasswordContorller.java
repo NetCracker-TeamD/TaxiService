@@ -43,7 +43,7 @@ public class ChangePasswordContorller {
         AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("DRIVER_ROLE"))) {
             Driver driver = driverService.getDriver((int) auth.getId());
-            if (newpass != null && repass != null && newpass.length() > 5 && newpass.equals(repass)
+            if (newpass != null && repass != null /*&& newpass.length() > 5 */&& newpass.equals(repass)
                     && encoder.matches(oldPass, driver.getPassword())) {
                 driver.setPassword(encoder.encode(newpass));
                 driverService.save(driver);
@@ -53,7 +53,7 @@ public class ChangePasswordContorller {
             }
         } else if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CUSTOMER"))) {
             User user = userService.findById(auth.getId());
-            if (newpass != null && repass != null && newpass.length() > 5 && newpass.equals(repass)
+            if (newpass != null && repass != null /*&& newpass.length() > 5 */&& newpass.equals(repass)
                     && encoder.matches(oldPass, user.getUserPassword())) {
                 user.setUserPassword(encoder.encode(newpass));
                 userService.save(user);
