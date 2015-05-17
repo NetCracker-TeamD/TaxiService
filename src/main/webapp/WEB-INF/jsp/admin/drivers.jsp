@@ -121,7 +121,7 @@
                     <div class="form-group">
                         <label for="driver_car" class="control-label">Car:</label>
                         <%--<select id="driver_car" class="form-control" onclick="getFreeCars()"></select>--%>
-                        <select id="driver_car" class="form-control"></select>
+                        <select id="driver_car" comleted="false" class="form-control"></select>
                     </div>
                 </form>
             </div>

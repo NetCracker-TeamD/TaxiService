@@ -7,45 +7,49 @@ import com.teamd.taxi.entity.Sex;
 import com.teamd.taxi.validation.*;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created on 12-May-15.
+ * Created on 16-May-15.
  *
  * @author Nazar Dub
  */
-public class DriverModel {
+public class UpdateDriverModel {
 
-    @NotBlank(message = "Please enter driver first name.")
+
+    @NotNull(message = "Please enter driver id.")
+    @ExistingDriverId
+    private Integer id;
+
+    @NotBlankOrNull(message = "Please enter driver first name.")
     private String firstName;
 
-    @NotBlank(message = "Please enter driver last name.")
+    @NotBlankOrNull(message = "Please enter driver last name.")
     private String lastName;
 
-    @NotBlank(message = "Please enter driver email.")
+    @NotBlankOrNull(message = "Please enter driver email.")
     @Email(regexp = "^(.+)@(.+)$", message = "Email address contains illegal characters")
     @UniqueDriverEmail
     private String email;
 
-    @NotBlank(message = "Please enter driver phone number.")
+    @NotBlankOrNull(message = "Please enter driver phone number.")
     @Phone
     private String phoneNumber;
 
-    @NotBlank(message = "Please enter driver license serial.")
+    @NotBlankOrNull(message = "Please enter driver license serial.")
     @License
     private String license;
 
-    private boolean isEnabled;
+    private Boolean isEnabled;
 
-    private boolean atWork;
+    private Boolean atWork;
 
-    @NotNull
     private Sex sex;
 
-    @NotNull
     @DriverFeatures
     private List<Feature> features;
 
@@ -53,7 +57,15 @@ public class DriverModel {
     private Integer carId;
 
 
-    public DriverModel() {
+    public UpdateDriverModel() {
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getFirstName() {
@@ -141,6 +153,7 @@ public class DriverModel {
 
     public Driver toDriver() {
         Driver d = new Driver();
+        d.setId(this.id);
         d.setFirstName(firstName);
         d.setLastName(lastName);
         d.setEmail(email);
@@ -155,10 +168,31 @@ public class DriverModel {
         return d;
     }
 
+    /**
+     * <p>This method add not null fields from model to specified in param driver</p>
+     *
+     * @param driver driver to merge
+     * @return merged driver
+     */
+    public Driver mergeWith(Driver driver) {
+        if (firstName != null) driver.setFirstName(firstName);
+        if (lastName != null) driver.setLastName(lastName);
+        if (email != null) driver.setEmail(email);
+        if (phoneNumber != null) driver.setPhoneNumber(phoneNumber);
+        if (sex != null) driver.setSex(sex);
+        if (isEnabled != null) driver.setEnabled(isEnabled);
+        if (atWork != null) driver.setAtWork(atWork);
+        if (license != null) driver.setLicense(license);
+        if (features != null) driver.setFeatures(features);
+        if (carId != null) driver.setCar(new Car(carId));
+        return driver;
+    }
+
     @Override
     public String toString() {
-        return "DriverModel{" +
-                "firstName='" + firstName + '\'' +
+        return "UpdateDriverModel{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +

@@ -19,6 +19,6 @@ public class LicenseValidator implements ConstraintValidator<License, String> {
 
     @Override
     public boolean isValid(String license, ConstraintValidatorContext context) {
-        return PATTERN_LICENSE.matcher(license).matches();
+        return license == null || PATTERN_LICENSE.matcher(license).matches();
     }
 }

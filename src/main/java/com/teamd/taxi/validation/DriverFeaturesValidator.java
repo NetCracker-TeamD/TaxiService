@@ -26,6 +26,8 @@ public class DriverFeaturesValidator implements ConstraintValidator<DriverFeatur
 
     @Override
     public boolean isValid(List<Feature> features, ConstraintValidatorContext context) {
+        if (features == null)
+            return true;
         List<Feature> allFeatures = repository.findAllByFeatureType(FeatureType.DRIVER_FEATURE);
         for (Feature f : features)
             if (!allFeatures.contains(f))
