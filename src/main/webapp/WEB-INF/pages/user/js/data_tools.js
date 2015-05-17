@@ -1,27 +1,131 @@
+/*
+This object works with any user data
+	Structure of any get,set function is :
+		function(loader, threadName, callback, data)
+		loader = new Loader() //handles many defered queries
+		threadName = "someString"
+		callback : function(status, response, [args...]) //status = "success"|"error", 
+						response = unmodified server response
+						[args...] = function specific arguments (ex.: for services args is services and contains formatedServices)
+		data = json data of query //optional parameter
 
+	Any load function is private
+
+	Changing of loader state heppens only after calling callback
+*/
 var DataTools = (function(){
 	var 
-		serverAddress = "",//http://localhost:8000",
+		serverAddress = "",//"http://localhost:8000",
 		userLocation = null,
-		services = {
-			"cache" : null,
+		caches = { //stores caches for queries
+			services : null,
+			history : null,
+			order : null,
+			user : null,
+			favLocations : null,
 		},
-		history = {},
-		favLocations = [
-				{
-					"name" : "Institute",
-					"address" : "Borshchahivska St, 126 Kyiv",
-				},
-			],
-		loadServices = function(loader, threadName){
+		formatedData = {//stores formated data of caches
+		},
+		callStacks = {},
+		initCallStack = function(stackName){
+			if (!$.isSet(callStacks[stackName])) {
+				callStacks[stackName] = [] //contains callbacks that was called stack[i](status, response, null)
+			}
+		},
+		addCallToStack = function(stackName, loader, threadName, callback){
+			if (!$.isSet(callStacks[stackName])) {
+				initCallStack(stackName)
+			}
+			callStacks[stackName].push({call : callback, thread: threadName, loader: loader})
+		},
+		isCallStackBusy = function(stackName){ 
+			var stack = callStacks[stackName]
+			return $.isSet(stack) ? stack.length > 0 : false
+		},
+		realiseCallStack = function(stackName, status, response, data){
+			console.log("realising "+stackName)
+			var stack = callStacks[stackName]
+			callStacks[stackName] = []
+			if (!$.isSet(stack)) {
+				console.log("attemp to realise alredy empty stack "+stackName)
+				return;
+			}
+			for (var i=0;i<stack.length; i++){
+				var callback = stack[i]
+				if ($.isFunc(callback.call)) callback.call(status, response, data)
+				
+			}
+			console.log("realised "+stackName)
+
+			//VERY IMPORTANT, change load state only after calling all callback for data
+			for (var i=0;i<stack.length; i++){
+				var callback = stack[i]
+				console.log(callback)
+				console.log(callback.loader)
+				callback.loader.setStatus(callback.thread, status)
+				
+			}
+		},
+		isServerResponseGood = function(response){//checks server response for errors (true if no errors)
+			return true//dummy
+		},
+		getCurTime = function(){ new Date().getTime() },
+		updateTime = function(cacheName){
+			times[cacheName] = getCurTime()
+		},
+		isCacheFresh = function(cacheName){//deside do query to server or not (if false app makes new query to server and update data)
+			if (!$.isSet(caches[cacheName])) {
+				return false //if cache isn`t set make query
+			}
+			switch (cacheName){
+				case "services":
+					return true;
+					break;
+				case "user":
+					return true;
+					break;
+			}
+
+			return false//dummy
+		},
+		getServiceTypes = function(loader, threadName, callback){
+			loadServices(loader, threadName, function(status, serverResponse, data){
+				if ($.isFunc(callback)) callback(status, serverResponse, formatedData.services.types)
+			})
+		},
+		getServiceDescription = function(loader, threadName, callback, serviceType){
+			loadServices(loader, threadName, function(status, serverResponse, data){
+				if ($.isFunc(callback)) callback(status, serverResponse, formatedData.services.descriptions[serviceType])
+			})
+		}
+		getServiceFeatures = function(loader, threadName, callback, serviceType){
+			loadServices(loader, threadName, function(status, serverResponse, data){
+				if ($.isFunc(callback)) callback(status, serverResponse, formatedData.services.features[serviceType])
+			})
+		},
+		loadServices = function(loader, threadName, callback){
+			if (isCallStackBusy('services')) {
+				addCallToStack('services', loader, threadName, callback)
+				return;
+			}
+			addCallToStack('services', loader, threadName, callback)
+			if (isCacheFresh('services')){
+				realiseCallStack('services', 'success', caches.services, null)
+				return;
+			}
+
+			//query
 			$.ajax(serverAddress+"/services", {
-				'success' : function(responseText) {
-					services.cache = responseText.services //JSON.parse(responseText)
-					console.log(services.cache)
+				'success' : function(response) {
+					caches.services = response
+					var services = response.services
 					services.types = []
 					services.descriptions = {}
 					services.features = {}
-					$.each(services.cache, function(key, service){
+					//console.log(response)
+					//console.log(services)
+					$.each(response.services, function(key, service){
+						//console.log(service)
 						if (service.multipleDestinationLocations && service.chain){
 							service.multipleDestinationLocations = false
 						}
@@ -41,21 +145,18 @@ var DataTools = (function(){
 							driverSex = [],
 							payments = [],
 							otherOptions = $.grep(service.allowedFeatures, function(value, key){
-								//console.log(value)
 								var name = value.name.toLowerCase()
-								if (name == "male" || name == "female"){
-									return false
-								}
-								return true
+								return !(name == "male" || name == "female")
 							})
-
+						if ($.isSet(carClasses[0])) {
+							carClasses[0].checked = true
+						}
 						//car class
 						featuresList.push({
 							"isCategory" : true,
 							"categoryName" : "Car type",
 							"featureSpecialName" : "car_class",
 							"items" : carClasses,
-							"deselectable" : true
 						})
 						//payments
 						payments.push({
@@ -73,7 +174,6 @@ var DataTools = (function(){
 							"featureSpecialName" : "payment_type",
 							"items" : payments
 						})
-
 						//driver sex
 						driverSex.push({
 							"id" : "male",
@@ -104,18 +204,16 @@ var DataTools = (function(){
 							"multiSelect" : true
 						})						
 					})
-
-					//console.log(services.types)
-					loader.setStatus(threadName, 'success')
+					formatedData.services = services
+					realiseCallStack('services', 'success', response, null)
 				},
-				'error' : function(obj){
+				'error' : function(response){
 					console.log("Can`t retrieve services information")
-					console.log(obj)
-					loader.setStatus(threadName, 'error')
+					realiseCallStack('services', 'error', response, null)
 				}
 			})
 		},
-		loadHistory = function(loader, threadName, page){
+		loadHistory = function(page){
 			var postfix = ""
 			if (page!=undefined && page!=null){
 				postfix+="?page="+page
@@ -136,86 +234,99 @@ var DataTools = (function(){
 					console.log(obj)
 					loader.setStatus(threadName, 'error')
 				}
-			})
-		
+			})	
 		},
-		getHistory = function(){
+		getHistory = function(loader, threadName, callback){
 			return history
 		},
-		getUser = function(){
-			return {
-				"isLogged": true,
+		getUser = function(loader, threadName, callback){
+			if (isCallStackBusy('user')) {
+				addCallToStack('user', loader, threadName, callback)
+				return;
+			}
+			addCallToStack('user', loader, threadName, callback)
+			if (isCacheFresh('user')){
+				realiseCallStack('user', 'success', caches.user, formatedData.user)
+				return;
+			}
+			/*
+			$.ajax(serverAddress+"/services", {
+				'success' : function(response) {
+					realiseCallStack('user', 'success', caches.user, formatedData.user)
+					loader.setStatus(threadName, 'success')
+				},
+				'error' : function(response){
+					console.log("Can`t retrieve services information")
+					realiseCallStack('user', 'error', caches.user, formatedData.user)
+					loader.setStatus(threadName, 'error')
+				}
+			})*/
+			caches.user = {
+				"isLogged": false,
 				"name":"Vasja",
 				"isBlocked": false,
 				"email":"Vasja.the.best@gmail.com",
-
 			}
+			formatedData.user = caches.user
+			realiseCallStack('user', 'success', caches.user, formatedData.user)
 		},
-		getFavLocations = function(){
-			if (userLocation!=null) {
-				return [].concat(userLocation, favLocations)
-			}
-			return favLocations
-		},
-		addFavLocation = function(name, address, atBegining){
-			var newItem = {
-					"name" : name,
-					"address" : address,
+		getOrderInfo = function(orderId, secretKey, callback){
+			//make query
+			var response = {somejson:"(unmodified response from server"},
+				orderInfo = {
+					"serviceType":"5",
+					"time":"specified",
+					"time_specified":"05/20/2015 1:53 PM",
+					"start_addresses":"вулиця Академіка Вільямса, 9, Київ, Украина",
+					"destination_addresses":"улица Авиаконструктора Антонова, 4/1, Київ, Украина",
+					"cars_amount":"1",
+					"payment_type":"cash",
+					"driver_sex":"any",
+					"features":"5"
 				}
-			if (atBegining) {
-				favLocations.unshift(newItem)
-			} else {
-				favLocations.push(newItem)
+			callback("success", orderInfo, response)
+		},
+		getFavLocations = function(loader, threadName, callback){
+			if (isCallStackBusy('fav_locations')) {
+				addCallToStack('fav_locations', loader, threadName, callback)
+				return;
 			}
+			addCallToStack('fav_locations', loader, threadName, callback)
+			if (isCacheFresh('fav_locations')){
+				realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
+				return;
+			}
+			/*
+			$.ajax(serverAddress+"/services", {
+				'success' : function(response) {
+					realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
+					loader.setStatus(threadName, 'success')
+				},
+				'error' : function(response){
+					console.log("Can`t retrieve services information")
+					realiseCallStack('fav_locations', 'error', caches.fav_locations, formatedData.fav_locations)
+					loader.setStatus(threadName, 'error')
+				}
+			})*/
+			caches.fav_locations = [
+				{
+					"name" : "Institute",
+					"address" : "Borshchahivska St, 126 Kyiv",
+				},
+			]
+			if (userLocation!=null) {
+				formatedData.fav_locations = [].concat(userLocation, caches.fav_locations)
+			} else {
+				formatedData.fav_locations = caches.fav_locations
+			}
+			realiseCallStack('fav_locations', 'success', caches.user, formatedData.fav_locations)
 		},
 		setUserLocation = function(name, address){
 			userLocation = {"name" : name,
 				"address" : address,
 				"isUserLocation" : true,
 			}
-		},
-		getServiceTypes = function(){
-			
-			return services.types;
-			// return ["Regular drive", 
-			// 	"Long term drive", 
-			// 	"Guest delivery",
-			// 	"Convey corporation employees",
-			// 	"Celebration taxi",
-			// 	"Sober driver",
-			// 	"Meet my guest",
-			// 	"Food delivery",
-			// 	"Cargo Taxi",
-			// ]
-		},
-		getServiceDescription = function(serviceType){
-			return services.descriptions[serviceType]
-			// return {
-			// 	"name": "Regular drive", //Ім'я сервісу
-			// 	"multipleSourceLocations": false, //Чи передбачено введення кількох початкових точок
-			// 	"multipleDestinationLocations": false, //Чи передбачено введення кількох точок призначення
-			// 	"chain": true, //Чи являє собою сукупність точок призначення ланцюг чи ні, тобто є незалежними
-			// 	"desinationRequired": true, //Чи потрібно введення точки призначення чи ні
-			// 	"timing": ["specify"], //"now", способи визначення часу на яке виконується замовлення
-			// 	"specifyCarsNumbers": true, //чи можна вказати кількість машин на кожен незалежний маршрут
-			// }
-		}
-		getFeatureList = function(serviceType){
-			return services.features[serviceType]
-			// return [{"categoryName":"Car type",
-			// 		"items": [
-			// 			"Econom", "SUV", "Busyness", "Truck",
-			// 		],
-			// 		"inputName" : "car_type"
-			// 	}, {"categoryName":"Driver`s sex",
-			// 		"items": [
-			// 			"Male", "Famale",
-			// 		],
-			// 		"inputName" : "driver_sex",
-			// 	},
-			//  	"WiFi",
-			//  	"Animal Transport",
-			//  	"Smoking"]
+			formatedData.fav_locations = [].concat(userLocation, caches.fav_locations)
 		},
 		verifyEmail = function(){
 			return true;
@@ -225,12 +336,10 @@ var DataTools = (function(){
 
 	return public_interface = {
 		"getFavLocations" : getFavLocations,
-		"addFavLocation" : addFavLocation,
 		"getServiceTypes" : getServiceTypes,
-		"getFeatureList" : getFeatureList,
-		"setUserLocation" : setUserLocation,
 		"getServiceDescription" : getServiceDescription,
-		"getFeatureList" : getFeatureList,
+		"getServiceFeatures" : getServiceFeatures,
+		"setUserLocation" : setUserLocation,
 		"getUser" : getUser,
 		"getHistory" : getHistory,
 		"loadServices" : loadServices,

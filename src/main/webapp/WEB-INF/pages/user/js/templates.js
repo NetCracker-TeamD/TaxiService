@@ -163,7 +163,7 @@ var Templates = (function () {
 					<h2>Create order</h2>\
 					<form class="form-horizontal" id="orderForm" method="POST" action="/test/wait/3000">\
 						<div class="form-group">\
-							<label for="serviceType">Chose service type</label>\
+							<label for="serviceType">Choose service type</label>\
 							<select id="serviceType" name="serviceType" class="form-control">\
 							</select>\
 						</div>\
@@ -187,12 +187,10 @@ var Templates = (function () {
         var str = '<div data-type="dropdown-address-list" class="input-group-btn">\
 				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>\
 				<ul class="dropdown-menu dropdown-menu-right" role="menu">'
-        if ($.isSet(items)) {
-            if (items.length > 0) {
-                $.each(items, function (i, item) {
-                    str += '<li><a>' + item.name + ' <small>' + item.address + '</small></a></li>'
-                })
-            } 
+        if ($.isSet(items) && items.length > 0) {
+            $.each(items, function (i, item) {
+                str += '<li><a>' + item.name + ' <small>' + item.address + '</small></a></li>'
+            }) 
         } else {
             str += '<li data-action="none"><small>List is empty</small></li>'
         }
@@ -238,7 +236,8 @@ var Templates = (function () {
             }
             uniqNumber++
             var container = $('<div class="input-group"></div>'),
-                input = $('<input data-number="' + (baseNumber + uniqNumber) + '" name="' + name + '" data-type="address" type="text" class="form-control">')
+                input = $('<input data-number="' + (baseNumber + uniqNumber) + '" name="' 
+                    + name + '" data-type="address" type="text" class="form-control">')
             container.append(input)
             container.append(getDropDownAddressHTML(locationsList, isRemovable))
             if (hasCarsAmount) {
@@ -248,6 +247,31 @@ var Templates = (function () {
             return container;
         }
     })(),
+    getFavAddress = (function() {
+        var uniqNumber = 1
+        return function (locationsList, inputNamePrefix, baseNumber) {
+            baseNumber = parseInt(baseNumber)
+            if (isNaN(baseNumber)) {
+                baseNumber = 0;
+            }
+            uniqNumber++
+            var container = $('<div class="input-group fav-address"></div>'),
+                nameInput = $('<div class="input-group"><input data-number="' + (baseNumber + uniqNumber) + '" name="' 
+                    + inputNamePrefix + '_name" data-type="address-name" type="text" class="form-control" placeholder="Enter short name"></div>'),
+                addressInput = $('<div class="input-group"><input data-number="' + (baseNumber + uniqNumber) + '" name="'
+                    + inputNamePrefix + '_address" data-type="address" type="text" class="form-control"></div>'),
+                removeBtn = $('<div class="input-group-btn"><button class="btn btn-danger" type="button" data-action="remove">\
+                    <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>\
+                </button></div>')
+            addressInput.append(getDropDownAddressHTML(locationsList, false))
+            nameInput.append(removeBtn)
+            container.append(nameInput)
+            container.append(addressInput)
+            
+            
+            return container;
+        }
+    })()
     getDateTimePicker = function (name, value, config) {
         var picker = $('<div class="input-group date">\
 				<input type="text" class="form-control" name="' + name + '" value="' + value + '" />\
@@ -404,6 +428,10 @@ var Templates = (function () {
     getContacts = function () {
         var container = $('<div class="form-group" id="contacts">\
 				<label>Provide contact information</label>\
+                <div class="input-group">\
+                    <span class="input-group-addon glyphicon glyphicon-user"></span>\
+                    <input type="text" class="form-control" name="user_name" data-type="user_name" placeholder="Enter your name">\
+                </div>\
 				<div class="input-group">\
 					<span class="input-group-addon glyphicon glyphicon-phone"></span>\
 					<input type="phone" class="form-control" name="phone" id="phone" data-type="phone" placeholder="Enter your phone number">\
@@ -458,13 +486,6 @@ var Templates = (function () {
     getRegistration = function(){
         var form = $('<form id="reg-form" class="form-signin" method="post" action="/test/wait/3000">\
             <div class="form-group"><h2 class="form-signin-heading">Please sign up</h2></div></form>');
-        form.append($('<div class="form-group">\
-            <label>Provide name</label>\
-            <div class="input-group">\
-                <span class="input-group-addon glyphicon glyphicon-user"></span>\
-                <input type="text" class="form-control" name="user_name" data-type="user_name" placeholder="Enter your name">\
-            </div>\
-        </div>'))
         form.append(getContacts())
         form.append($('<div class="form-group">\
             <label>Provide password</label>\
@@ -504,14 +525,16 @@ var Templates = (function () {
             groupAddresses = getAddressesGroup("Your favourite locations :", locInputName, true, false, 1),
             addressesContainer = groupAddresses.find('[data-type="address-group"]'),
             formAddresses = $('<form id="addresses" class="form-signin" method="post" action="/test/wait/3000">\
-                <div class="form-group"><h2 class="form-signin-heading">Change locatinos</h2></div></form>')
+                <div class="form-group"><h2 class="form-signin-heading">Change locations</h2></div></form>')
         for (var key in userFavLocations){
             var location = userFavLocations[key]
             if (!location.isUserLocation){
-                var address = getAddress(null, locInputName, false, true, 1),
-                    input =  address.find('[data-type="address"]')
-                input.val(location.address)
-                addressesContainer.append(address)
+                var addressBlock = getFavAddress(userFavLocations, locInputName, false, true, 1),
+                    address = addressBlock.find('[data-type="address"]'),
+                    name = addressBlock.find('[data-type="address-name"]')
+                address.val(location.address)
+                name.val(location.name)
+                addressesContainer.append(addressBlock)
             }
         }
         console.log(groupAddresses)
@@ -608,6 +631,7 @@ var Templates = (function () {
         "getViewHistory" : getViewHistory,
         "lockAllControls" : lockAllControls,
         "unlockAllControls" : unlockAllControls,
-        "makeNiceSubmitButton" : makeNiceSubmitButton
+        "makeNiceSubmitButton" : makeNiceSubmitButton,
+        "getFavAddress" : getFavAddress
     }
 })()

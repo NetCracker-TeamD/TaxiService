@@ -35,3 +35,7 @@ $.fn.serializeObject = function()
 $.isSet = function(obj){
     return (typeof obj !== "undefined" && obj !== null)
 }
+
+$.isFunc = function(obj){
+    return (typeof obj === "function")
+}

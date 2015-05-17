@@ -51,7 +51,7 @@ var MapTools = (function(){
 				}
 			}
 		},
-		onDistanceChanged= function(newDistance){
+		onDistanceChanged = function(newDistance){
 			var lis = listeners.onDistanceChanged
 			if ($.isSet(lis)) {
 				for (var i=0; i<lis.length; i++){
