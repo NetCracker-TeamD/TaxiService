@@ -7,10 +7,7 @@ import com.google.gson.stream.JsonWriter;
 import com.teamd.taxi.entity.Car;
 import com.teamd.taxi.entity.Driver;
 import com.teamd.taxi.entity.Feature;
-import com.teamd.taxi.models.admin.AdminResponseModel;
-import com.teamd.taxi.models.admin.DriverInfoResponseModel;
-import com.teamd.taxi.models.admin.DriverModel;
-import com.teamd.taxi.models.admin.DriverPageModel;
+import com.teamd.taxi.models.admin.*;
 import com.teamd.taxi.service.AdminPagesUtil;
 import com.teamd.taxi.service.CarService;
 import com.teamd.taxi.service.DriverService;
@@ -53,6 +50,7 @@ public class DriverAdminController {
     private static final String MESSAGE_DRIVER_ID_NOT_EXIST = "admin.driver.delete.nonexistent";
     private static final String MESSAGE_DRIVER_SUCCESS_DELETE = "admin.driver.delete.success";
     private static final String MESSAGE_DRIVER_SUCCESS_CREATE = "admin.driver.create.success";
+    private static final String MESSAGE_DRIVER_SUCCESS_UPDATE = "admin.driver.update.success";
 
     @Resource
     private Environment env;
@@ -104,7 +102,6 @@ public class DriverAdminController {
     @ResponseBody
     public Object getDriverInfo(@RequestParam(value = "id") Integer id) {
         Driver driver = driverService.getDriver(id);
-
         DriverInfoResponseModel response = new DriverInfoResponseModel(
                 driverService.getDriverFeatures(),
                 carService.getCarFeatures());
@@ -113,7 +110,7 @@ public class DriverAdminController {
 
         return driverInfoGson.toJson(response);
     }
-/*
+
     @RequestMapping(value = "/cars-get", method = RequestMethod.POST)
     @ResponseBody
     public Object getCars() {
@@ -122,7 +119,7 @@ public class DriverAdminController {
         response.setContent(cars).setResultSuccess();
         return driverCarGson.toJson(response);
     }
-*/
+
     //URL example: driver-delete?id=5
     @RequestMapping(value = "/driver-delete", method = RequestMethod.POST)
     @ResponseBody
@@ -140,12 +137,9 @@ public class DriverAdminController {
 
     @RequestMapping(value = "/driver-create", method = RequestMethod.POST)
     @ResponseBody
-    public AdminResponseModel<String> addDriver(@Valid DriverModel driverModel, BindingResult bindingResult) {
+    public AdminResponseModel<String> addDriver(@Valid CreateDriverModel driverModel, BindingResult bindingResult) {
         AdminResponseModel<String> response = new AdminResponseModel<>();
         if (bindingResult.hasErrors()) {
-            System.out.println("Error in binding driver data");
-            //TODO: Make one error message per field
-
             StringBuilder errors = new StringBuilder();
             for (FieldError fieldError : validateUtil.filterErrors(bindingResult.getFieldErrors())) {
                 errors.append("<p>");
@@ -156,6 +150,24 @@ public class DriverAdminController {
         }
         driverService.createDriverAccount(driverModel.toDriver());
         response.setResultSuccess().setContent(env.getRequiredProperty(MESSAGE_DRIVER_SUCCESS_CREATE));
+        return response;
+    }
+
+    @RequestMapping(value = "/driver-update", method = RequestMethod.POST)
+    @ResponseBody
+    public AdminResponseModel<String> updateDriver(@Valid UpdateDriverModel driverModel, BindingResult bindingResult) {
+        AdminResponseModel<String> response = new AdminResponseModel<>();
+        if (bindingResult.hasErrors()) {
+            StringBuilder errors = new StringBuilder();
+            for (FieldError fieldError : validateUtil.filterErrors(bindingResult.getFieldErrors())) {
+                errors.append("<p>");
+                errors.append(fieldError.getDefaultMessage());
+                errors.append("</p>");
+            }
+            return response.setContent(errors.toString());
+        }
+        driverService.updateDriverAccount(driverModel);
+        response.setResultSuccess().setContent(env.getRequiredProperty(MESSAGE_DRIVER_SUCCESS_UPDATE));
         return response;
     }
 
@@ -234,41 +246,6 @@ public class DriverAdminController {
             json.addProperty("result", src.getResult());
             json.add("content", context.serialize(src.getContent(), CarListSerializer.carsType));
             return json;
-        }
-    }
-
-    private static class TestResponseSerializer implements JsonSerializer<TestResponse> {
-
-        @Override
-        public JsonElement serialize(TestResponse src, Type typeOfSrc, JsonSerializationContext context) {
-            JsonObject json = new JsonObject();
-            json.addProperty("result", src.getResult());
-            json.add("content", context.serialize(src.getCars(), CarListSerializer.carsType));
-            return json;
-        }
-    }
-
-    private static class TestResponse {
-        private String result = "success";
-        private List<Car> cars;
-
-        public TestResponse() {
-        }
-
-        public String getResult() {
-            return result;
-        }
-
-        public void setResult(String result) {
-            this.result = result;
-        }
-
-        public List<Car> getCars() {
-            return cars;
-        }
-
-        public void setCars(List<Car> cars) {
-            this.cars = cars;
         }
     }
 

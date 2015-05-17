@@ -13,9 +13,9 @@ import java.util.*;
 @Component
 public class DriverValidateUtil extends HierarchyValidationUtil {
     private final static Set<String> VALIDATION_LEVEL_ONE =
-            new HashSet<>(Arrays.asList("NotBlank", "NotNull"));
+            new HashSet<>(Arrays.asList("NotBlank", "NotNull", "NotBlankOrNull"));
     private final static Set<String> VALIDATION_LEVEL_TWO =
-            new HashSet<>(Arrays.asList("DriverFeatures", "License", "Phone", "Email", "FreeCarId"));
+            new HashSet<>(Arrays.asList("DriverFeatures", "License", "Phone", "Email", "FreeCarId","ExistingDriverId"));
     private final static Set<String> VALIDATION_LEVEL_THREE =
             new HashSet<>(Arrays.asList("NotBlank", "UniqueDriverEmail"));
 
