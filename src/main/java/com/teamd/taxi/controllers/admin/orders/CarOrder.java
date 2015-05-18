@@ -6,5 +6,17 @@ package com.teamd.taxi.controllers.admin.orders;
  * @author Nazar Dub
  */
 public enum CarOrder {
-    MODEL
+    MODEL("model"),
+    DRIVER("driver.lastName"),
+    CLASS("carClass.className"),
+    CATEGORY("category");
+    private String order;
+
+    CarOrder(String order) {
+        this.order = order;
+    }
+
+    public String getOrder() {
+        return order;
+    }
 }

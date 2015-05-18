@@ -9,7 +9,7 @@ public enum DriverOrder {
     LAST_NAME("lastName"),
     FIRST_NAME("firstName"),
     AT_WORK("atWork"),
-    ENABLE("isEnabled"),
+    ENABLED("isEnabled"),
     SEX("sex");
     private String order;
 

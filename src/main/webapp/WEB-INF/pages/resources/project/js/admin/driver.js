@@ -612,3 +612,6 @@ function hideErrorModal(modalId) {
     modalId.find('.modal-error').slideUp();
 }
 
+function selectOrder(order) {
+    $("#sort-input").find("[value=" + order + "]").attr("selected", "selected");
+}

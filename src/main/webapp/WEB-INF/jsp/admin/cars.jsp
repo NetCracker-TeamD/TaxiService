@@ -196,11 +196,12 @@
         <form class="form-inline pull-right ">
             <div class="form-group">
                 <form method="get">
-                    <label for="sortInput">Sort</label>
-                    <select class="form-control input-sm" id="sortInput" name="order" onchange="form.submit()">
-                        <option value="model">by Model</option>
-                        <option value="driver">by Driver</option>
-                        <option value="driver">by Class</option>
+                    <label for="sort-input">Sort</label>
+                    <select class="form-control input-sm" id="sort-input" name="order" onchange="form.submit()">
+                        <option value="MODEL">by Model</option>
+                        <option value="DRIVER">by Driver</option>
+                        <option value="CLASS">by Class</option>
+                        <option value="CATEGORY">by Category</option>
                     </select>
                 </form>
             </div>
@@ -264,17 +265,17 @@
         <nav align="center">
             <ul class="pagination">
                 <li <c:if test="${page.isFirst()}">class="disabled" onclick="return false"</c:if>>
-                    <a href="/admin/cars?page=${page.number-1}" title="Previous">
+                    <a href="/admin/cars?page=${page.number-1}&order=${order}" title="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
                 <c:forEach var="elem" items="${pagination}">
                     <li <c:if test="${page.number == elem}">class="active"</c:if>>
-                        <a href="/admin/cars?page=${elem}">${elem+1}</a>
+                        <a href="/admin/cars?page=${elem}&order=${order}">${elem+1}</a>
                     </li>
                 </c:forEach>
                 <li <c:if test="${page.isLast()}">class="disabled" onclick="return false"</c:if>>
-                    <a href="/admin/cars?page=${page.number+1}" title="Next">
+                    <a href="/admin/cars?page=${page.number+1}&order=${order}" title="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
                 </li>
@@ -289,6 +290,7 @@
     </footer>
 </div>
 <script type="application/javascript" src="/pages/resources/project/js/admin/car.js"></script>
+<script>selectOrder('${order}');</script>
 </body>
 
 </html>

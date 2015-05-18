@@ -222,7 +222,7 @@
                         <option value="LAST_NAME">by Last Name</option>
                         <option value="FIRST_NAME">by First Name</option>
                         <option value="SEX">by Sex</option>
-                        <option value="ENABLE">by Enable</option>
+                        <option value="ENABLED">by Enabled</option>
                         <option value="AT_WORK">by At Work</option>
                     </select>
                 </form>
@@ -281,17 +281,17 @@
         <nav align="center">
             <ul class="pagination">
                 <li <c:if test="${page.isFirst()}">class="disabled" onclick="return false"</c:if>>
-                    <a href="/admin/drivers?page=${page.number-1}" title="Previous">
+                    <a href="/admin/drivers?page=${page.number-1}&order=${order}" title="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
                 <c:forEach var="elem" items="${pagination}">
                     <li <c:if test="${page.number == elem}">class="active"</c:if>>
-                        <a href="/admin/drivers?page=${elem}">${elem+1}</a>
+                        <a href="/admin/drivers?page=${elem}&order=${order}">${elem+1}</a>
                     </li>
                 </c:forEach>
                 <li <c:if test="${page.isLast()}">class="disabled" onclick="return false"</c:if>>
-                    <a href="/admin/drivers?page=${page.number+1}" title="Next">
+                    <a href="/admin/drivers?page=${page.number+1}&order=${order}" title="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
                 </li>
@@ -306,6 +306,7 @@
     </footer>
 </div>
 <script type="application/javascript" src="/pages/resources/project/js/admin/driver.js"></script>
+<script>selectOrder('${order}');</script>
 </body>
 
 </html>

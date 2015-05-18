@@ -21,6 +21,10 @@ public class CarsPageModel {
     public CarsPageModel() {
     }
 
+    public CarOrder getCleanOrder() {
+        return order;
+    }
+
     public Integer getPage() {
         return page;
     }
@@ -30,7 +34,7 @@ public class CarsPageModel {
     }
 
     public String getOrder() {
-        return order.toString().toLowerCase();
+        return order.getOrder();
     }
 
     public void setOrder(String order) {

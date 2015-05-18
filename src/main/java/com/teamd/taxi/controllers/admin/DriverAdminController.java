@@ -90,6 +90,7 @@ public class DriverAdminController {
         Sort sort = new Sort(new Sort.Order(DEFAULT_SORT_DIRECTION, pageModel.getOrder()));
         Page<Driver> drivers = driverService.getDrivers(new PageRequest(pageModel.getPage(), DEFAULT_NUM_OF_RECORDS_ON_PAGE, sort));
         model.addAttribute("page", drivers);
+        model.addAttribute("order", pageModel.getCleanOrder());
 
         ArrayList<Integer> pagination = pagesUtil.getPagination(pageModel.getPage(), drivers.getTotalPages());
         model.addAttribute("pagination", pagination);
