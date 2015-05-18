@@ -125,7 +125,7 @@
                         <div id="driverIdError" class="alert alert-danger alert-dismissible modal-error hidden">
                             <p></p>
                         </div>
-                        <select id="car_driver" class="form-control"  onclick="generationDrivers(this, 'No driver')" onchange="changeDriver(this)">
+                        <select id="car_driver" load="true" loadByChange="true" class="form-control"  onclick="generationDrivers(this, 'No driver')" onchange="changeDriver(this)">
 
                         </select>
                     </div>
