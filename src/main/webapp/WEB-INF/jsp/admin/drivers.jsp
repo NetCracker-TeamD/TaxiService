@@ -217,11 +217,13 @@
         <form class="form-inline pull-right ">
             <div class="form-group">
                 <form method="get">
-                    <label for="sortInput">Sort</label>
-                    <select class="form-control input-sm" id="sortInput" name="order" onchange="form.submit()">
-                        <option value="name">by Name</option>
-                        <option value="gender">by Gender</option>
-                        <option value="license">by license due</option>
+                    <label for="sort-input">Sort</label>
+                    <select class="form-control input-sm" id="sort-input" name="order" onchange="form.submit()">
+                        <option value="LAST_NAME">by Last Name</option>
+                        <option value="FIRST_NAME">by First Name</option>
+                        <option value="SEX">by Sex</option>
+                        <option value="ENABLE">by Enable</option>
+                        <option value="AT_WORK">by At Work</option>
                     </select>
                 </form>
             </div>
