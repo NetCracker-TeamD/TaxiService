@@ -13,7 +13,8 @@
     <http auto-config="false" use-expressions="true" entry-point-ref="loginUrlAuthenticationEntryPoint">
         <csrf disabled="true"/>
         <!--<intercept-url pattern="/auth" access="isAnonymous()"/>-->
-        <!--<intercept-url pattern="/admin" access="hasRole('ROLE_ADMIN')"/>-->
+        <intercept-url pattern="/method" access="hasRole('ROLE_CUSTOMER')"/>
+        <intercept-url pattern="/method/{var}" access="hasRole('ROLE_ADMINISTRATOR')"/>
         <!--<intercept-url pattern="/posts/**" access="hasAnyRole('ROLE_ADMIN', 'ROLE_USER')"/>-->
 
         <!--<access-denied-handler error-page="/res/403.html"/>-->
@@ -40,12 +41,14 @@
         <beans:property name="userDetailsService">
             <beans:bean class="com.teamd.taxi.authentication.driver.DriverDetailsService"/>
         </beans:property>
+        <beans:property name="passwordEncoder" ref="encoder"/>
     </beans:bean>
 
     <beans:bean id="userAuthenticationProvider" class="com.teamd.taxi.authentication.user.UserAuthenticationProvider">
         <beans:property name="userDetailsService">
             <beans:bean class="com.teamd.taxi.authentication.user.MyUserDetailsService"/>
         </beans:property>
+        <beans:property name="passwordEncoder" ref="encoder"/>
     </beans:bean>
 
 
@@ -53,4 +56,7 @@
         <authentication-provider ref="driverAuthenticationProvider"/>
         <authentication-provider ref="userAuthenticationProvider"/>
     </authentication-manager>
+
+    <beans:bean id="encoder"
+                class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
 </beans:beans>

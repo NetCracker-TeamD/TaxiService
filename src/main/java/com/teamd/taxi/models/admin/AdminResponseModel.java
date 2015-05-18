@@ -30,20 +30,23 @@ public class AdminResponseModel<T> {
         this.result = result;
     }
 
-    public void setResultSuccess() {
+    public AdminResponseModel<T> setResultSuccess() {
         this.result = RESULT_SUCCESS;
+        return this;
     }
 
-    public void setResultFailure() {
+    public AdminResponseModel<T> setResultFailure() {
         this.result = RESULT_FAILURE;
+        return this;
     }
 
     public T getContent() {
         return content;
     }
 
-    public void setContent(T content) {
+    public AdminResponseModel<T> setContent(T content) {
         this.content = content;
+        return this;
     }
 
     public Map<String, Object> toMap() {

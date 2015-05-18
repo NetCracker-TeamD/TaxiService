@@ -7,5 +7,4 @@ public interface DriverRepository extends PagingAndSortingRepository<Driver, Int
 
     Driver findByEmail(String email);
 
-    public Driver findById(int id);
 }

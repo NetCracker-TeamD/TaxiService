@@ -1,15 +1,15 @@
 package com.teamd.taxi.persistence.repository;
 
+import com.teamd.taxi.service.ReportResolver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
+
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 public class ReportsRepository {
@@ -20,15 +20,11 @@ public class ReportsRepository {
         template = new JdbcTemplate(dataSource);
     }
 
-    //Only as example
+
     @Transactional(readOnly = true)
-    public int countUsers() {
-        return template.query("SELECT COUNT(*) user_num FROM public.\"user\"", new ResultSetExtractor<Integer>() {
-            @Override
-            public Integer extractData(ResultSet resultSet) throws SQLException, DataAccessException {
-                resultSet.next();
-                return resultSet.getInt("user_num");
-            }
-        });
+    public List<Map<String, Object>> getReport(ReportResolver resolver) {
+        return template.query(resolver.getQuery(), resolver.getRowMapper(), resolver.getParams());
     }
+
+
 }

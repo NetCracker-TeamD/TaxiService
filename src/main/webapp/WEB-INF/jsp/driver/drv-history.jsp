@@ -14,51 +14,19 @@
 <head>
     <title>History</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="authorisation form">
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="../../pages/resources/bootstrap/css/datepicker.css">
     <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap-theme.css">
     <link rel="stylesheet" href="../../pages/resources/project/css/welcome.css">
     <link rel="stylesheet" href="/pages/resources/project/css/history.css">
+    <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
     <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
     <script src="../../pages/resources/bootstrap/js/bootstrap-datepicker.js"></script>
     <script src="../../pages/resources/project/js/driver/drv-history.js" type="text/javascript"></script></head>
 <body>
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">Smart Taxi</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
-                <li><a href="#">Queue</a></li>
-                <li><a href="#">History</a></li>
-            </ul>
-            <div class="navbar-form navbar-right">
-                <div class="form-group">
-                    <input type="text" placeholder="Email" class="form-control">
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="Password" class="form-control">
-                </div>
-                <button type="button" class="btn btn-primary">Sign in</button>
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#t_and_c_m">Sign up
-                </button>
-            </div>
-        </div>
-        <!--/.navbar-collapse -->
-    </div>
-</nav>
+<%@ include file="../../pages/driver/drv-header.html"%>
 <div class="jumbotron welcome" style="height:150px;">
     <div class="container" style="height:150px;">
         <h1 style="color:yellow; text-align:right;">History</h1>
@@ -87,12 +55,12 @@
                                     <label>Service Type</label>
                                     <select placeholder="Service type" name="service_type" class="form-control" style="cursor:pointer;">
                                         <option></option>
-                                        <c:forEach items="${serviceTypes.keySet()}" var="service">
-                                            <c:if test="${param.service_type==service}">
-                                                <option selected="true" value="${service}" >${service}</option>
+                                        <c:forEach items="${serviceTypes}" var="service">
+                                            <c:if test="${param.service_type==service.name}">
+                                                <option selected="true" value="${service.name}" >${service.name}</option>
                                             </c:if>
-                                            <c:if test="${param.service_type!=service}">
-                                                <option value="${service}" >${service}</option>
+                                            <c:if test="${param.service_type!=service.name}">
+                                                <option value="${service.name}" >${service.name}</option>
                                             </c:if>
                                         </c:forEach>
                                     </select>
@@ -103,15 +71,21 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="input-daterange form-group">
-                                <label>Date </label>
+
+
+
+                                <label id="datee">Date </label>
+
+
+
                                 <input value="${param.startDate}" class="form-control" type="text" id="from_date" name="startDate"
                                        placeholder="Select start date"  >
                                 <label>to</label>
                                 <input value="${param.endDate}" class="form-control" type="text" id="to_date" name="endDate"
                                        placeholder="Select end date">
                             </div>
-                            <input type="button" class="btn btn-default clear_param" value="Clear"/>
                             <input type="submit" class="btn btn-primary" value="Search"/>
+                            <input type="button" class="btn btn-default clear_param" value="Clear"/>
                         </div>
                     </div>
                 </form>
@@ -128,13 +102,13 @@
                                     <li><a href="${page}sort=date" >Date</a></li>
                                     <li class="selected-property">
                                         <a href="${page}sort=id" >ID Order
-                                            <span id="ok-glyph" class="glyphicon glyphicon-ok"></span></a>
+                                            <span class="ok-glyph glyphicon glyphicon-ok"></span></a>
                                     </li>
                                 </c:when>
                                 <c:otherwise>
                                     <li class="selected-property">
                                         <a href="${page}sort=date">Date
-                                            <span id="ok-glyph" class="glyphicon glyphicon-ok"></span></a>
+                                            <span class=" ok-glyph glyphicon glyphicon-ok"></span></a>
                                     </li>
                                     <li><a href="${page}sort=id">ID Order</a></li>
                                 </c:otherwise>
@@ -190,8 +164,7 @@
                                         <div class="panel-heading"><span class="glyphicon glyphicon-chevron-down"></span>
                                             Map</div>
                                         <div class="panel-body map" style="display:none;">
-                                            <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d5081.08804691991!2d30.4596392!3d50.4495934!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0000000000000000%3A0xbc67207d8e291fd0!2z0L_QsNGA0Log0JrQuNGX0LLRgdGM0LrQvtCz0L4g0L_QvtC70ZbRgtC10YXQvdGW0YfQvdC-0LPQviDRltC90YHRgtC40YLRg9GC0YM!5e0!3m2!1sru!2sua!4v1430052929432"
-                                                    width="430" height="280" frameborder="0" style="border:0;"></iframe>
+                                            <div id="map-canvas" style="width: 430px;height: 300px"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -199,7 +172,7 @@
                                     <div class="panel panel-info">
                                         <div class="panel-heading">Routes</div>
                                         <div class="panel-body">
-                                            <table class="table table-bordered">
+                                            <table class="table_route table table-bordered">
                                                 <thead>
                                                 <tr>
                                                     <th>Pick-up time</th>
@@ -216,8 +189,8 @@
                                                     <tr>
                                                         <td><fmt:formatDate pattern="dd/MM/yyyy kk:mm"
                                                                             value="${route.startTime.time}"/></td>
-                                                        <td>${route.sourceAddress}</td>
-                                                        <td>${route.destinationAddress}</td>
+                                                        <td class="source_add">${route.sourceAddress}</td>
+                                                        <td class="dest_add">${route.destinationAddress}</td>
                                                         <td><fmt:formatNumber type="number"
                                                                               maxFractionDigits="2" value="${route.distance}" /> km</td>
                                                         <td>

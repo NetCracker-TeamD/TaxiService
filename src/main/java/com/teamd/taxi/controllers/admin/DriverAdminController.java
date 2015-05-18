@@ -7,19 +7,21 @@ import com.google.gson.stream.JsonWriter;
 import com.teamd.taxi.entity.Car;
 import com.teamd.taxi.entity.Driver;
 import com.teamd.taxi.entity.Feature;
-import com.teamd.taxi.models.admin.DriverInfoResponseModel;
-import com.teamd.taxi.models.admin.DriverPageModel;
+import com.teamd.taxi.models.admin.*;
 import com.teamd.taxi.service.AdminPagesUtil;
 import com.teamd.taxi.service.CarService;
 import com.teamd.taxi.service.DriverService;
+import com.teamd.taxi.validation.DriverValidateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,8 +31,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created on 07-May-15.
@@ -44,8 +45,12 @@ public class DriverAdminController {
     private static final int DEFAULT_NUM_OF_RECORDS_ON_PAGE = 20;
     private static final Sort.Direction DEFAULT_SORT_DIRECTION = Sort.Direction.ASC;
 
-//    private static final String MESSAGE_CAR_ID_NOT_EXIST = "admin.car.delete.nonexistent";
-//    private static final String MESSAGE_SUCCESS_DELETE = "admin.car.delete.success";
+    private static final String MESSAGE_CAR_ID_NOT_EXIST = "admin.car.delete.nonexistent";
+    private static final String MESSAGE_CAR_SUCCESS_DELETE = "admin.car.delete.success";
+    private static final String MESSAGE_DRIVER_ID_NOT_EXIST = "admin.driver.delete.nonexistent";
+    private static final String MESSAGE_DRIVER_SUCCESS_DELETE = "admin.driver.delete.success";
+    private static final String MESSAGE_DRIVER_SUCCESS_CREATE = "admin.driver.create.success";
+    private static final String MESSAGE_DRIVER_SUCCESS_UPDATE = "admin.driver.update.success";
 
     @Resource
     private Environment env;
@@ -59,11 +64,19 @@ public class DriverAdminController {
     @Autowired
     private AdminPagesUtil pagesUtil;
 
-    private Gson gson = new GsonBuilder()
+    @Autowired
+    DriverValidateUtil validateUtil;
+
+    private Gson driverInfoGson = new GsonBuilder()
             .registerTypeAdapter(DriverInfoResponseModel.class, new DriverInfoResponseModelSerializer())
             .registerTypeAdapter(Driver.class, new DriverSerializer())
             .registerTypeAdapter(Car.class, new CarSerializer())
             .registerTypeAdapter(FeatureListSerializer.featuresType, new FeatureListSerializer())
+            .create();
+
+    private Gson driverCarGson = new GsonBuilder()
+            .registerTypeAdapter(AdminResponseModel.class, new AdminResponseModelSerializer())
+            .registerTypeAdapter(CarListSerializer.carsType, new CarListSerializer())
             .create();
 
     //URL example: drivers?page=1&order=last_name
@@ -89,14 +102,73 @@ public class DriverAdminController {
     @ResponseBody
     public Object getDriverInfo(@RequestParam(value = "id") Integer id) {
         Driver driver = driverService.getDriver(id);
-
         DriverInfoResponseModel response = new DriverInfoResponseModel(
                 driverService.getDriverFeatures(),
                 carService.getCarFeatures());
         response.setResultSuccess();
         response.setContent(driver);
 
-        return gson.toJson(response);
+        return driverInfoGson.toJson(response);
+    }
+
+    @RequestMapping(value = "/cars-get", method = RequestMethod.POST)
+    @ResponseBody
+    public Object getCars() {
+        AdminResponseModel<List<Car>> response = new AdminResponseModel<>();
+        List<Car> cars = carService.getFreeCars();
+        response.setContent(cars).setResultSuccess();
+        return driverCarGson.toJson(response);
+    }
+
+    //URL example: driver-delete?id=5
+    @RequestMapping(value = "/driver-delete", method = RequestMethod.POST)
+    @ResponseBody
+    public AdminResponseModel<String> removeDriver(@RequestParam(value = "id") Integer id) {
+        AdminResponseModel<String> response = new AdminResponseModel<>();
+        try {
+            driverService.removeDriver(id);
+            response.setResultSuccess();
+            response.setContent(env.getRequiredProperty(MESSAGE_DRIVER_SUCCESS_DELETE));
+        } catch (EmptyResultDataAccessException e) {
+            response.setContent(env.getRequiredProperty(MESSAGE_DRIVER_ID_NOT_EXIST));
+        }
+        return response;
+    }
+
+    @RequestMapping(value = "/driver-create", method = RequestMethod.POST)
+    @ResponseBody
+    public AdminResponseModel<String> addDriver(@Valid CreateDriverModel driverModel, BindingResult bindingResult) {
+        AdminResponseModel<String> response = new AdminResponseModel<>();
+        if (bindingResult.hasErrors()) {
+            StringBuilder errors = new StringBuilder();
+            for (FieldError fieldError : validateUtil.filterErrors(bindingResult.getFieldErrors())) {
+                errors.append("<p>");
+                errors.append(fieldError.getDefaultMessage());
+                errors.append("</p>");
+            }
+            return response.setContent(errors.toString());
+        }
+        driverService.createDriverAccount(driverModel.toDriver());
+        response.setResultSuccess().setContent(env.getRequiredProperty(MESSAGE_DRIVER_SUCCESS_CREATE));
+        return response;
+    }
+
+    @RequestMapping(value = "/driver-update", method = RequestMethod.POST)
+    @ResponseBody
+    public AdminResponseModel<String> updateDriver(@Valid UpdateDriverModel driverModel, BindingResult bindingResult) {
+        AdminResponseModel<String> response = new AdminResponseModel<>();
+        if (bindingResult.hasErrors()) {
+            StringBuilder errors = new StringBuilder();
+            for (FieldError fieldError : validateUtil.filterErrors(bindingResult.getFieldErrors())) {
+                errors.append("<p>");
+                errors.append(fieldError.getDefaultMessage());
+                errors.append("</p>");
+            }
+            return response.setContent(errors.toString());
+        }
+        driverService.updateDriverAccount(driverModel);
+        response.setResultSuccess().setContent(env.getRequiredProperty(MESSAGE_DRIVER_SUCCESS_UPDATE));
+        return response;
     }
 
     private static class DriverSerializer implements JsonSerializer<Driver> {
@@ -162,6 +234,38 @@ public class DriverAdminController {
 
         @Override
         public List<Feature> read(JsonReader in) throws IOException {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class AdminResponseModelSerializer implements JsonSerializer<AdminResponseModel<List<Car>>> {
+
+        @Override
+        public JsonElement serialize(AdminResponseModel<List<Car>> src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject json = new JsonObject();
+            json.addProperty("result", src.getResult());
+            json.add("content", context.serialize(src.getContent(), CarListSerializer.carsType));
+            return json;
+        }
+    }
+
+    private static class CarListSerializer extends TypeAdapter<List<Car>> {
+
+        public static final Type carsType = new TypeToken<List<Car>>() {
+        }.getType();
+
+        @Override
+        public void write(JsonWriter out, List<Car> value) throws IOException {
+            out.beginObject();
+            for (Car c : value) {
+                out.name(c.getCarId().toString());
+                out.value(c.getModel());
+            }
+            out.endObject();
+        }
+
+        @Override
+        public List<Car> read(JsonReader in) throws IOException {
             throw new UnsupportedOperationException();
         }
     }

@@ -5,11 +5,8 @@
  */
 package com.teamd.taxi.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import java.io.Serializable;
 import java.util.Calendar;
-import java.util.Date;
 import javax.persistence.*;
 
 /**
@@ -20,6 +17,7 @@ import javax.persistence.*;
 public class Route implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
@@ -39,8 +37,19 @@ public class Route implements Serializable {
     @Column(name = "total_price")
     private Float totalPrice;
 
-    @Column(name = "is_late")
-    private Boolean isLate;
+    @Column(name = "chain_position")
+    private Integer chainPosition;
+
+    @Column(name = "customer_is_late")
+    private Boolean customerLate;
+
+    public Integer getChainPosition() {
+        return chainPosition;
+    }
+
+    public void setChainPosition(Integer chainPosition) {
+        this.chainPosition = chainPosition;
+    }
 
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
@@ -65,11 +74,12 @@ public class Route implements Serializable {
         this.id = id;
     }
 
-    public Route(Long id, RouteStatus status, String sourceAddress, String destinationAddress) {
+    public Route(Long id, RouteStatus status, String sourceAddress, String destinationAddress, Boolean customerIsLate) {
         this.id = id;
         this.status = status;
         this.sourceAddress = sourceAddress;
         this.destinationAddress = destinationAddress;
+        this.customerLate = customerIsLate;
     }
 
     public Long getId() {
@@ -152,12 +162,12 @@ public class Route implements Serializable {
         this.driver = driverId;
     }
 
-    public Boolean getIsLate() {
-        return isLate;
+    public Boolean isCustomerLate() {
+        return customerLate;
     }
 
-    public void setIsLate(Boolean customerIsLate) {
-        this.isLate = customerIsLate;
+    public void setCustomerLate(Boolean customerIsLate) {
+        this.customerLate = customerIsLate;
     }
 
     @Override

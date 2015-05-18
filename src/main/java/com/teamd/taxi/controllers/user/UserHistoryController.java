@@ -1,11 +1,13 @@
 package com.teamd.taxi.controllers.user;
 
 import com.google.gson.*;
+import com.teamd.taxi.entity.CarClass;
 import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.entity.ServiceType;
 import com.teamd.taxi.entity.TaxiOrder;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
+import com.teamd.taxi.models.PageDetails;
 import com.teamd.taxi.models.PagingLink;
 import com.teamd.taxi.service.PagingLinksGenerator;
 import com.teamd.taxi.service.TaxiOrderService;
@@ -136,7 +138,7 @@ public class UserHistoryController {
         }
         //"from" date
         List<String> fromVals = params.get("from");
-        if (toVals != null && toVals.size() > 0) {
+        if (fromVals != null && fromVals.size() > 0) {
             try {
                 long fromDate = Long.parseLong(fromVals.get(0));
                 specs.add(factory.registrationDateGreaterThan(getCalendarByTime(fromDate)));
@@ -277,7 +279,8 @@ public class UserHistoryController {
             to.addProperty("id", taxiOrder.getId());
             to.addProperty("comment", taxiOrder.getComment());
             to.addProperty("musicStyle", taxiOrder.getMusicStyle());
-            to.addProperty("carClass", taxiOrder.getCarClass().getClassName());
+            CarClass carClass = taxiOrder.getCarClass();
+            to.addProperty("carClass", carClass == null ? null : carClass.getClassName());
             to.addProperty("executionDate", fmt.format(taxiOrder.getExecutionDate().getTime()));
             to.addProperty("registrationDate", fmt.format(taxiOrder.getRegistrationDate().getTime()));
             //lists
@@ -336,21 +339,6 @@ public class UserHistoryController {
             st.addProperty("isMultipleDestinationLocations", serviceType.isMultipleDestinationLocations());
             st.addProperty("isMultipleSourceLocations", serviceType.isMultipleSourceLocations());
             return st;
-        }
-    }
-
-    private static class PageDetails {
-
-        private long totalElements;
-        private int totalPage;
-        private int elementsNumber;
-        private int pageNumber;
-
-        public PageDetails(Page<?> page) {
-            totalElements = page.getTotalElements();
-            totalPage = page.getTotalPages();
-            elementsNumber = page.getNumberOfElements();
-            pageNumber = page.getNumber();
         }
     }
 }

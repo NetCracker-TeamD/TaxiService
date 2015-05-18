@@ -46,6 +46,15 @@ public class CarService {
         carRepository.delete(id);
     }
 
+    public List<Feature> getFeatureCarByDriverID(int id) {
+        return featureRepository.getFeaturesByCarID(id);
+    }
+
+    public List<Car> getFreeCars() {
+        return carRepository.findByDriverId(null);
+    }
+
+
     public List<Driver> getDrivers() {
         return (List<Driver>) driverRepository.findAll();
     }

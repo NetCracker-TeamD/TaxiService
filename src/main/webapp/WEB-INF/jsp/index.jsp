@@ -1,5 +1,4 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,6 +11,7 @@
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
     <script src="/pages/resources/project/js/common/authentication.js"></script>
+    <script src="/pages/resources/project/js/registration.js"></script>
 </head>
 
 <body>
@@ -33,20 +33,8 @@
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Home</a></li>
                 <li><a href="#about">About</a></li>
+                <li><a href="/order">Order</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown
-                        <span class="caret"></span></a>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
-                        <li class="divider"></li>
-                        <li class="dropdown-header">Nav header</li>
-                        <li><a href="#">Separated link</a></li>
-                        <li><a href="#">One more separated link</a></li>
-                    </ul>
-                </li>
             </ul>
 
             <div class="navbar-form navbar-right">
@@ -106,44 +94,46 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
                 <h2 class="modal-title" id="myModalLabel">Registration</h2>
             </div>
-            <form:form commandName="registrationForm" action="${pageContext.request.contextPath}/register"
-                       method="post">
+            <form action="${pageContext.request.contextPath}/register" id="registrationForm"
+                  method="post">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
-                                <form:input path="firstName" placeholder="First Name" cssClass="form-control input-lg"
-                                            id="first_name" tabindex="1"/>
+                                <input type="text" name="firstName" placeholder="First Name"
+                                       class="form-control input-lg"
+                                       id="first_name" tabindex="1"/>
                             </div>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
-                                <form:input path="lastName" placeholder="Last Name" cssClass="form-control input-lg"
-                                            id="last_name" tabindex="2"/>
+                                <input type="text" name="lastName" placeholder="Last Name" class="form-control input-lg"
+                                       id="last_name" tabindex="2"/>
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <form:input path="email" placeholder="Email Address" id="email" cssClass="form-control input-lg"
-                                    tabindex="3"/>
+                        <input type="text" name="email" placeholder="Email Address" id="email"
+                               class="form-control input-lg"
+                               tabindex="3"/>
                     </div>
                     <div class="form-group">
-                        <form:input path="phoneNumber" placeholder="Phone Number" id="phoneNumber"
-                                    cssClass="form-control input-lg" tabindex="4"/>
+                        <input name="phoneNumber" placeholder="Phone Number" id="phoneNumber"
+                               class="form-control input-lg" tabindex="4"/>
                     </div>
                     <div class="row">
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
-                                <form:password path="password" id="password"
-                                               cssClass="form-control input-lg"
-                                               placeholder="Password" tabindex="5"/>
+                                <input type="password" name="password" id="password"
+                                       class="form-control input-lg"
+                                       placeholder="Password" tabindex="5"/>
                             </div>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
-                                <form:password path="passwordConfirmation" id="password"
-                                               cssClass="form-control input-lg"
-                                               placeholder="Confirm Password" tabindex="6"/>
+                                <input type="password" name="passwordConfirmation" id="password-confirm"
+                                       class="form-control input-lg"
+                                       placeholder="Confirm Password" tabindex="6"/>
                             </div>
                         </div>
                     </div>
@@ -156,7 +146,7 @@
                         <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
                     </div>
                 </div>
-            </form:form>
+            </form>
 
         </div>
         <!-- /.modal-content -->
@@ -172,9 +162,9 @@
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-            <h2 class="modal-title" id="loginModalLabel">Login</h2>
-        </div>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                <h2 class="modal-title" id="loginModalLabel">Login</h2>
+            </div>
             <form id="login-form" action="${pageContext.request.contextPath}/checkLogin"
                   method="post">
                 <div class="modal-body">

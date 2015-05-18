@@ -5,10 +5,10 @@ var checkedInput = '<input type="checkbox" checked="checked" value="true"/>';
 var uncheckedInput = '<input type="checkbox"  value="false"/>';
 var checkDiv = '<div class="checkbox"><label></label></div>';
 var hiddenDiv = '<div class="hidden"></div>';
-var textInput = '<input class="form-control-auto-size" type="text" value="Default text"/>'; //TODO: Remove value
+var textInput = '<input class="form-control-auto-size" type="text"/>';
 var selectInput = '<select class="form-control-auto-size"><option>Anton Antonov</option><option>Vladimid Vald</option><option>Ivan Ivamov</option><option>Petrov petrov</option></select>';
 
-var saveDriverButton = '<button type="button" onclick="" data-toggle="modal" data-target="#" data-driver-id="" class="btn btn-primary btn-sm">Save changes</button>';
+var saveDriverButton = '<button type="button" onclick="updateDriver(event)" class="btn btn-primary btn-sm">Save changes</button>';
 var saveCarButton = '<button type="button" onclick="" data-toggle="modal" data-target="#" data-driver-id="" class="btn btn-primary btn-sm">Save changes</button>';
 var cancelButton = '<button type="button" onclick="cancelEdit(event)" class="btn btn-default btn-sm">Cancel</button>';
 
@@ -16,12 +16,14 @@ var radioInput = '<label class="radio-inline"><input type="radio" name="driver_n
 
 var editDriverButton = '<button type="button" onclick="startEditDriver(event)" data-toggle="modal" data-target="#" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Edit</button>';
 var editCarButton = '<button type="button" onclick="startEditCar(event)" data-toggle="modal" data-target="#" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Edit</button>';
-var removeDriverButton = '<button type="button" onclick="" data-toggle="modal" data-target="#remove_driver" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
-var removeCarButton = '<button type="button" onclick="" data-toggle="modal" data-target="#remove_car" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
+var removeDriverButton = '<button type="button" data-toggle="modal" data-target="#remove_driver" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
+var removeCarButton = '<button type="button" onclick="" data-toggle="modal" data-target="#remove_car" data-car-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
 var driverInfo =
     '<tr class="hidden driver-info">' +
     '<td colspan="10" class="driver-panel"><div id="collapseThree" class="collapse" aria-expanded="false">' +
-    '<div class="panel-body driver-panel"><div class="row">' +
+    '<div class="panel-body driver-panel">' +
+    '<div class="row">' +
+    '<div class="alert alert-danger alert-dismissible modal-error"><p>Error-Message</p></div>' +
     '<div class="col-md-6">' +
     '<h3 class="sm-hr">Driver:</h3>' +
     '<div class="form-group"><label class="control-label">Last Name:</label></div>' +
@@ -57,7 +59,11 @@ var selectCarClassInput = '<select class="form-control-auto-size"><option>A</opt
 var selectCarCategoryInput = '<select class="form-control-auto-size"><option>Business</option><option>Standard</option><option>Economy</option></select>';
 //var selectCarClassInput = '<select class="form-control-auto-size"><option>Premium</option><option>Standard</option><option>Cheep</option></select>';
 
-var createCarModal = $('#create_driver');
+var createDriverModal = $('#create_driver');
+var removeDriverModal = $('#remove_driver');
+var successModal = $('#successModal');
+
+var newDriverCarSelect = $('#driver_car');
 
 function openDriverInfo(node, driverId) {
     // ignore if mailto click
@@ -66,8 +72,9 @@ function openDriverInfo(node, driverId) {
     }
 
     var record = $(node.target).closest('tr');
-    record.addClass('hidden');
     record.after(driverInfo);
+    record.next().find('.modal-error').hide();
+    record.next().find("[data-driver-id='']").attr('data-driver-id', record.find('[driver-id]').attr('driver-id'));
 
     var info = record.next().find('.collapse');
 
@@ -76,7 +83,6 @@ function openDriverInfo(node, driverId) {
         var listRecord = node.prev();
         node.remove();
         listRecord.removeClass('hidden');
-
     });
 
     $.ajax('/admin/driver-info', {
@@ -85,6 +91,7 @@ function openDriverInfo(node, driverId) {
         data: {id: driverId},
         success: function (response) {
             if (response.result == "success") {
+                record.addClass('hidden');
                 //alert("Success");
                 //showSuccess(response.content);
                 //removeCarModal.modal('hide');
@@ -126,7 +133,7 @@ function openDriverInfo(node, driverId) {
                 var allDriverFeatures = response.driverFeatures;
                 var driverFeatureHtml = license;
                 $.each(allDriverFeatures, function (key, value) {
-                    driverFeatureHtml.after('<div class="form-group"><label class="control-label">' + value + ':</label></div>');
+                    driverFeatureHtml.after('<div feature_id="' + key + '" class="form-group"><label class="control-label">' + value + ':</label></div>');
                     driverFeatureHtml = driverFeatureHtml.next();
                     if (key in driverFeatures) {
                         driverFeatureHtml.append(' <span class="glyphicon glyphicon-ok glyphicon-yes" aria-hidden="true"></span>')
@@ -193,6 +200,31 @@ function openDriverInfo(node, driverId) {
     });
 }
 
+function getFreeCars() {
+    if (newDriverCarSelect.attr('completed') === 'true') {
+        return;
+    }
+    $.ajax('/admin/cars-get', {
+        type: 'post',
+        dataType: 'json',
+        data: {},
+        success: function (response) {
+            if (response.result == "success") {
+                //alert(JSON.stringify(response.content));
+                $.each(response.content, function (key, value) {
+                    newDriverCarSelect.append($("<option></option>").attr("value", key).text(value));
+                });
+                newDriverCarSelect.attr('completed', 'true');
+            } else {
+                showError(createDriverModal, "Something on server side went wrong... Try again later");
+            }
+        },
+        error: function () {
+            showError(createDriverModal, "Unable to get car list");
+        }
+    });
+}
+
 function closeDriverInfo(node) {
     var info = $(node.target).closest('tr');
     info.find('.collapse').collapse('hide');
@@ -240,6 +272,8 @@ function startEditCar(node) {
     while (feature.is('div')) {
         var featureStatus = feature.find('span');
         var featureLabel = feature.find('label').text();
+        //var feature_id = feature.attr('feature_id');
+        //alert(feature_id);
         featureLabel = featureLabel.substr(0, featureLabel.length - 1);
         feature.html(checkDiv);
         if (featureStatus.hasClass('glyphicon-yes'))
@@ -335,6 +369,7 @@ function startEditDriver(node) {
     while (feature.is('div')) {
         var featureStatus = feature.find('span');
         var featureLabel = feature.find('label').text();
+        //var feature_id = feature.attr('feature_id');
         featureLabel = featureLabel.substr(0, featureLabel.length - 1);
         feature.html(checkDiv);
         if (featureStatus.hasClass('glyphicon-yes'))
@@ -360,14 +395,152 @@ function updateCar(value) {
     alert('update Car');
     //TODO Ajax here
 }
-function updateDriver(value) {
-    alert('update Driver');
-    //TODO Ajax here
+
+function updateDriver(node) {
+    var record = $(node.target).closest('.col-md-6');
+    var newData = record.find('.form-group');
+    var oldData = record.next().find('div');
+
+    var lastName = newData.eq(0).find('input').val();
+    var firstName = newData.eq(1).find('input').val();
+    var email = newData.eq(2).find('input').val();
+    var phone = newData.eq(3).find('input').val();
+    //var sex = newData.eq(4).find('input[checked]').val();         TODO: Question
+    var sex = newData.eq(4).find("input[type='radio']:checked").val();
+    var enabled = newData.eq(5).find("input").is(':checked');
+    var atWork = newData.eq(6).find("input").is(':checked');
+    var license = newData.eq(7).find('input').val();
+    var feature = newData.eq(8);
+    var features = [];
+    while (feature.is('div')) {
+        if (feature.find("input").is(':checked')) {
+            features.push(parseInt(feature.attr('feature_id')));
+        }
+        feature = feature.next();
+    }
+    var changedData = {};
+    changedData.id = $(node.target).closest('tr').prev().find('td[driver-id]').attr('driver-id');
+    if (lastName !== oldData.eq(0).contents().eq(1).text().substr(1)) {
+        changedData.lastName = lastName;
+    }
+    if (firstName !== oldData.eq(1).contents().eq(1).text().substr(1)) {
+        changedData.firstName = firstName;
+    }
+    if (email !== oldData.eq(2).contents().eq(1).text().substr(1)) {
+        changedData.email = email;
+    }
+    if (phone !== oldData.eq(3).contents().eq(1).text().substr(1)) {
+        changedData.phoneNumber = phone;
+    }
+    if (sex !== oldData.eq(4).contents().eq(1).text().substr(1).toUpperCase()) {
+        changedData.sex = sex;
+    }
+    if (enabled !== (oldData.eq(5).contents().eq(1).text().substr(1) === 'Yes')) {
+        changedData.enabled = enabled;
+    }
+    if (atWork !== (oldData.eq(6).contents().eq(1).text().substr(1) === 'Yes')) {
+        changedData.atWork = atWork;
+    }
+    if (license !== oldData.eq(7).contents().eq(1).text().substr(1).toUpperCase()) {
+        changedData.license = license;
+    }
+    if (license !== oldData.eq(7).contents().eq(1).text().substr(1).toUpperCase()) {
+        changedData.license = license;
+    }
+    var oldFeatures = [];
+    feature = oldData.eq(8);
+    while (feature.is('div')) {
+        if (feature.find("span").hasClass('glyphicon-yes')) {
+            oldFeatures.push(parseInt(feature.attr('feature_id')));
+        }
+        feature = feature.next();
+    }
+    if (JSON.stringify(features) !== JSON.stringify(oldFeatures)) {
+        changedData.features = JSON.stringify(features);
+    }
+    var errorMessage = $(node.target).closest('tr');
+    //alert(JSON.stringify(changedData, null, 2));
+    if (Object.keys(changedData).length === 1) {
+        showError(errorMessage, "You didn't make any changes");
+        return;
+    }
+    $.ajax('/admin/driver-update', {
+        type: 'post',
+        dataType: 'json',
+        data: changedData,
+        success: function (response) {
+            if (response.result == "success") {
+                showSuccess(response.content);
+            } else {
+                if (response.result == "failure") {
+                    showError(errorMessage, response.content)
+                } else {
+                    showError(errorMessage, "Server incorrect response")
+                }
+            }
+        },
+        error: function () {
+            showError(errorMessage, "Server bad response ")
+        }
+    });
 }
 
 function createDriver() {
-    alert("create Driver");
-    //TODO Ajax here
+    var firstName = $('#driver_first_name').val();
+    var lastName = $('#driver_last_name').val();
+    var email = $('#driver_mail').val();
+    var phone = $('#driver_phone').val();
+
+    var male = $('#driver_sex_male');
+    var female = $('#driver_sex_female');
+    var sex;
+    if (male.is(":checked")) {
+        sex = male.val();
+    } else {
+        sex = female.val();
+    }
+
+    var license = $('#driver_license_serial').val();
+    var enabled = $('#driver_enabled').is(":checked");
+    var atWork = $('#driver_at_work').is(":checked");
+
+    var carId = newDriverCarSelect.find('option:selected').val();
+
+    var features = [];
+    createDriverModal.find('.feature').filter(':checked').each(function (indx, element) {
+        features.push($(element).val());
+    });
+    $.ajax('/admin/driver-create', {
+        type: 'post',
+        dataType: 'json',
+        data: {
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            phoneNumber: phone,
+            sex: sex,
+            license: license,
+            enabled: enabled,
+            atWork: atWork,
+            features: features.toString(),
+            carId: carId
+        },
+        success: function (response) {
+            if (response.result == "success") {
+                showSuccess(response.content);
+                createDriverModal.modal('hide');
+            } else {
+                if (response.result == "failure") {
+                    showError(createDriverModal, response.content);
+                } else {
+                    showError(createDriverModal, "Something went wrong... Try again later");
+                }
+            }
+        },
+        error: function () {
+            showError(createDriverModal, "No response");
+        }
+    });
 }
 
 function cancelEdit(node) {
@@ -377,13 +550,64 @@ function cancelEdit(node) {
     record.next().remove();
 }
 
-createCarModal.on('shown.bs.modal', function () {
+function removeDriver(id) {
+    $.ajax('/admin/driver-delete', {
+        type: 'post',
+        dataType: 'json',
+        data: {id: id},
+        success: function (response) {
+            if (response.result == "success") {
+                showSuccess(response.content);
+                removeDriverModal.modal('hide');
+            } else {
+                if (response.result == "failure") {
+                    showError(removeDriverModal, response.content);
+                } else {
+                    showError(removeDriverModal, "Something went wrong... Try again later");
+                }
+            }
+        },
+        error: function () {
+            showError(removeDriverModal, "Something went wrong... Try again later");
+        }
+    });
+}
+
+function showSuccess(message) {
+    successModal.find('.lead').html(message);
+    successModal.modal('show');
+}
+
+function showError(modalId, message) {
+    var errorAlert = modalId.find('.modal-error').eq(0);
+    errorAlert.find('p').html("<strong>Error!</strong> " + message);
+    errorAlert.slideDown();
+}
+
+
+removeDriverModal.on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var modal = $(this);
+    modal.find("[name='driver_id']").val(button.data('driver-id'));
+    removeDriverModal.find('.modal-error').hide();
+    //alert(button.data('driver-id'));
+});
+
+createDriverModal.on('shown.bs.modal', function () {
     $('#driver_first_name').focus();
 });
 
-createCarModal.on('show.bs.modal', function () {
-    $('#car_model').val('');
-    $('#car_wifi').removeAttr('checked');
-    $('#car_animal').removeAttr('checked');
+createDriverModal.on('show.bs.modal', function () {
+    createDriverModal.find('.modal-error').hide();
+    newDriverCarSelect.html('<option value="" selected="selected">No Car</option>');
+    newDriverCarSelect.attr('completed', 'false');
+    getFreeCars();
 });
 
+successModal.on('hidden.bs.modal', function (event) {
+    location.reload(true);
+});
+
+function hideErrorModal(modalId) {
+    modalId.find('.modal-error').slideUp();
+}

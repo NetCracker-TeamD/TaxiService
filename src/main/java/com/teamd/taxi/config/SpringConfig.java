@@ -1,18 +1,15 @@
 package com.teamd.taxi.config;
 
-import com.teamd.taxi.service.DistanceCalculator;
+import com.teamd.taxi.service.email.MailService;
 import com.teamd.taxi.validation.UniqueEmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.MethodParameter;
 import org.springframework.core.env.Environment;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.data.web.config.SpringDataWebConfiguration;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.format.datetime.DateFormatterRegistrar;
@@ -27,21 +24,14 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-import org.springframework.web.bind.support.WebDataBinderFactory;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.text.SimpleDateFormat;
-import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 
 
@@ -52,6 +42,7 @@ import java.util.logging.Level;
 @PropertySource({"classpath:app.properties", "classpath:messages.properties"})
 @EnableJpaRepositories("com.teamd.taxi.persistence.repository")
 public class SpringConfig extends SpringDataWebConfiguration {
+
     private static final String PROP_DATABASE_DRIVER = "db.driver";
     private static final String PROP_DATABASE_PASSWORD = "db.password";
     private static final String PROP_DATABASE_URL = "db.url";
@@ -128,6 +119,16 @@ public class SpringConfig extends SpringDataWebConfiguration {
         resolver.setPrefix("/WEB-INF/jsp/");
         resolver.setSuffix(".jsp");
         return resolver;
+    }
+
+    @Bean
+    public MailService mailService() {
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+        return new MailService("teamdnetcracker@gmail.com", "NetCrackerTeamD", props);
     }
 
     /* May need for generating JSP with error messages
