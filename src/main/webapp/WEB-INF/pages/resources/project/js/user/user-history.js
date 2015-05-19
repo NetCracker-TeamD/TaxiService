@@ -1,4 +1,5 @@
 $(function () {
+    var userId = startState.additional.userId;
     PagingUtils.install({
         paginationId: 'pagination',
         dataStoreUrl: '/user/loadHistory',
@@ -16,6 +17,7 @@ $(function () {
             if (toDate != null) {
                 data.additional.to = toDate.getTime();
             }
+            data.additional.userId = userId;
             return data;
         },
         displayDataCallback: function updateMainContent(status, orders, details) {

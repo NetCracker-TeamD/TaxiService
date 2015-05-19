@@ -6,10 +6,7 @@ import com.teamd.taxi.exception.ItemNotFoundException;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
 import com.teamd.taxi.models.TaxiOrderForm;
-import com.teamd.taxi.persistence.repository.InfoRepository;
-import com.teamd.taxi.persistence.repository.RouteRepository;
-import com.teamd.taxi.persistence.repository.TariffByTimeRepository;
-import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
+import com.teamd.taxi.persistence.repository.*;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +35,9 @@ public class PriceCountService {
 
     @Autowired
     private TaxiOrderRepository orderRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Transactional
     private Float countRoutePrice(
@@ -136,11 +136,6 @@ public class PriceCountService {
         }
         //враховуємо автомобіль
         price *= route.getDriver().getCar().getCarClass().getPriceCoefficient();
-        //додаємо ціну за фічі
-        List<Feature> features = route.getOrder().getFeatures();
-        for (Feature feature : features) {
-            price += feature.getPrice();
-        }
         return (float) price;
     }
 
@@ -171,13 +166,28 @@ public class PriceCountService {
         }
 
         long freeTimeMillis = Long.parseLong(idleFreeTimeInfo.getValue()) * 60 * 1000;
-        long difference = route.getStartTime().getTimeInMillis()
-                - order.getExecutionDate().getTimeInMillis() - freeTimeMillis;
+        long difference = startDate.getTimeInMillis()
+                - executionDate.getTimeInMillis() - freeTimeMillis;
         if (difference > 0) {
             float idlePriceCoeff = order.getCarClass().getIdlePriceCoefficient();
             return (float) (idlePriceCoeff * (difference / (1000 * 60.0)));
         }
         return 0;
+    }
+
+    private float getGroupDiscountForUser(User user) {
+        if (user.getUserRole() == UserRole.ROLE_ANONYMOUS) {
+            return 0.0f;
+        }
+        List<GroupList> groupLists = user.getGroups();
+        float max = 0.0f;
+        for (GroupList groupList : groupLists) {
+            Float discount = groupList.getUserGroup().getDiscount();
+            if (discount != null && discount > max) {
+                max = discount;
+            }
+        }
+        return max;
     }
 
     @Transactional
@@ -199,7 +209,15 @@ public class PriceCountService {
         List<TariffByTime> timeOfDayTariffs = tariffRepository.findByTariffType(TariffType.TIME_OF_DAY);
         float price = countRoutePrice(route, dayOfYearTariffs, dayOfWeekTariffs, timeOfDayTariffs)
                 + countStartIdlePrice(route);
-        return price;
+        //скидка по групі
+        float groupDiscount = getGroupDiscountForUser(order.getCustomer());
+        //ціна за фічі
+        List<Feature> features = route.getOrder().getFeatures();
+        float featurePrice = 0f;
+        for (Feature feature : features) {
+            featurePrice += feature.getPrice();
+        }
+        return Math.max(price * (1 - groupDiscount), serviceType.getMinPrice()) + featurePrice;
     }
 
     private void filterByDriverId(List<Route> all, int driverId) {
@@ -236,7 +254,15 @@ public class PriceCountService {
         if (routes.isEmpty()) {
             return null;
         }
-        //рахуємо
+        //групова скидка
+        float groupDiscount = getGroupDiscountForUser(order.getCustomer());
+        //фічі
+        List<Feature> features = order.getFeatures();
+        float featurePrice = 0f;
+        for (Feature feature : features) {
+            featurePrice += feature.getPrice();
+        }
+        //тарифікація по часу
         List<TariffByTime> dayOfYearTariffs = tariffRepository.findByTariffType(TariffType.DAY_OF_YEAR);
         List<TariffByTime> dayOfWeekTariffs = tariffRepository.findByTariffType(TariffType.DAY_OF_WEEK);
         List<TariffByTime> timeOfDayTariffs = tariffRepository.findByTariffType(TariffType.TIME_OF_DAY);
@@ -244,7 +270,7 @@ public class PriceCountService {
         //ціна на перший маршрут
         Float price = countStartIdlePrice(routes.get(0));
         price += countRoutePrice(routes.get(0), dayOfYearTariffs, dayOfWeekTariffs, timeOfDayTariffs);
-        routePrices.add(price);
+        routePrices.add(price * (1 - groupDiscount));
         //решта
         float idleCoeff = order.getCarClass().getIdlePriceCoefficient();
         for (int i = 1; i < routes.size(); i++) {
@@ -252,12 +278,31 @@ public class PriceCountService {
             long difference = routes.get(i).getStartTime().getTimeInMillis()
                     - routes.get(i - 1).getCompletionTime().getTimeInMillis();
             price += (float) (idleCoeff * (difference / (1000 * 60.0)));
-            routePrices.add(price);
+            routePrices.add(price * (1 - groupDiscount));
+        }
+        //перевіряємо, чи не вийшла ціна замовлення менше ніж minPrice
+        float totalPrice = 0f;
+        for (Float routePrice : routePrices) {
+            totalPrice += routePrice;
+        }
+        float minPrice = order.getServiceType().getMinPrice();
+        //якщо вийшло, то ділимо micPrice порівну між всіма роутами
+        if (totalPrice < minPrice) {
+            float part = minPrice / routePrices.size();
+            for (int i = 0; i < routePrices.size(); i++) {
+                routePrices.set(i, part);
+            }
+        }
+        //додаємо ціну за фічі
+        for (int i = 0; i < routePrices.size(); i++) {
+            float routePrice = routePrices.get(i);
+            routePrices.set(i, routePrice + featurePrice);
         }
         return routePrices;
     }
 
-    public float approximateOrderPrice(TaxiOrder order, List<UserGroup> userGroups) {
+    @Transactional
+    public float approximateOrderPrice(TaxiOrder order, Long userId) {
         List<Route> routes = order.getRoutes();
         //цена за фичи
         List<Feature> features = order.getFeatures();
@@ -266,6 +311,11 @@ public class PriceCountService {
             featurePrice += feature.getPrice();
         }
         featurePrice *= routes.size();
+        //скидка за группы
+        float groupDiscount = 1;
+        if (userId != null) {
+            groupDiscount = getGroupDiscountForUser(userRepository.findOne(userId));
+        }
         //цена за маршруты
         float routePrice = 0;
         ServiceType serviceType = order.getServiceType();
@@ -278,7 +328,7 @@ public class PriceCountService {
                         * carClass.getPriceCoefficient();
             }
         }
-        return Math.max(routePrice, serviceType.getMinPrice()) + featurePrice;
+        return Math.max(routePrice * groupDiscount, serviceType.getMinPrice()) + featurePrice;
     }
 
     private static class TimeCoeffPair {

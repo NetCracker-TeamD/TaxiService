@@ -1,6 +1,7 @@
 package com.teamd.taxi.config;
 
 import com.teamd.taxi.service.email.MailService;
+import com.teamd.taxi.validation.AddressExistenceValidator;
 import com.teamd.taxi.validation.UniqueEmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -149,6 +150,11 @@ public class SpringConfig extends SpringDataWebConfiguration {
     @Bean
     public UniqueEmailValidator uniqueEmailValidator() {
         return new UniqueEmailValidator();
+    }
+
+    @Bean
+    public AddressExistenceValidator addressValidator() {
+        return new AddressExistenceValidator();
     }
 
     @Bean

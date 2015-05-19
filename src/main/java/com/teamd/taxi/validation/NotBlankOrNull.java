@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 public @interface NotBlankOrNull {
     String message() default "{org.hibernate.validator.constraints.NotBlankOrNull.message}";
 
-    Class<?>[] groups() default { };
+    Class<?>[] groups() default {};
 
-    Class<? extends Payload>[] payload() default { };
+    Class<? extends Payload>[] payload() default {};
 }

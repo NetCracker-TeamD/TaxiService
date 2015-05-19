@@ -149,9 +149,8 @@ public class OrderController {
         return calendar;
     }
 
-    private TaxiOrderForm fillForm(Reader reader) throws PropertyNotFoundException,
+    private TaxiOrderForm fillForm(JsonObject orderObject) throws PropertyNotFoundException,
             ItemNotFoundException, ParseException {
-        JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
         //тип сервиса
         JsonPrimitive serviceId = (JsonPrimitive) getAndCheck(orderObject, "serviceType");
         ServiceType serviceType = serviceTypeService.findById(serviceId.getAsInt());
@@ -230,16 +229,17 @@ public class OrderController {
     @ResponseBody
     public String countApproximatePrice(Reader reader)
             throws ParseException, PropertyNotFoundException, ItemNotFoundException, MapServiceNotAvailableException, NotFoundException, NotCompatibleException {
-        TaxiOrderForm form = fillForm(reader);
+        JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
+        TaxiOrderForm form = fillForm(orderObject);
         Authentication authentication = SecurityContextHolder
                 .getContext()
                 .getAuthentication();
-        List<UserGroup> userGroups = null;
+        Long userId = null;
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            userGroups = groupsService.findGroupsByUserId(((AuthenticatedUser) authentication.getPrincipal()).getId());
+            userId = ((AuthenticatedUser) authentication.getPrincipal()).getId();
         }
         TaxiOrder order = taxiOrderService.fillOrder(form, null);
-        return "{\"price\":" + priceCountService.approximateOrderPrice(order, userGroups) + "}";
+        return "{\"price\":" + priceCountService.approximateOrderPrice(order, userId) + "}";
     }
 
     @RequestMapping(value = "/makeOrder", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -248,15 +248,21 @@ public class OrderController {
             PropertyNotFoundException, ItemNotFoundException, ParseException,
             NotCompatibleException, NotFoundException, MapServiceNotAvailableException {
         //заполняем форму
-        TaxiOrderForm form = fillForm(reader);
+        JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
+        TaxiOrderForm form = fillForm(orderObject);
         //находим или создаем пользователя
         Authentication authentication = SecurityContextHolder
                 .getContext()
                 .getAuthentication();
         User user;
         if (authentication instanceof AnonymousAuthenticationToken) {
-            //TODO: add user name, email, phone number
-            user = new User(null, "", "", UserRole.ROLE_ANONYMOUS, "");
+            JsonElement name = getAndCheck(orderObject, "name");
+            JsonElement email = getAndCheck(orderObject, "email");
+            JsonElement phoneNumber = getAndCheck(orderObject, "phone_number");
+
+            user = new User(null, name.getAsString(), "", UserRole.ROLE_ANONYMOUS, phoneNumber.getAsString());
+            user.setEmail(email.getAsString());
+            //TODO: SAVE IT!!!
             //user = userService.save(user);
         } else {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authentication.getPrincipal();
@@ -270,7 +276,7 @@ public class OrderController {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("success", true);
         //TODO: add real link with MvcComponentsBuilder, don't add a secret key if user is authenticated
-        jsonObject.addProperty("tackLink", "/vieworder?tracknum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
+        jsonObject.addProperty("trackLink", "/vieworder?tracknum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
         return new GsonBuilder().disableHtmlEscaping().create().toJson(jsonObject);
     }
 

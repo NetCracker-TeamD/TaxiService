@@ -48,6 +48,16 @@ public class TaxiOrderSpecificationFactory {
         };
     }
 
+    public Specification<TaxiOrder> userIdEqual(final long userId) {
+        return new Specification<TaxiOrder>() {
+            @Override
+            public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                Join<TaxiOrder, User> customer = root.join("customer");
+                return criteriaBuilder.equal(customer.<Long>get("id"), userId);
+            }
+        };
+    }
+
     public Specification<TaxiOrder> driverIdEqual(final int id) {
         return new Specification<TaxiOrder>() {
             @Override

@@ -85,11 +85,16 @@ public class CustomerUserService {
         }
         return false;
     }
+
     public User findById(Long id) {
         return userRepository.findOne(id);
     }
 
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    public boolean isEmailFree(String email) {
+        return userRepository.findByEmail(email) == null;
     }
 }
