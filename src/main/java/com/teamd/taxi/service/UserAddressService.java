@@ -31,10 +31,32 @@ public class UserAddressService {
         return addressRepository.saveAndFlush(userAddress);
     }
 
+    public List<UserAddress> saveAll(List<UserAddress> addressList) {
+        return addressRepository.save(addressList);
+    }
+
     @Transactional
     public void delete(UserAddress userAddress) {
         User user = userRepository.findOne(userAddress.getUser().getId());
         user.getAddresses().remove(userAddress);
         addressRepository.delete(userAddress);
+    }
+
+    public UserAddress findById(int id) {
+        return addressRepository.findOne(id);
+    }
+
+    @Transactional
+    public void deleteAllByOneUser(long userId, List<UserAddress> addresses) {
+        User user = userRepository.findOne(userId);
+        List<UserAddress> userAddresses = user.getAddresses();
+        for (UserAddress address : addresses) {
+            userAddresses.remove(address);
+        }
+        addressRepository.delete(addresses);
+    }
+
+    public void Save(Iterable<UserAddress> addresses) {
+        addressRepository.save(addresses);
     }
 }
