@@ -4,6 +4,7 @@ package com.teamd.taxi.controllers;
 import com.teamd.taxi.authentication.Utils;
 import com.teamd.taxi.entity.User;
 import com.teamd.taxi.exception.UserAlreadyConfirmedException;
+import com.teamd.taxi.models.MapResponse;
 import com.teamd.taxi.models.RegistrationForm;
 import com.teamd.taxi.service.CustomerUserService;
 import com.teamd.taxi.service.email.MailService;
@@ -113,5 +114,16 @@ public class IndexAndRegistrationController {
         }
         model.addAttribute("message", message);
         return "confirmation";
+    }
+
+    @RequestMapping(value = "/isUserLogged", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> checkLogin() {
+        boolean isAuthenticated = Utils.isAuthenticated();
+        MapResponse mapResponse = new MapResponse().put("isAuthenticated", isAuthenticated);
+        if (isAuthenticated) {
+            mapResponse.put("role", Utils.getCurrentUserRole());
+        }
+        return mapResponse;
     }
 }
