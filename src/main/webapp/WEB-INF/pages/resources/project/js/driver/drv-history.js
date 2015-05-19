@@ -72,7 +72,7 @@ $(document).ready(function () {
     //set attribute for href
     setAttr('id');
     setAttr('address');
-    setAttr('srvc_type');
+    setAttr('service_type');
     setAttr('startDate');
     setAttr('endDate');
     $('#type_sort li a').each(function () {
