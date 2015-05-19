@@ -260,6 +260,7 @@ public class TaxiOrderService {
         Hibernate.initialize(order.getFeatures());
         Hibernate.initialize(order.getRoutes());
         Hibernate.initialize(order.getServiceType());
+
         return order;
     }
 

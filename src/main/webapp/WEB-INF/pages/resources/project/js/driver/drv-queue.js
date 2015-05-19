@@ -2,7 +2,7 @@
  * Created by Іван on 04.05.2015.
  */
 $(document).ready(function () {
-    $('.order-container .order-details').css('cursor', 'pointer');
+    $('.order-details').css('cursor', 'pointer');
 
     $('#orders-container').on('click', '.order-details', function (event) {
         $(this).parent()
