@@ -22,58 +22,68 @@ var App = (function(){
 			blocks.content.html("")
 			blocks.content.append(Templates.getBlocked())
 		},
-		showLogoutPage = function(){showMakeOrderPage()},
-		showMakeOrderPage = function(){
+		showLogoutPage = function(){showOrderPage()},
+		showOrderPage = function(orderId, secretKey){
 			showLoadPage()
 			current_page_name = "make-order"
 			updateHeader()
-			var createPage = function(){
-				//create page in memory			
-				var container = Templates.getOrderPage(),
+			var loadOrder = $.isSet(orderId)
+			var createDOM = function(){
+				//create page in memory		
+				var orderInfo = null
+				if ($.isSet(tmpStorage.currentOrder)) {
+					orderInfo = tmpStorage.currentOrder
+				}
+				var 
+					user = tmpStorage.user,
+					container = Templates.getOrderPage(orderInfo),
 					serviceTypes = container.find("#serviceType"),
 					orderDetails = container.find('[data-type="order-details"]'),
 					map = container.find('[data-type="map"]'),
 					orderForm = container.find('#orderForm'),
-					makeOrderBtn = container.find('[data-action="make-order"]')
-
-	   			Templates.makeNiceSubmitButton({
-	   				form : orderForm,
-	   				button : makeOrderBtn,
-	   				success : function(response){
-						var watchIt = function(){
-							console.log("go to track link")
+					enableEditing = (loadOrder) ? (user.isLogged && !user.isBlocked) : false
+				if (loadOrder) {
+				} else {
+					var makeOrderBtn = container.find('[data-action="make-order"]')
+		   			Templates.makeNiceSubmitButton({
+		   				form : orderForm,
+		   				button : makeOrderBtn,
+		   				success : function(response){
+							var watchIt = function(){
+								console.log("go to track link")
+								showOrderPage("id","secret")
+							}
+							BootstrapDialog.show({
+								type: BootstrapDialog.TYPE_SUCCESS, closable: false,
+								title: "Order successfully created",
+								message: function(dialog){
+									return $("<div>Your order successfully created<br>You can track it via this link </div>")
+										.append( $("<a href='/somelink''>some link with tracknumber</a>")
+											.bind("click", function(e){
+												e.preventDefault()
+												dialog.close()
+												watchIt()
+											}))
+								},
+								buttons: [{
+									label : "Watch it",
+									action: function(dialog){
+										dialog.close()
+										watchIt()
+					                }
+								}],							
+							})
+						},
+						error : function(response){
+							console.log(response)
+							BootstrapDialog.show({
+								type: BootstrapDialog.TYPE_DANGER,
+								title: "Server error",
+								message: "Server returns error with status '"+response.statusText+"'",
+							})
 						}
-						BootstrapDialog.show({
-							type: BootstrapDialog.TYPE_SUCCESS,
-							title: "Order successfully created",
-							closable: false,
-							message: function(dialog){
-								return $("<div>Your order successfully created<br>You can track it via this link </div>")
-									.append( $("<a href='/somelink''>some link with tracknumber</a>")
-										.bind("click", function(e){
-											e.preventDefault()
-											dialog.close()
-											watchIt()
-										}))
-							},
-							buttons: [{
-								label : "Watch it",
-								action: function(dialog){
-									dialog.close()
-									watchIt()
-				                }
-							}],							
-						})
-					},
-					error : function(response){
-						console.log(response)
-						BootstrapDialog.show({
-							type: BootstrapDialog.TYPE_DANGER,
-							title: "Server error",
-							message: "Server returns error with status '"+response.statusText+"'",
-						})
-					}
-	   			})
+		   			})
+				}
 
 				//fill service types
 				$.each(tmpStorage.serviceTypes, function (i, item) {
@@ -192,11 +202,8 @@ var App = (function(){
 
 			//init loader and bind callback when all necessary datas will be loaded
 			var loader = new Loader()
-			loader.addCallBack(function(){ 
-				console.log("calling create page")
-				createPage()
-			})
-			//binding data loaders
+			loader.addCallBack(function(){ createDOM() })
+			//data loading
 			var ids = loader.getArrayUniqId(3)
 			DataTools.getUser(loader, ids[0], function(status, response, userInfo){
 				tmpStorage.user = userInfo
@@ -204,9 +211,13 @@ var App = (function(){
 			DataTools.getServiceTypes(loader, ids[1], function(status, response, serviceTypes){
 				tmpStorage.serviceTypes = serviceTypes
 			})
-			DataTools.getFavLocations(loader, ids[2], function(status, response, favouriteLocations){
-				tmpStorage.favouriteLocations = favouriteLocations
-			})
+			if (loadOrder) {
+				DataTools.getOrderInfo(loader, ids[2], function(status, response, orderInfo){
+					tmpStorage.currentOrder = orderInfo
+				}, orderId, secretKey)
+			} else {
+				loader.setStatus(ids[2], 'no reason for load this')
+			}
 
 		},
 		updateHeader = function(){
@@ -385,7 +396,7 @@ var App = (function(){
 				}
 			}
 		},
-		createInputsForServiceType = function(holder, newServiceType) {
+		createInputsForServiceType = function(holder, newServiceType, loader) {
 			MapTools.clearAllMarker()
 			MapTools.markersFitWindow()
 			holder.html("")
@@ -450,7 +461,9 @@ var App = (function(){
 			}
 
 			//init loader and bind callback when all necessary datas will be loaded
-			var loader = new Loader()
+			if (!$.isSet(loader)) {
+				loader = new Loader()
+			}
 			loader.addCallBack(function(){ createDOM() })
 			//binding data loaders
 			var ids = loader.getArrayUniqId(3)
@@ -618,7 +631,7 @@ var App = (function(){
 		},
 		pages = {
 			"default" : {
-				show : showMakeOrderPage
+				show : showOrderPage
 			},
 			"load" : {
 				show : showLoadPage
@@ -658,7 +671,7 @@ var App = (function(){
 			"make-order" : {
 				label : "Make order",
 				action : "make-order",
-				show : showMakeOrderPage
+				show : showOrderPage
 			},
 			"view-orders" : {
 				label : "View order history",

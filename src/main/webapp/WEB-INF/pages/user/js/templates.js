@@ -158,30 +158,83 @@ var Templates = (function () {
             })
         })
     },
-    getOrderPage = function () {
-        var container = $('<div class="col-sm-5 col-sm-offset-1">\
-					<h2>Create order</h2>\
-					<form class="form-horizontal" id="orderForm" method="POST" action="/test/wait/3000">\
-						<div class="form-group">\
-							<label for="serviceType">Choose service type</label>\
-							<select id="serviceType" name="serviceType" class="form-control">\
-							</select>\
-						</div>\
-						<div id="orderDetails" data-type="order-details">\
-						</div>\
-					</form>\
-				</div>\
-				<div class="col-sm-6 map">\
-					<div class="google-map-canvas" data-type="map"></div>\
-				</div>\
+    getOrderPage = function (orderInfo) {//button
+                var container = $('<div class="col-sm-5 col-sm-offset-1">\
+                    <form class="form-horizontal" id="orderForm" method="POST" action="/test/wait/3000">\
+                        <div class="form-group">\
+                            <label for="serviceType">Choose service type</label>\
+                            <select id="serviceType" name="serviceType" class="form-control">\
+                            </select>\
+                        </div>\
+                        <div id="orderDetails" data-type="order-details">\
+                        </div>\
+                    </form>\
+                </div>\
+                <div class="col-sm-6 map">\
+                    <div class="google-map-canvas" data-type="map"></div>\
+                </div>\
                 <div class="clearfix"></div>\
-				<div class="row text-center">\
+                <div class="row text-center">\
                     <div class="col-sm-6 center">\
                         <h4 data-type="price-holder">The approximate cost of the trip is : <span data-type="price-value"></span>$</h4>\
-					    <button type="button" class="btn btn-success btn-lg btn-block" data-action="make-order">Make Order</button>\
+                        <div data-type="button-holder">\
+                        </div>\
                     </div>\
-				</div>')
-        return container;
+                </div>'),
+            label = $("<h2></h2>"),
+            buttonsHolder = container.find('[data-type="button-holder"]'),
+            form = container.find("form")
+
+        var status = null
+        if ($.isSet(orderInfo)) {
+            status = orderInfo.status
+        }
+
+        $(container.find('div')[0]).prepend(label)
+        if (!$.isSet(status)) {
+            label.text("Create order")
+            buttonsHolder.append('<button type="button" class="btn btn-success btn-lg" data-action="make-order">Make Order</button>')
+        } else {
+            form.prepend('<input type="hidden" name="orderId" value="'+orderInfo.orderId+'">')
+            if ($.isSet(orderInfo.secret)) {
+                form.prepend('<input type="hidden" name="secret" value="'+orderInfo.secret+'">')
+            }
+            var statusBlock = $("<div></div>")
+            label.text("Order review")
+            switch (status.toLowerCase()){
+                case "queued" : 
+                    statusBlock.append('<button type="button" class="btn btn-primary">Queued</button>')
+                    buttonsHolder.append('<button type="button" class="btn btn-primary btn-lg" data-action="edit">Edit</button>')
+                    buttonsHolder.append('<span>&nbsp;</span>')
+                    buttonsHolder.append('<button type="button" class="btn btn-danger btn-lg" data-action="cancel">Cancel order</button>')
+                    break;
+                case "updating" :
+                    statusBlock.append('<button type="button" class="btn btn-info">Updating</button>')
+                    label.text("Order editing")
+                    buttonsHolder.append('<button type="button" class="btn btn-primary btn-lg" data-action="save">Save changes</button>')
+                    buttonsHolder.append('<span>&nbsp;</span>')
+                    buttonsHolder.append('<button type="button" class="btn btn-info btn-lg" data-action="cancel-changes">Cancel changes</button>')
+                    break;
+                case "assigned" : 
+                    statusBlock.append('<button type="button" class="btn btn-success">Assigned</button>')
+                    break;
+                case "in progress" : 
+                    statusBlock.append('<button type="button" class="btn btn-success">In progess</button>')
+                    break;
+                case "completed" : 
+                    statusBlock.append('<button type="button" class="btn btn-success">Completed</button>')
+                    //leave feedback
+                    break;
+                case "canceled" : 
+                    statusBlock.append('<button type="button" class="btn btn-warning">Canceled</button>')
+                    break;
+                case "refused" : 
+                    statusBlock.append('<button type="button" class="btn btn-danger">Refused</button>')
+                    //leave feedback
+                    break;
+            }
+        }
+        return container
     },
     getDropDownAddressHTML = function (items, isRemovable) {
         var str = '<div data-type="dropdown-address-list" class="input-group-btn">\

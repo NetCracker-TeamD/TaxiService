@@ -15,7 +15,7 @@ This object works with any user data
 */
 var DataTools = (function(){
 	var 
-		serverAddress = "",//"http://localhost:8000",
+		serverAddress = "",//http://localhost:8000",
 		userLocation = null,
 		caches = { //stores caches for queries
 			services : null,
@@ -270,21 +270,45 @@ var DataTools = (function(){
 			formatedData.user = caches.user
 			realiseCallStack('user', 'success', caches.user, formatedData.user)
 		},
-		getOrderInfo = function(orderId, secretKey, callback){
-			//make query
-			var response = {somejson:"(unmodified response from server"},
-				orderInfo = {
-					"serviceType":"5",
-					"time":"specified",
-					"time_specified":"05/20/2015 1:53 PM",
-					"start_addresses":"вулиця Академіка Вільямса, 9, Київ, Украина",
-					"destination_addresses":"улица Авиаконструктора Антонова, 4/1, Київ, Украина",
-					"cars_amount":"1",
-					"payment_type":"cash",
-					"driver_sex":"any",
-					"features":"5"
+		getOrderInfo = function(loader, threadName, callback, orderId, secretKey){
+			var stackName = 'order_'+orderId
+			if (isCallStackBusy(stackName)) {
+				addCallToStack(stackName, loader, threadName, callback)
+				return;
+			}
+			addCallToStack(stackName, loader, threadName, callback)
+			if (isCacheFresh(stackName)){
+				realiseCallStack(stackName, 'success', caches.user, formatedData.user)
+				return;
+			}
+			/*
+			$.ajax(serverAddress+"/services", {
+				'success' : function(response) {
+					realiseCallStack(stackName, 'success', caches.user, formatedData.user)
+					loader.setStatus(threadName, 'success')
+				},
+				'error' : function(response){
+					console.log("Can`t retrieve services information")
+					realiseCallStack(stackName, 'error', caches.user, formatedData.user)
+					loader.setStatus(threadName, 'error')
 				}
-			callback("success", orderInfo, response)
+			})*/
+			caches[stackName] = {
+				"status":"queued",
+				"serviceType":"5",
+				"time":"specified",
+				"time_specified":"05/20/2015 1:53 PM",
+				"start_addresses":["вулиця Академіка Вільямса, 9, Київ, Украина"],
+				"destination_addresses":["улица Авиаконструктора Антонова, 4/1, Київ, Украина"],
+				"cars_amount":"1",
+				"payment_type":"cash",
+				"driver_sex":"any",
+				"features":"5",
+				"orderId" : 123123,
+				"secret" : "asdasd"
+			}
+			formatedData[stackName] = caches[stackName]
+			realiseCallStack(stackName, 'success', caches[stackName], formatedData[stackName])
 		},
 		getFavLocations = function(loader, threadName, callback){
 			if (isCallStackBusy('fav_locations')) {
@@ -339,6 +363,7 @@ var DataTools = (function(){
 		"getServiceTypes" : getServiceTypes,
 		"getServiceDescription" : getServiceDescription,
 		"getServiceFeatures" : getServiceFeatures,
+		"getOrderInfo" : getOrderInfo,
 		"setUserLocation" : setUserLocation,
 		"getUser" : getUser,
 		"getHistory" : getHistory,
