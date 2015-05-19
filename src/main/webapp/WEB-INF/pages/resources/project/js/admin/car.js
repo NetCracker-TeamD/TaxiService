@@ -142,7 +142,48 @@ function removeCar(id) {
 
 function updateCar(value) {
     alert(updateCar);
-    //TODO Ajax here
+
+    var JSONPostData = new Object();
+    JSONPostData['modelName'] = "BMW 310";
+    JSONPostData['classId'] = "  ";
+    JSONPostData['category'] = "   ";
+    JSONPostData['enable'] = "true";
+    JSONPostData['driverId'] = "1";
+    JSONPostData['features'] = [4,5];
+
+
+
+
+
+
+    $.ajax({
+        type: 'POST',
+        url:  "/admin/update_car",
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify(JSONPostData),
+        dataType: 'json',
+        async: false,
+        success: function(response) {
+            if (response.result == "success") {
+                showSuccess(response.content["message"]);
+                removeCarModal.modal('hide');
+            } else {
+                if (response.result == "failure") {
+                    //hideAllErrors();
+                    //showModalErrors(response);
+
+                    showError(removeCarModal, response.content);
+
+                } else {
+                    showError(removeCarModal, "Something went wrong... Try again later");
+                }
+            }
+
+        },
+        error: function(error) {
+            showError(removeCarModal, "Something went wrong... Try again later");
+        }
+    });
 }
 
 function createCar() {
