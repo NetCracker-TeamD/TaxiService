@@ -90,19 +90,24 @@ var Templates = (function () {
         info = {
             form : $("formSelector"),
             button : $("buttonSelector"),
+            dataFormater : function(){return data_to_send },//if seted gets data for sending by calling it
             success : function(),//callback called after response with success status,
             error : function(),//callback called after response with error status,
             validator : function(),//validate data befor sending, if return not true cansels request
-            right : true //place spinner in right
+            right : true //place spinner in right,
+            useJSON : true //use json
         }
     */
-    makeNiceSubmitButton = function(info){
+    makeNiceSubmitButton = function(info, caller){
         var form = info.form,
             submitBtn = info.button,
             onSuccess = info.success,
             onError = info.error,
             validator = info.validator,
-            right = info.right
+            right = info.right,
+            useJSON = info.useJSON,
+            dataFormater = info.dataFormater
+
         if (!submitBtn.hasClass("has-spinner")){
             submitBtn.addClass("has-spinner")
             var spinnerHtml = '<span class="spinner"><i class="glyphicon glyphicon-refresh glyphicon-spin"></i></span>'
@@ -126,62 +131,135 @@ var Templates = (function () {
             if ($.isSet(submitBtn.attr("disabled"))) return;
             var method = form.attr("method").toLowerCase(),
                 url = form.attr("action"),
-                data = JSON.stringify(form.serializeObject()),
+                data = form.serialize(),
                 onQueryEnded = function(){
                     //enable form
                     unlockAllControls(form)
                     submitBtn.removeClass("active")
                     submitBtn.removeAttr("disabled")
                 }
+            var contentType = "application/x-www-form-urlencoded; charset=UTF-8"
+            if (useJSON) {
+                data = JSON.stringify(form.serializeObject())
+                contentType = "application/json; charset=utf-8"
+            }
+            if ($.isSet(dataFormater)) {
+                data = dataFormater()
+            }
             method = (method != "get" && method != "post") ? "post" : method
             //lock form
             lockAllControls(form);
             submitBtn.addClass("active")
             submitBtn.attr("disabled","")
-            
             console.log(data)
-            $.ajax({
-                type: method,
-                url: url,
-                contentType: "application/json; charset=utf-8",
-                data: data,
-                cache: false,
-                processData:false,
-                success : function(response){ 
-                    onQueryEnded(); 
-                    if ($.isSet(onSuccess)) { onSuccess(response) }
-                },
-                error : function(response){ 
-                    onQueryEnded(); 
-                    if ($.isSet(onError)) { onError(response)  }
-                }
-            })
+            if ($.isSet(caller)) {
+                caller(data, function(status, response){
+                    console.log("status is "+status)
+                    if (status == "success"){
+                        onQueryEnded(); 
+                        if ($.isSet(onSuccess)) { onSuccess(response) }
+                    } else {
+                        onQueryEnded(); 
+                        if ($.isSet(onError)) { onError(response)  }
+                    }
+                })
+            } else {
+                $.ajax({
+                    type: method,
+                    url: url,
+                    //contentType: contentType,
+                    data: data,
+                    cache: false,
+                    processData:false,
+                    success : function(response){ 
+                        onQueryEnded(); 
+                        if ($.isSet(onSuccess)) { onSuccess(response) }
+                    },
+                    error : function(response){ 
+                        onQueryEnded(); 
+                        if ($.isSet(onError)) { onError(response)  }
+                    }
+                })
+            }
         })
     },
-    getOrderPage = function () {
-        var container = $('<div class="col-sm-5 col-sm-offset-1">\
-					<h2>Create order</h2>\
-					<form class="form-horizontal" id="orderForm" method="POST" action="/test/wait/3000">\
-						<div class="form-group">\
-							<label for="serviceType">Choose service type</label>\
-							<select id="serviceType" name="serviceType" class="form-control">\
-							</select>\
-						</div>\
-						<div id="orderDetails" data-type="order-details">\
-						</div>\
-					</form>\
-				</div>\
-				<div class="col-sm-6 map">\
-					<div class="google-map-canvas" data-type="map"></div>\
-				</div>\
+    getOrderPage = function (orderInfo) {//button
+                var container = $('<div class="col-sm-5 col-sm-offset-1">\
+                    <form class="form-horizontal" id="orderForm" method="POST" action="/makeOrder">\
+                        <div class="form-group">\
+                            <label for="serviceType">Choose service type</label>\
+                            <select id="serviceType" name="serviceType" class="form-control">\
+                            </select>\
+                        </div>\
+                        <div id="orderDetails" data-type="order-details">\
+                        </div>\
+                    </form>\
+                </div>\
+                <div class="col-sm-6 map">\
+                    <div class="google-map-canvas" data-type="map"></div>\
+                </div>\
                 <div class="clearfix"></div>\
-				<div class="row text-center">\
+                <div class="row text-center">\
                     <div class="col-sm-6 center">\
                         <h4 data-type="price-holder">The approximate cost of the trip is : <span data-type="price-value"></span>$</h4>\
-					    <button type="button" class="btn btn-success btn-lg btn-block" data-action="make-order">Make Order</button>\
+                        <div data-type="button-holder">\
+                        </div>\
                     </div>\
-				</div>')
-        return container;
+                </div>'),
+            label = $("<h2></h2>"),
+            buttonsHolder = container.find('[data-type="button-holder"]'),
+            form = container.find("form")
+
+        var status = null
+        if ($.isSet(orderInfo)) {
+            status = orderInfo.status
+        }
+
+        $(container.find('div')[0]).prepend(label)
+        if (!$.isSet(status)) {
+            label.text("Create order")
+            buttonsHolder.append('<button type="button" class="btn btn-success btn-lg" data-action="make-order">Make Order</button>')
+        } else {
+            form.prepend('<input type="hidden" name="orderId" value="'+orderInfo.orderId+'">')
+            if ($.isSet(orderInfo.secret)) {
+                form.prepend('<input type="hidden" name="secret" value="'+orderInfo.secret+'">')
+            }
+            var statusBlock = $("<div></div>")
+            label.text("Order review")
+            switch (status.toLowerCase()){
+                case "queued" : 
+                    statusBlock.append('<button type="button" class="btn btn-primary">Queued</button>')
+                    buttonsHolder.append('<button type="button" class="btn btn-primary btn-lg" data-action="edit">Edit</button>')
+                    buttonsHolder.append('<span>&nbsp;</span>')
+                    buttonsHolder.append('<button type="button" class="btn btn-danger btn-lg" data-action="cancel">Cancel order</button>')
+                    break;
+                case "updating" :
+                    statusBlock.append('<button type="button" class="btn btn-info">Updating</button>')
+                    label.text("Order editing")
+                    buttonsHolder.append('<button type="button" class="btn btn-primary btn-lg" data-action="save">Save changes</button>')
+                    buttonsHolder.append('<span>&nbsp;</span>')
+                    buttonsHolder.append('<button type="button" class="btn btn-info btn-lg" data-action="cancel-changes">Cancel changes</button>')
+                    break;
+                case "assigned" : 
+                    statusBlock.append('<button type="button" class="btn btn-success">Assigned</button>')
+                    break;
+                case "in progress" : 
+                    statusBlock.append('<button type="button" class="btn btn-success">In progess</button>')
+                    break;
+                case "completed" : 
+                    statusBlock.append('<button type="button" class="btn btn-success">Completed</button>')
+                    //leave feedback
+                    break;
+                case "canceled" : 
+                    statusBlock.append('<button type="button" class="btn btn-warning">Canceled</button>')
+                    break;
+                case "refused" : 
+                    statusBlock.append('<button type="button" class="btn btn-danger">Refused</button>')
+                    //leave feedback
+                    break;
+            }
+        }
+        return container
     },
     getDropDownAddressHTML = function (items, isRemovable) {
         var str = '<div data-type="dropdown-address-list" class="input-group-btn">\
@@ -242,7 +320,7 @@ var Templates = (function () {
             container.append(getDropDownAddressHTML(locationsList, isRemovable))
             if (hasCarsAmount) {
                 //TODO: style spinner input, now it looks very bad
-                container.append(getSpinerInput("cars", 1))
+                container.append(getSpinerInput("cars_amount", 1))
             }
             return container;
         }
@@ -430,11 +508,15 @@ var Templates = (function () {
 				<label>Provide contact information</label>\
                 <div class="input-group">\
                     <span class="input-group-addon glyphicon glyphicon-user"></span>\
-                    <input type="text" class="form-control" name="user_name" data-type="user_name" placeholder="Enter your name">\
+                    <input type="text" class="form-control" name="firstName" data-type="user_name" placeholder="Enter first name">\
+                </div>\
+                <div class="input-group">\
+                    <span class="input-group-addon glyphicon glyphicon-user"></span>\
+                    <input type="text" class="form-control" name="lastName" data-type="user_name" placeholder="Enter last name">\
                 </div>\
 				<div class="input-group">\
 					<span class="input-group-addon glyphicon glyphicon-phone"></span>\
-					<input type="phone" class="form-control" name="phone" id="phone" data-type="phone" placeholder="Enter your phone number">\
+					<input type="phone" class="form-control" name="phoneNumber" id="phone" data-type="phone" placeholder="Enter your phone number">\
 				</div>\
 				<div class="input-group">\
 					<span class="input-group-addon glyphicon glyphicon-envelope"></span>\
@@ -462,16 +544,27 @@ var Templates = (function () {
         return container
     },
     getLogin = function(){
-        var container = $('<div><form id="login-form" class="form-signin" method="post" action="/test/wait/3000">\
+        var container = $('<div><form id="login-form" class="form-signin" method="post" action="/checkLogin">\
         <div class="form-group">\
             <h2 class="form-signin-heading">Please sign in</h2>\
             <div class="input-group">\
                 <span class="input-group-addon glyphicon glyphicon-envelope"></span>\
-                <input type="email" class="form-control" name="email" data-type="email" placeholder="Enter your email">\
+                <input type="email" class="form-control" name="username" data-type="email" placeholder="Enter your email">\
             </div>\
             <div class="input-group">\
                 <span class="input-group-addon glyphicon glyphicon-lock"></span>\
                 <input type="password" class="form-control" name="password" data-type="password" placeholder="Enter your password">\
+            </div>\
+             <div class="radio">\
+                <label>\
+                    <input type="radio" name="radioAuthenticationType" id="userRadioButton" value="user" checked>\
+                    User</label>\
+            </div>\
+            <div class="radio">\
+                <label>\
+                    <input type="radio" name="radioAuthenticationType" id="driverRadioButton" value="driver">\
+                    Driver\
+                </label>\
             </div>\
             <button class="btn btn-lg btn-primary btn-block" data-action="login" type="submit">Sign in</button>\
         </div></form></div>')
@@ -484,7 +577,7 @@ var Templates = (function () {
         return container
     },
     getRegistration = function(){
-        var form = $('<form id="reg-form" class="form-signin" method="post" action="/test/wait/3000">\
+        var form = $('<form id="reg-form" class="form-signin" method="post" action="/register">\
             <div class="form-group"><h2 class="form-signin-heading">Please sign up</h2></div></form>');
         form.append(getContacts())
         form.append($('<div class="form-group">\
@@ -495,7 +588,7 @@ var Templates = (function () {
             </div>\
             <div class="input-group">\
                 <span class="input-group-addon glyphicon glyphicon-lock"></span>\
-                <input type="password" class="form-control" name="password_repeat" data-type="password2" placeholder="Repeat password">\
+                <input type="password" class="form-control" name="passwordConfirmation" data-type="password2" placeholder="Repeat password">\
             </div>\
         </div>'))
         form.append($('<button class="btn btn-lg btn-primary btn-block" data-action="reg" type="submit">Sign up</button>'))
@@ -524,7 +617,7 @@ var Templates = (function () {
         var locInputName = "fav_locations",
             groupAddresses = getAddressesGroup("Your favourite locations :", locInputName, true, false, 1),
             addressesContainer = groupAddresses.find('[data-type="address-group"]'),
-            formAddresses = $('<form id="addresses" class="form-signin" method="post" action="/test/wait/3000">\
+            formAddresses = $('<form id="addresses" class="form-signin" method="post" action="/user/saveAddresses">\
                 <div class="form-group"><h2 class="form-signin-heading">Change locations</h2></div></form>')
         for (var key in userFavLocations){
             var location = userFavLocations[key]
@@ -534,6 +627,7 @@ var Templates = (function () {
                     name = addressBlock.find('[data-type="address-name"]')
                 address.val(location.address)
                 name.val(location.name)
+                name.attr("data-id",location.id)
                 addressesContainer.append(addressBlock)
             }
         }

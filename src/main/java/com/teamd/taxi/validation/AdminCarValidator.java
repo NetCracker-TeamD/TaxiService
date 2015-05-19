@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  * Created by Anatoliy on 15.05.2015.
  */
 @Component
-public class AdminCarValidator implements Validator{
+public class AdminCarValidator implements Validator {
     private static final Pattern PATTERN_MODEL_NAME = Pattern.compile("[!@%$|*\\\\#/><;^?,=]+");
     private static final Pattern PATTERN_CLASS_ID = Pattern.compile("^[123]$");
     private static final Pattern PATTERN_CATEGORY = Pattern.compile("^[ABCD]$");
@@ -43,50 +43,50 @@ public class AdminCarValidator implements Validator{
     public void validate(Object value, Errors errors) {
         CarModel carModel = (CarModel) value;
 
-        if (carModel.getModelName().isEmpty() || carModel.getModelName().replaceAll(" ","").isEmpty()) {
+        if (carModel.getModelName().isEmpty() || carModel.getModelName().replaceAll(" ", "").isEmpty()) {
             errors.rejectValue(MODEL_NAME, "admin.validate.carModelName.empty");
         } else {
-            if(PATTERN_MODEL_NAME.matcher(carModel.getModelName()).find()){
+            if (PATTERN_MODEL_NAME.matcher(carModel.getModelName()).find()) {
                 errors.rejectValue(MODEL_NAME, "admin.validate.carModelName.illegalArgument");
-            } else if(carModel.getModelName().length() > 50){
+            } else if (carModel.getModelName().length() > 50) {
                 errors.rejectValue(MODEL_NAME, "admin.validate.carModelName.length");
             }
         }
 
         if (carModel.getClassId().isEmpty() || carModel.getClassId().replaceAll(" ", "").isEmpty()) {
-            errors.rejectValue(CLASS_ID,"admin.validate.carClassId.empty");
+            errors.rejectValue(CLASS_ID, "admin.validate.carClassId.empty");
         } else {
-            if(!PATTERN_CLASS_ID.matcher(carModel.getClassId()).matches()){
-                errors.rejectValue(CLASS_ID,"admin.validate.carClassId.illegalArgument");
+            if (!PATTERN_CLASS_ID.matcher(carModel.getClassId()).matches()) {
+                errors.rejectValue(CLASS_ID, "admin.validate.carClassId.illegalArgument");
             }
         }
 
         if (carModel.getCategory().isEmpty() || carModel.getCategory().replaceAll(" ", "").isEmpty()) {
-            errors.rejectValue(CATEGORY,"admin.validate.carCategory.empty");
+            errors.rejectValue(CATEGORY, "admin.validate.carCategory.empty");
         } else {
-            if(!PATTERN_CATEGORY.matcher(carModel.getCategory()).matches()){
-                errors.rejectValue(CATEGORY,"admin.validate.carCategory.illegalArgument");
+            if (!PATTERN_CATEGORY.matcher(carModel.getCategory()).matches()) {
+                errors.rejectValue(CATEGORY, "admin.validate.carCategory.illegalArgument");
             }
         }
 
         if (carModel.getEnable().isEmpty() || carModel.getEnable().replaceAll(" ", "").isEmpty()) {
-            errors.rejectValue(ENABLE,"admin.validate.carEnable.empty");
+            errors.rejectValue(ENABLE, "admin.validate.carEnable.empty");
         } else {
-            if(!PATTERN_CAR_ENABLE.matcher(carModel.getEnable()).matches()){
-                errors.rejectValue(ENABLE,"admin.validate.carEnable.illegalArgument");
+            if (!PATTERN_CAR_ENABLE.matcher(carModel.getEnable()).matches()) {
+                errors.rejectValue(ENABLE, "admin.validate.carEnable.illegalArgument");
             }
         }
 
         if (carModel.getDriverId().isEmpty() || carModel.getDriverId().replaceAll(" ", "").isEmpty()) {
-            errors.rejectValue(DRIVER_ID,"admin.validate.carDriverId.empty");
+            errors.rejectValue(DRIVER_ID, "admin.validate.carDriverId.empty");
         } else {
-            if(!PATTERN_DRIVER_ID.matcher(carModel.getDriverId()).matches()){
-                errors.rejectValue(DRIVER_ID,"admin.validate.carDriverId.illegalArgument");
-            }else{
+            if (!PATTERN_DRIVER_ID.matcher(carModel.getDriverId()).matches()) {
+                errors.rejectValue(DRIVER_ID, "admin.validate.carDriverId.illegalArgument");
+            } else {
                 if (!carModel.getDriverId().equals("-1")) {
                     List<Integer> listId = carService.getAllIdDrivers();
-                    if(!listId.contains(Integer.parseInt(carModel.getDriverId()))){
-                        errors.rejectValue(DRIVER_ID,"admin.validate.carDriverId.notExistSuchDriverId");
+                    if (!listId.contains(Integer.parseInt(carModel.getDriverId()))) {
+                        errors.rejectValue(DRIVER_ID, "admin.validate.carDriverId.notExistSuchDriverId");
                     }
                 }
             }
@@ -95,36 +95,34 @@ public class AdminCarValidator implements Validator{
         if (!carModel.getMapFeatures().isEmpty()) {
             boolean isErrorInFeatureId = false;
             boolean isErrorInFeatureValue = false;
-            int j=0;
-            Integer [] arrayFeatureId = new Integer[carModel.getMapFeatures().keySet().size()];
+            int j = 0;
+            Integer[] arrayFeatureId = new Integer[carModel.getMapFeatures().keySet().size()];
 
-            for(String featureId : carModel.getMapFeatures().keySet()){
-                if(!PATTERN_CAR_FEATURE_ID.matcher(featureId).matches()){
+            for (String featureId : carModel.getMapFeatures().keySet()) {
+                if (!PATTERN_CAR_FEATURE_ID.matcher(featureId).matches()) {
                     isErrorInFeatureId = true;
                     break;
-                }else{
+                } else {
                     arrayFeatureId[j] = Integer.parseInt(featureId);
                     j++;
                 }
             }
-            if(!isErrorInFeatureId){
-                for(String featureValue : carModel.getMapFeatures().values()){
-                    if(!PATTERN_CAR_FEATURE_VALUE.matcher(featureValue).matches()){
+            if (!isErrorInFeatureId) {
+                for (String featureValue : carModel.getMapFeatures().values()) {
+                    if (!PATTERN_CAR_FEATURE_VALUE.matcher(featureValue).matches()) {
                         isErrorInFeatureValue = true;
                         break;
                     }
                 }
-                if(!isErrorInFeatureValue){
+                if (!isErrorInFeatureValue) {
                     List<Integer> listId = carService.getAllIdFeatures();
-                    for(int i=0; i<arrayFeatureId.length; i++){
-                        if(!listId.contains(arrayFeatureId[i])){
-                            errors.rejectValue(MAP_FEATURES,"admin.validate.carMapFeatures.notExistFeatureId");
+                    for (int i = 0; i < arrayFeatureId.length; i++) {
+                        if (!listId.contains(arrayFeatureId[i])) {
+                            errors.rejectValue(MAP_FEATURES, "admin.validate.carMapFeatures.notExistFeatureId");
                         }
                     }
-                }
-                else errors.rejectValue(MAP_FEATURES,"admin.validate.carMapFeatures.illegalArgument");
-            }
-            else errors.rejectValue(MAP_FEATURES,"admin.validate.carMapFeatures.illegalArgument");
-        }else errors.rejectValue(MAP_FEATURES,"admin.validate.carMapFeatures.empty");
+                } else errors.rejectValue(MAP_FEATURES, "admin.validate.carMapFeatures.illegalArgument");
+            } else errors.rejectValue(MAP_FEATURES, "admin.validate.carMapFeatures.illegalArgument");
+        } else errors.rejectValue(MAP_FEATURES, "admin.validate.carMapFeatures.empty");
     }
 }

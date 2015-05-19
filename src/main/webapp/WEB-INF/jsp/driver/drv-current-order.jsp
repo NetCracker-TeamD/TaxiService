@@ -37,8 +37,6 @@
             border-radius: 50%;
         }
     </style>
-
-
 </head>
 
 <body>
@@ -69,7 +67,6 @@
     </div>
 </nav>
 
-
 <div class="jumbotron welcome">
     <div class="container">
         <h2>Current order</h2>
@@ -84,104 +81,145 @@
                         <div class="panel panel-primary">
                             <div class="panel-body" id="innerBoard">
                                 <div class="form-inline">
-                                    <div class="form-group pull-left col-sm-8" style="padding: 0px">
-                                        <input type="text" class="form-control" id="currentLocation"
+                                    <div class="form-group pull-left col-sm-8" style="padding: 0px; width:250px">
+                                        <input type="text" style="width:250px" class="form-control" id="currentLocation"
                                                placeholder="Current location" readonly>
                                     </div>
-                                    <div class="form-group">
-                                        <button type="button" id="paintWay" class="btn btn-primary">
+                                    <div class="form-group pull-right" style="padding-right:5px;padding-left:5px;">
+                                        <button type="button" id="paintWay"
+                                                class="btn btn-primary"  ${!isActiveOrder ? "disabled=\"on\"" : ""}>
                                             <span class="glyphicon glyphicon-road" aria-hidden="true"></span>
                                         </button>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group pull-right">
                                         <button type="button" id="curLoc" class="btn btn-primary">
                                             <span class="glyphicon glyphicon-send" aria-hidden="true"></span>
                                         </button>
                                     </div>
-
+                                    <div class="form-group pull-left col-sm-6" style="padding:0px">
+                                        <h5>
+                                            <%--<span class="label label-info glyphicon glyphicon-time"> Time </span>--%>
+                                            <span class="label label-info glyphicon glyphicon-time"
+                                                  id="currentTime"></span>
+                                        </h5>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <c:if test="${isActiveOrder}">
+                            <div class="panel panel-primary">
+                                <div class="panel-body" id="innerBoard2">
+                                    <div class="form-group row" style="padding-bottom: 5px; padding-top: 5px">
+                                        <div class="execTime row">
+                                            <div class="col-md-8" style="padding:0px">
+                                                <h5 style="margin-top: 0px;">
+                                                    <span class="label label-info glyphicon glyphicon-time"
+                                                          id="executionTime"></span>
+                                                </h5>
+                                            </div>
+                                            <div class="row">
 
-                        <div class="form-group row" style="padding-bottom: 5px; padding-top: 5px">
-                            <%--<c:if test="${!isActiveOrder}">--%>
-                                <%--<button type="button" id="inPlace"--%>
-                                        <%--class="btn btn-info btn-circle" ${blockInPlaceBtn ? "disabled=\"on\"" : ""}>--%>
-                                    <%--<span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span>--%>
-                                <%--</button>--%>
-                            <%--</c:if>--%>
-                            <%--<c:if test="${isActiveOrder}">--%>
-                            <c:if test="${isActiveOrder}">
-                                <div id="controlPanel" class="row">
-                                    <div class="pull-left">
-                                        <button id="start" type="submit" class="btn btn-primary">
-                                            <span> Start</span>
-                                        </button>
-                                    </div>
-                                    <div class="pull-right">
-                                        <button id="completeBtn" type="submit" class="disabled btn btn-success">
-                                            <span> Complete </span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </c:if>
-                            <div class="hidden" id="refusePanel" style="margin-top: 10px;">
-                                <div class="pull-left">
-                                    <button id="refuseBtn" type="submit" class="btn btn-danger">
-                                        <span class="glyphicon glyphicon-remove"> Refuse</span>
-                                    </button>
-                                </div>
-                                <div class="pull-right col-md-6">
-                                    <%--<input type="checkbox" class="label label-lg" name="customerIsLate" id="customerLate">--%>
-                                    <%--<label for="customerLate" class="label label-default control-label">Customer is late?</label>--%>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel panel-primary">
-                    <div class="panel-body" id="board1">
-                        <div class="col">
-                            <div>
-                                <c:forEach items="${sortRoutes}" var="route">
-                                    <div class="input-group" style="padding-left: 0px;">
-                                        <div>
-                                            <input type="text" style="margin-top: 5px" class="form-control"
-                                                   value="${route.sourceAddress}" name="source" readonly>
-                                            <input type="text" style="margin-top: 5px" class="form-control"
-                                                   value="${route.destinationAddress}" name="dest" readonly>
+                                                <label for="customLate" class="label label-info control-label"
+                                                       style="padding-bottom: 0px; margin-bottom: 0px;padding: 0px;">Customer is late</label>
+                                                <input type="checkbox" name="customerIsLate" id="customLate">
+
+                                            </div>
                                         </div>
-                                        <div style="padding-top: 5px; padding-bottom: 10px;">
+
+
+                                        <div id="controlPanel" class="row">
                                             <c:choose>
-                                                <c:when test="${route.status==RouteStatus.COMPLETED}">
-                                                    <span id="${route.id}"
-                                                          class="label label-success glyphicon glyphicon-ok-circle"> ${route.status}</span>
-                                                </c:when>
-                                                <c:when test="${route.status==RouteStatus.ASSIGNED}">
-                                                    <span id="${route.id}"
-                                                          class="label label-primary glyphicon glyphicon-list"> ${route.status}</span>
+                                                <c:when test="${inProgress}">
+                                                    <div class="pull-left">
+                                                        <button type="submit" class="start disabled btn btn-primary">
+                                                            <span> Start</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="pull-right">
+                                                        <button type="submit" class="completeBtn btn btn-success">
+                                                            <span> Complete </span>
+                                                        </button>
+                                                    </div>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span id="${route.id}"
-                                                          class="label label-info glyphicon glyphicon-ok"> ${route.status}</span>
+                                                    <div class="pull-left">
+                                                        <button type="submit" class="start btn btn-primary">
+                                                            <span> Start</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="pull-right">
+                                                        <button type="submit"
+                                                                class="completeBtn disabled btn btn-success">
+                                                            <span> Complete </span>
+                                                        </button>
+                                                    </div>
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
+
+                                        <div class="hidden" id="refusePanel" style="margin-top: 10px;">
+                                            <div class="pull-left">
+                                                <button id="refuseBtn" type="submit" class="btn btn-danger">
+                                                    <span> Refuse</span>
+                                                </button>
+                                            </div>
+
+                                        </div>
                                     </div>
-                                </c:forEach>
+                                </div>
                             </div>
-                            <div class="input-group" id="newRoute" style="padding-left: 0px;">
-                            <span class="input-group-btn">
-                                <button id="newRouteBtn" class="btn btn-default"
-                                        type="button" ${blockNewRouteBtn ? "disabled=\"on\"" : ""}>Add
-                                </button>
-                            </span>
-                                <input type="text" class="form-control" id="newAddress" name="dest"
-                                       placeholder="Enter route..." ${blockNewRouteBtn ? "disabled=\"on\"" : ""}>
+                        </c:if>
+                    </div>
+                </div>
+                <c:if test="${isActiveOrder}">
+                    <div class="panel panel-primary">
+                        <div class="panel-body" id="board1">
+                            <div class="col">
+                                <div>
+                                    <c:forEach items="${sortRoutes}" var="route">
+                                        <div id class="input-group" style="padding-left: 0px;">
+                                            <div>
+                                                <input type="text" style="margin-top: 5px" class="form-control"
+                                                       value="${route.sourceAddress}" name="source" readonly>
+                                                <input type="text" style="margin-top: 5px" class="form-control"
+                                                       value="${route.destinationAddress}" name="dest" readonly>
+                                            </div>
+                                            <div style="padding-top: 5px; padding-bottom: 10px;">
+                                                <c:choose>
+                                                    <c:when test="${route.status==\"COMPLETED\"}">
+                                                        <span id="${route.id}"
+                                                              class="label label-success glyphicon glyphicon-ok"> COMPLETED</span>
+                                                    </c:when>
+                                                    <c:when test="${route.status==\"ASSIGNED\"}">
+                                                        <span id="${route.id}"
+                                                              class="label label-info glyphicon glyphicon-list findForRefuse"> ASSIGNED</span>
+                                                    </c:when>
+                                                    <c:when test="${route.status==\"REFUSED\"}">
+                                                        <span id="${route.id}"
+                                                              class="label label-danger glyphicon glyphicon-remove"> REFUSED</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span id="${route.id}"
+                                                              class="label label-primary glyphicon glyphicon-hourglass findForRefuse"> ${route.status}</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+                                <div class="input-group" id="newRoute" style="padding-left: 0px;">
+                                <span class="input-group-btn">
+                                    <button id="newRouteBtn" class="btn btn-default"
+                                            type="button" ${blockNewRouteBtn ? "disabled=\"on\"" : ""}>Add
+                                    </button>
+                                </span>
+                                    <input type="text" class="form-control" id="newAddress" name="dest"
+                                           placeholder="Enter route..." ${blockNewRouteBtn ? "disabled=\"on\"" : ""}>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </c:if>
 
             </div>
             <div class="col-sm-6 pull-right" style="padding-left: 0px">

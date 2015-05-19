@@ -48,7 +48,7 @@ public class AssembledRoute {
                 totalDisance = sample.getDistance();
             }
         }
-        Collections.sort(routes, new Comparator<Route>() {
+        Collections.sort(this.routes, new Comparator<Route>() {
             @Override
             public int compare(Route r1, Route r2) {
                 //сортировка по водителям, null в конец

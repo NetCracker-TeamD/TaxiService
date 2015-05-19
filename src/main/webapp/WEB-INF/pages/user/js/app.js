@@ -22,58 +22,73 @@ var App = (function(){
 			blocks.content.html("")
 			blocks.content.append(Templates.getBlocked())
 		},
-		showLogoutPage = function(){showMakeOrderPage()},
-		showMakeOrderPage = function(){
+		showLogoutPage = function(){window.location = "/logout";},
+		showOrderPage = function(orderId, secretKey){
 			showLoadPage()
 			current_page_name = "make-order"
 			updateHeader()
-			var createPage = function(){
-				//create page in memory			
-				var container = Templates.getOrderPage(),
+			var loadOrder = $.isSet(orderId)
+			var createDOM = function(){
+				//create page in memory		
+				var orderInfo = null
+				if ($.isSet(tmpStorage.currentOrder)) {
+					orderInfo = tmpStorage.currentOrder
+				}
+				var 
+					user = tmpStorage.user,
+					container = Templates.getOrderPage(orderInfo),
 					serviceTypes = container.find("#serviceType"),
 					orderDetails = container.find('[data-type="order-details"]'),
 					map = container.find('[data-type="map"]'),
 					orderForm = container.find('#orderForm'),
-					makeOrderBtn = container.find('[data-action="make-order"]')
+					enableEditing = (loadOrder) ? (user.isLogged && !user.isBlocked) : false
+				if (loadOrder) {
+				} else {
+					var makeOrderBtn = container.find('[data-action="make-order"]')
+		   			Templates.makeNiceSubmitButton({
+		   				form : orderForm,
+		   				button : makeOrderBtn,
+		   				useJSON : true,
+		   				success : function(response){
+		   					console.log("response")
+		   					console.log(response)
+							var watchIt = function(){
+								console.log("go to track link")
+								showOrderPage("id","secret")
+							}
+							BootstrapDialog.show({
+								type: BootstrapDialog.TYPE_SUCCESS, closable: false,
+								title: "Order successfully created",
+								message: function(dialog){
+									return $("<div>Your order successfully created<br>You can track it via this link </div>")
+										.append( $("<a href='/somelink''>some link with tracknumber</a>")
+											.bind("click", function(e){
+												e.preventDefault()
+												dialog.close()
+												watchIt()
+											}))
+								},
+								buttons: [{
+									label : "Watch it",
+									action: function(dialog){
+										dialog.close()
+										watchIt()
+					                }
+								}],							
+							})
+						},
+						error : function(response){
+		   					console.log("response err")
 
-	   			Templates.makeNiceSubmitButton({
-	   				form : orderForm,
-	   				button : makeOrderBtn,
-	   				success : function(response){
-						var watchIt = function(){
-							console.log("go to track link")
+							console.log(response)
+							BootstrapDialog.show({
+								type: BootstrapDialog.TYPE_DANGER,
+								title: "Server error",
+								message: "Server returns error with status '"+response.statusText+"'",
+							})
 						}
-						BootstrapDialog.show({
-							type: BootstrapDialog.TYPE_SUCCESS,
-							title: "Order successfully created",
-							closable: false,
-							message: function(dialog){
-								return $("<div>Your order successfully created<br>You can track it via this link </div>")
-									.append( $("<a href='/somelink''>some link with tracknumber</a>")
-										.bind("click", function(e){
-											e.preventDefault()
-											dialog.close()
-											watchIt()
-										}))
-							},
-							buttons: [{
-								label : "Watch it",
-								action: function(dialog){
-									dialog.close()
-									watchIt()
-				                }
-							}],							
-						})
-					},
-					error : function(response){
-						console.log(response)
-						BootstrapDialog.show({
-							type: BootstrapDialog.TYPE_DANGER,
-							title: "Server error",
-							message: "Server returns error with status '"+response.statusText+"'",
-						})
-					}
-	   			})
+		   			})
+				}
 
 				//fill service types
 				$.each(tmpStorage.serviceTypes, function (i, item) {
@@ -192,11 +207,8 @@ var App = (function(){
 
 			//init loader and bind callback when all necessary datas will be loaded
 			var loader = new Loader()
-			loader.addCallBack(function(){ 
-				console.log("calling create page")
-				createPage()
-			})
-			//binding data loaders
+			loader.addCallBack(function(){ createDOM() })
+			//data loading
 			var ids = loader.getArrayUniqId(3)
 			DataTools.getUser(loader, ids[0], function(status, response, userInfo){
 				tmpStorage.user = userInfo
@@ -204,9 +216,13 @@ var App = (function(){
 			DataTools.getServiceTypes(loader, ids[1], function(status, response, serviceTypes){
 				tmpStorage.serviceTypes = serviceTypes
 			})
-			DataTools.getFavLocations(loader, ids[2], function(status, response, favouriteLocations){
-				tmpStorage.favouriteLocations = favouriteLocations
-			})
+			if (loadOrder) {
+				DataTools.getOrderInfo(loader, ids[2], function(status, response, orderInfo){
+					tmpStorage.currentOrder = orderInfo
+				}, orderId, secretKey)
+			} else {
+				loader.setStatus(ids[2], 'no reason for load this')
+			}
 
 		},
 		updateHeader = function(){
@@ -385,7 +401,7 @@ var App = (function(){
 				}
 			}
 		},
-		createInputsForServiceType = function(holder, newServiceType) {
+		createInputsForServiceType = function(holder, newServiceType, loader) {
 			MapTools.clearAllMarker()
 			MapTools.markersFitWindow()
 			holder.html("")
@@ -450,7 +466,9 @@ var App = (function(){
 			}
 
 			//init loader and bind callback when all necessary datas will be loaded
-			var loader = new Loader()
+			if (!$.isSet(loader)) {
+				loader = new Loader()
+			}
 			loader.addCallBack(function(){ createDOM() })
 			//binding data loaders
 			var ids = loader.getArrayUniqId(3)
@@ -476,15 +494,51 @@ var App = (function(){
             	button : loginBtn,
     			success : function(response){
 					//loadPage("new-order")
+					console.log("success")
+					console.log(response)
+					if (!response.authenticationStatus){
+						BootstrapDialog.show({
+							type: BootstrapDialog.TYPE_DANGER,
+							title: "Invalid login credentioals",
+							message: "Invalid login credentioals",
+						})
+					} else {
+						
+						var loader = new Loader()
+						loader.addCallBack(function(){ 
+							console.log(tmpStorage.user)
+							switch (tmpStorage.user.role) {
+								case "ROLE_CUSTOMER" : 
+									pages["make-order"].show()
+									break;
+								case "ROLE_DRIVER" : 
+									window.location = "/driver";
+									break;
+								case "ROLE_ADMINISTRATOR" : 
+									window.location = "/admin";
+									break;
+								default:
+									console.log("UNKNOW ROLE NAME");
+									break;
+							}
+							
+						})
+						//data loading
+						DataTools.getUser(loader, loader.getUniqId(), function(status, response, userInfo){
+							tmpStorage.user = userInfo
+						})
+					}
 				},
 				error : function(response){
+					console.log("error")
+					console.log(response)
 					BootstrapDialog.show({
 						type: BootstrapDialog.TYPE_DANGER,
 						title: "Server error",
 						message: "Server returns error with status '"+response.statusText+"'",
 					})
 				}
-    		})
+    		}/*, DataTools.tryLogin*/)
 
 			//fill page
 			blocks.content.html("")
@@ -501,9 +555,15 @@ var App = (function(){
 					form : form,
 					button : submBtn,
 					success : function(response){
-						//loadPage("new-order")
+						console.log(response)
+						BootstrapDialog.show({
+							type: BootstrapDialog.TYPE_SUCCESS,
+							title: "Congradulations!",
+							message: "You are succesfully registered. Plese, check your mail for confirmation link",
+						})
 					},
 					error : function(response){
+						console.log(response)
 						BootstrapDialog.show({
 							type: BootstrapDialog.TYPE_DANGER,
 							title: "Server error",
@@ -545,6 +605,22 @@ var App = (function(){
 			showLoadPage()
 			var createDOM = function(){
 				console.log(tmpStorage.favouriteLocations)
+				var locations = []
+				var fav_locations = tmpStorage.favouriteLocations
+				for (var i=0;i<fav_locations.length;i++){
+					var location = fav_locations[i]
+					console.log(location)
+					if ($.isSet(location) && !location.isUserLocation) {
+						console.log("pushed")
+						locations.push({
+							name : location.name,
+							address : location.address,
+							id : location.id,
+							action : "none",
+						})
+					}
+				}
+				console.log(locations)
 				var container = Templates.getEditAccount(tmpStorage.favouriteLocations),
 				saveBtns = container.find('[data-action="save"]'),
 				addresses = container.find('#addresses')
@@ -553,22 +629,99 @@ var App = (function(){
 				$.each(saveBtns, function(i,btn){
 					btn = $(btn)
 					var formId = btn.attr("data-form-id")
-					Templates.makeNiceSubmitButton({
-						form : container.find('#'+formId),
-						button : btn,
-						success : function(response){
-							//loadPage("new-order")
-						},
-						error : function(response){
-							BootstrapDialog.show({
-								type: BootstrapDialog.TYPE_DANGER,
-								title: "Server error",
-								message: "Server returns error with status '"+response.statusText+"'",
-							})
-						}
-					})
+					if (formId == "addresses") {
+						Templates.makeNiceSubmitButton({
+							form : container.find('#'+formId),
+							button : btn,
+							dataFormater : function(){
+								var data = [],
+									addresses = container.find('[data-type="address-group"]').find('.input-group.fav-address')
+								for (var j=0;j<locations.length;j++){
+									locations[j].finded = false
+								}
+								for (var i = 0;i<addresses.length;i++){
+									var addressBlock = $(addresses[i]),
+										address = addressBlock.find('[data-type="address"]').val(),
+										name = addressBlock.find('[data-type="address-name"]'),
+										locationId = name.attr('data-id'),
+										name = name.val()
+									if (!$.isSet(locationId)) {
+										data.push({
+											name : name,
+											address : address,
+											action : "add"
+										})
+										continue;
+									}
+									//search current location in array
+									for (var j=0;j<locations.length;j++){
+										var location = locations[j]
+										if (location.id == locationId ){
+											location.finded = true
+											console.log("finded",location.id)
+											if (location.name != name || location.address != address) {
+												data.push({
+													name : name,
+													address : address,
+													id : locationId,
+													action : "update"
+												})
+												console.log("updated",location.id)
+											}
+											break
+										}
+									}
+								}
+								//remove unexists locations
+								for (var i=0;i<locations.length;i++){
+									var location = locations[i]
+									if (location.finded !== true ){
+										data.push({
+											id : location.id,
+											action : "remove"
+										})
+										console.log("removed",location.id)
+									}
+								}
+								console.log(data)
+								return JSON.stringify(data)
+								//return []
 
+							},
+							success : function(response){
+								console.log("success")
+								console.log(response)
+								//loadPage("new-order")
+							},
+							error : function(response){
+								console.log("error")
+								console.log(response)
+								BootstrapDialog.show({
+									type: BootstrapDialog.TYPE_DANGER,
+									title: "Server error",
+									message: "Server returns error with status '"+response.statusText+"'",
+								})
+							}
+						})
+					} else {
+						Templates.makeNiceSubmitButton({
+							form : container.find('#'+formId),
+							button : btn,
+							success : function(response){
+								//loadPage("new-order")
+							},
+							error : function(response){
+								BootstrapDialog.show({
+									type: BootstrapDialog.TYPE_DANGER,
+									title: "Server error",
+									message: "Server returns error with status '"+response.statusText+"'",
+								})
+							}
+						})
+					}
 				})
+
+				//locationID = container.find('[data-id]').attr('data-id')
 				
 				//fill page
 				blocks.content.html("")
@@ -618,7 +771,7 @@ var App = (function(){
 		},
 		pages = {
 			"default" : {
-				show : showMakeOrderPage
+				show : showOrderPage
 			},
 			"load" : {
 				show : showLoadPage
@@ -658,7 +811,7 @@ var App = (function(){
 			"make-order" : {
 				label : "Make order",
 				action : "make-order",
-				show : showMakeOrderPage
+				show : showOrderPage
 			},
 			"view-orders" : {
 				label : "View order history",

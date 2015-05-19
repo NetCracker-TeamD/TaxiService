@@ -9,6 +9,7 @@
 
     <!--<http pattern="/res/**" security="none"/>-->
     <!--<http pattern="/test*" security="none"/>-->
+    <global-method-security pre-post-annotations="enabled"/>
 
     <http auto-config="false" use-expressions="true" entry-point-ref="loginUrlAuthenticationEntryPoint">
         <csrf disabled="true"/>

@@ -85,9 +85,6 @@ public class TaxiOrderService {
 
     @Transactional
     public Page<TaxiOrder> findAll(Specification<TaxiOrder> spec, Pageable pageable) {
-        if (spec == null) {
-            return findAll(pageable);
-        }
         Page<TaxiOrder> to = orderRepository.findAll(spec, pageable);
         for (TaxiOrder order : to.getContent()) {
             Hibernate.initialize(order.getFeatures());
@@ -263,6 +260,7 @@ public class TaxiOrderService {
         Hibernate.initialize(order.getFeatures());
         Hibernate.initialize(order.getRoutes());
         Hibernate.initialize(order.getServiceType());
+
         return order;
     }
 

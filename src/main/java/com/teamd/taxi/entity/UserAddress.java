@@ -74,6 +74,7 @@ public class UserAddress implements Serializable {
         this.address = address;
     }
 
+
     public User getUser() {
         return user;
     }

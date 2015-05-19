@@ -1,8 +1,10 @@
 package com.teamd.taxi.controllers;
 
 
+import com.teamd.taxi.authentication.Utils;
 import com.teamd.taxi.entity.User;
 import com.teamd.taxi.exception.UserAlreadyConfirmedException;
+import com.teamd.taxi.models.MapResponse;
 import com.teamd.taxi.models.RegistrationForm;
 import com.teamd.taxi.service.CustomerUserService;
 import com.teamd.taxi.service.email.MailService;
@@ -10,7 +12,9 @@ import com.teamd.taxi.validation.RegistrationFormPasswordValidator;
 import com.teamd.taxi.validation.UniqueEmailValidator;
 import org.apache.log4j.Level;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,6 +32,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import org.apache.log4j.Logger;
 
+import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -45,6 +50,9 @@ public class IndexAndRegistrationController {
     @Autowired
     private UniqueEmailValidator uniqueEmailValidator;
 
+    @Resource
+    private Environment env;
+
     @Autowired
     private CustomerUserService userService;
 
@@ -57,15 +65,18 @@ public class IndexAndRegistrationController {
     }
 
     @RequestMapping("/index")
-    public ModelAndView index() {
+    public String index() {
         AbstractAuthenticationToken auth = (AbstractAuthenticationToken)
                 SecurityContextHolder.getContext().getAuthentication();
         logger.info("Auth status: " + auth.getPrincipal()
                 + ", " + auth.getCredentials() + ", " + auth.getAuthorities() + ", " + auth.isAuthenticated());
-        ModelAndView mav = new ModelAndView();
-        mav.setViewName("index");
-        //mav.addObject("registrationForm", new RegistrationForm());
-        return mav;
+        return "index";
+    }
+
+    @RequestMapping(value = "/checkFreeEmail", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String checkEmail(@RequestParam("email") String email) {
+        return "{\"isEmailFree\":" + userService.isEmailFree(email) + "}";
     }
 
     @RequestMapping("/register")
@@ -75,18 +86,7 @@ public class IndexAndRegistrationController {
         Map<String, Object> retValue = new HashMap<>();
         if (errors.hasErrors()) {
             logger.info("RegisterForm validation errors");
-            Map<String, List<String>> fieldErrors = new HashMap<>();
-            List<FieldError> fieldErrorList = errors.getFieldErrors();
-            for (FieldError fieldError : fieldErrorList) {
-                String field = fieldError.getField();
-                List<String> messages = fieldErrors.get(field);
-                if (messages == null) {
-                    messages = new ArrayList<>();
-                    fieldErrors.put(field, messages);
-                }
-                messages.add(fieldError.getDefaultMessage());
-            }
-            retValue.put("fieldErrors", fieldErrors);
+            retValue.put("fieldErrors", Utils.convertToMap(env, errors));
             retValue.put("success", false);
         } else {
             User user = new User();
@@ -114,5 +114,16 @@ public class IndexAndRegistrationController {
         }
         model.addAttribute("message", message);
         return "confirmation";
+    }
+
+    @RequestMapping(value = "/isUserLogged", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> checkLogin() {
+        boolean isAuthenticated = Utils.isAuthenticated();
+        MapResponse mapResponse = new MapResponse().put("isAuthenticated", isAuthenticated);
+        if (isAuthenticated) {
+            mapResponse.put("role", Utils.getCurrentUserRole());
+        }
+        return mapResponse;
     }
 }

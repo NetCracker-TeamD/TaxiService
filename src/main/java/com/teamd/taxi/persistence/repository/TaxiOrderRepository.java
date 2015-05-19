@@ -20,7 +20,7 @@ import java.util.Calendar;
 import java.util.List;
 
 public interface TaxiOrderRepository extends JpaRepository<TaxiOrder, Long>, JpaSpecificationExecutor<TaxiOrder>,
-        CrudRepository<TaxiOrder, Long>{
+        CrudRepository<TaxiOrder, Long> {
 
     @Query("SELECT t FROM TaxiOrder t WHERE t.customer.id = ?1")
     Page<TaxiOrder> findByUserId(long id, Pageable pageable);
@@ -30,5 +30,5 @@ public interface TaxiOrderRepository extends JpaRepository<TaxiOrder, Long>, Jpa
             "where r.driver.id = ?1 " +
             "and r.status in (com.teamd.taxi.entity.RouteStatus.ASSIGNED," +
             "com.teamd.taxi.entity.RouteStatus.IN_PROGRESS ) ")
-    List<TaxiOrder> findCurrentOrderByDriverId( int driverId );
+    List<TaxiOrder> findCurrentOrderByDriverId(int driverId);
 }
