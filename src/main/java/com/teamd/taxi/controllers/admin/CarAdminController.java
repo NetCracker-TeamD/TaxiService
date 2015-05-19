@@ -190,7 +190,7 @@ public class CarAdminController {
             Map<String, String> mapError = new HashMap<>();
 
             for (FieldError fieldError : result.getFieldErrors()) {
-                mapError.put(fieldError.getField(), env.getRequiredProperty(fieldError.getCode()));
+                mapError.put(fieldError.getField(), fieldError.getCode());
             }
             response.setContent(mapError);
             return response;

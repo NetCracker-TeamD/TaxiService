@@ -54,11 +54,11 @@ public class CarService {
     }
 
     public List<Driver> getDriversWhereCarIdNull(){
-        return driverRepository.findByCarId(null);
+        return driverRepository.findByCarCarId(null);
     }
 
     public List<Integer> getAllIdDrivers() {
-        List<Driver> drivers = driverRepository.findByCarId(null);
+        List<Driver> drivers = driverRepository.findByCarCarId(null);
         List<Integer> listId = new ArrayList<>();
 
         for (Driver driver : drivers) {
