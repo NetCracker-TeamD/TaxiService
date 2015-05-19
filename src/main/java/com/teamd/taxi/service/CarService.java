@@ -53,13 +53,12 @@ public class CarService {
         return carRepository.findByDriverId(null);
     }
 
-
-    public List<Driver> getDrivers() {
-        return (List<Driver>) driverRepository.findAll();
+    public List<Driver> getDriversWhereCarIdNull(){
+        return driverRepository.findByCarCarId(null);
     }
 
     public List<Integer> getAllIdDrivers() {
-        List<Driver> drivers = this.getDrivers();
+        List<Driver> drivers = driverRepository.findByCarCarId(null);
         List<Integer> listId = new ArrayList<>();
 
         for (Driver driver : drivers) {
