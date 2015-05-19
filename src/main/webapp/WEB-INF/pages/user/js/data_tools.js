@@ -245,30 +245,37 @@ var DataTools = (function(){
 				return;
 			}
 			addCallToStack('user', loader, threadName, callback)
-			if (isCacheFresh('user')){
+			/*if (isCacheFresh('user')){
 				realiseCallStack('user', 'success', caches.user, formatedData.user)
 				return;
-			}
-			/*
-			$.ajax(serverAddress+"/services", {
+			}*/
+			
+			$.ajax(serverAddress+"/isUserLogged", {
 				'success' : function(response) {
+					console.log(response)
+					caches.user = {
+						"isLogged": response.isAuthenticated,
+						"isBlocked": false,
+						"role" : response.role,
+					}
+					formatedData.user = caches.user
 					realiseCallStack('user', 'success', caches.user, formatedData.user)
 					loader.setStatus(threadName, 'success')
 				},
 				'error' : function(response){
-					console.log("Can`t retrieve services information")
+					console.log(response)
+					caches.user = {
+						"isLogged": false,
+						"isBlocked": false,
+					}
+					formatedData.user = caches.user
+
+					console.log("Can`t retrieve user information")
 					realiseCallStack('user', 'error', caches.user, formatedData.user)
 					loader.setStatus(threadName, 'error')
 				}
-			})*/
-			caches.user = {
-				"isLogged": false,
-				"name":"Vasja",
-				"isBlocked": false,
-				"email":"Vasja.the.best@gmail.com",
-			}
-			formatedData.user = caches.user
-			realiseCallStack('user', 'success', caches.user, formatedData.user)
+			})
+			//realiseCallStack('user', 'success', caches.user, formatedData.user)
 		},
 		getOrderInfo = function(loader, threadName, callback, orderId, secretKey){
 			var stackName = 'order_'+orderId
@@ -310,19 +317,46 @@ var DataTools = (function(){
 			formatedData[stackName] = caches[stackName]
 			realiseCallStack(stackName, 'success', caches[stackName], formatedData[stackName])
 		},
+		tryLogin = function(data, callback){
+			$.ajax({
+                type: "post",
+                url: "/checkLogin",
+                data: data,
+                cache: false,
+                processData:false,
+                success : function(response){ 
+                	if (response.authenticationStatus){
+                		console.log("USER LOGGED-----------")
+						caches.user = {
+							"isLogged": true,
+							"isBlocked": false,
+						}
+						formatedData.user = caches.user
+						console.log(caches.user)
+                	}
+                    if ($.isSet(callback)) { callback("success", response) }
+                },
+                error : function(response){ 
+                    if ($.isSet(callback)) { callback("error", response)  }
+                }
+            })
+		},
 		getFavLocations = function(loader, threadName, callback){
 			if (isCallStackBusy('fav_locations')) {
 				addCallToStack('fav_locations', loader, threadName, callback)
 				return;
 			}
 			addCallToStack('fav_locations', loader, threadName, callback)
-			if (isCacheFresh('fav_locations')){
+			/*if (isCacheFresh('fav_locations')){
 				realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
 				return;
-			}
-			/*
-			$.ajax(serverAddress+"/services", {
+			}*/
+			
+			$.ajax(serverAddress+"/user/addresses", {
 				'success' : function(response) {
+					console.log(response)
+					caches.fav_locations = response
+					formatedData.fav_locations = response
 					realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
 					loader.setStatus(threadName, 'success')
 				},
@@ -331,8 +365,8 @@ var DataTools = (function(){
 					realiseCallStack('fav_locations', 'error', caches.fav_locations, formatedData.fav_locations)
 					loader.setStatus(threadName, 'error')
 				}
-			})*/
-			caches.fav_locations = [
+			})
+			/*caches.fav_locations = [
 				{
 					"name" : "Institute",
 					"address" : "Borshchahivska St, 126 Kyiv",
@@ -344,6 +378,57 @@ var DataTools = (function(){
 				formatedData.fav_locations = caches.fav_locations
 			}
 			realiseCallStack('fav_locations', 'success', caches.user, formatedData.fav_locations)
+			*/
+		},
+		/*
+			lcoations_list = [
+				{
+					name : "Location name",
+					address : "Some address, street, city ...",
+					id: N,
+					action: "none" | "add" | "update" | "remove"
+				}
+			]
+		*/
+		updateFavLocations = function(loader, threadName, callback, locations_list){
+			var stackName = 'fav_locations_save'
+			if (isCallStackBusy(stackName)) {
+				addCallToStack(stackName, loader, threadName, callback)
+				return;
+			}
+			addCallToStack(stackName, loader, threadName, callback)
+			/*if (isCacheFresh('fav_locations')){
+				realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
+				return;
+			}*/
+			
+			$.ajax(serverAddress+"/user/saveAddresses", {
+				'success' : function(response) {
+					console.log(response)
+					caches.fav_locations = response
+					formatedData.fav_locations = response
+					realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
+					loader.setStatus(threadName, 'success')
+				},
+				'error' : function(response){
+					console.log("Can`t retrieve services information")
+					realiseCallStack('fav_locations', 'error', caches.fav_locations, formatedData.fav_locations)
+					loader.setStatus(threadName, 'error')
+				}
+			})
+			/*caches.fav_locations = [
+				{
+					"name" : "Institute",
+					"address" : "Borshchahivska St, 126 Kyiv",
+				},
+			]
+			if (userLocation!=null) {
+				formatedData.fav_locations = [].concat(userLocation, caches.fav_locations)
+			} else {
+				formatedData.fav_locations = caches.fav_locations
+			}
+			realiseCallStack('fav_locations', 'success', caches.user, formatedData.fav_locations)
+			*/
 		},
 		setUserLocation = function(name, address){
 			userLocation = {"name" : name,
@@ -368,6 +453,7 @@ var DataTools = (function(){
 		"getUser" : getUser,
 		"getHistory" : getHistory,
 		"loadServices" : loadServices,
-		"loadHistory" : loadHistory
+		"loadHistory" : loadHistory,
+		//"tryLogin" : tryLogin
 	}
 })()

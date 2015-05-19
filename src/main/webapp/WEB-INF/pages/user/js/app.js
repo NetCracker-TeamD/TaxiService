@@ -22,7 +22,7 @@ var App = (function(){
 			blocks.content.html("")
 			blocks.content.append(Templates.getBlocked())
 		},
-		showLogoutPage = function(){showOrderPage()},
+		showLogoutPage = function(){window.location = "/logout";},
 		showOrderPage = function(orderId, secretKey){
 			showLoadPage()
 			current_page_name = "make-order"
@@ -48,7 +48,10 @@ var App = (function(){
 		   			Templates.makeNiceSubmitButton({
 		   				form : orderForm,
 		   				button : makeOrderBtn,
+		   				useJSON : true,
 		   				success : function(response){
+		   					console.log("response")
+		   					console.log(response)
 							var watchIt = function(){
 								console.log("go to track link")
 								showOrderPage("id","secret")
@@ -75,6 +78,8 @@ var App = (function(){
 							})
 						},
 						error : function(response){
+		   					console.log("response err")
+
 							console.log(response)
 							BootstrapDialog.show({
 								type: BootstrapDialog.TYPE_DANGER,
@@ -489,15 +494,51 @@ var App = (function(){
             	button : loginBtn,
     			success : function(response){
 					//loadPage("new-order")
+					console.log("success")
+					console.log(response)
+					if (!response.authenticationStatus){
+						BootstrapDialog.show({
+							type: BootstrapDialog.TYPE_DANGER,
+							title: "Invalid login credentioals",
+							message: "Invalid login credentioals",
+						})
+					} else {
+						
+						var loader = new Loader()
+						loader.addCallBack(function(){ 
+							console.log(tmpStorage.user)
+							switch (tmpStorage.user.role) {
+								case "ROLE_CUSTOMER" : 
+									pages["make-order"].show()
+									break;
+								case "ROLE_DRIVER" : 
+									window.location = "/driver";
+									break;
+								case "ROLE_ADMINISTRATOR" : 
+									window.location = "/admin";
+									break;
+								default:
+									console.log("UNKNOW ROLE NAME");
+									break;
+							}
+							
+						})
+						//data loading
+						DataTools.getUser(loader, loader.getUniqId(), function(status, response, userInfo){
+							tmpStorage.user = userInfo
+						})
+					}
 				},
 				error : function(response){
+					console.log("error")
+					console.log(response)
 					BootstrapDialog.show({
 						type: BootstrapDialog.TYPE_DANGER,
 						title: "Server error",
 						message: "Server returns error with status '"+response.statusText+"'",
 					})
 				}
-    		})
+    		}/*, DataTools.tryLogin*/)
 
 			//fill page
 			blocks.content.html("")
@@ -514,9 +555,15 @@ var App = (function(){
 					form : form,
 					button : submBtn,
 					success : function(response){
-						//loadPage("new-order")
+						console.log(response)
+						BootstrapDialog.show({
+							type: BootstrapDialog.TYPE_SUCCESS,
+							title: "Congradulations!",
+							message: "You are succesfully registered. Plese, check your mail for confirmation link",
+						})
 					},
 					error : function(response){
+						console.log(response)
 						BootstrapDialog.show({
 							type: BootstrapDialog.TYPE_DANGER,
 							title: "Server error",
@@ -558,6 +605,22 @@ var App = (function(){
 			showLoadPage()
 			var createDOM = function(){
 				console.log(tmpStorage.favouriteLocations)
+				var locations = []
+				var fav_locations = tmpStorage.favouriteLocations
+				for (var i=0;i<fav_locations.length;i++){
+					var location = fav_locations[i]
+					console.log(location)
+					if ($.isSet(location) && !location.isUserLocation) {
+						console.log("pushed")
+						locations.push({
+							name : location.name,
+							address : location.address,
+							id : location.id,
+							action : "none",
+						})
+					}
+				}
+				console.log(locations)
 				var container = Templates.getEditAccount(tmpStorage.favouriteLocations),
 				saveBtns = container.find('[data-action="save"]'),
 				addresses = container.find('#addresses')
@@ -566,22 +629,99 @@ var App = (function(){
 				$.each(saveBtns, function(i,btn){
 					btn = $(btn)
 					var formId = btn.attr("data-form-id")
-					Templates.makeNiceSubmitButton({
-						form : container.find('#'+formId),
-						button : btn,
-						success : function(response){
-							//loadPage("new-order")
-						},
-						error : function(response){
-							BootstrapDialog.show({
-								type: BootstrapDialog.TYPE_DANGER,
-								title: "Server error",
-								message: "Server returns error with status '"+response.statusText+"'",
-							})
-						}
-					})
+					if (formId == "addresses") {
+						Templates.makeNiceSubmitButton({
+							form : container.find('#'+formId),
+							button : btn,
+							dataFormater : function(){
+								var data = [],
+									addresses = container.find('[data-type="address-group"]').find('.input-group.fav-address')
+								for (var j=0;j<locations.length;j++){
+									locations[j].finded = false
+								}
+								for (var i = 0;i<addresses.length;i++){
+									var addressBlock = $(addresses[i]),
+										address = addressBlock.find('[data-type="address"]').val(),
+										name = addressBlock.find('[data-type="address-name"]'),
+										locationId = name.attr('data-id'),
+										name = name.val()
+									if (!$.isSet(locationId)) {
+										data.push({
+											name : name,
+											address : address,
+											action : "add"
+										})
+										continue;
+									}
+									//search current location in array
+									for (var j=0;j<locations.length;j++){
+										var location = locations[j]
+										if (location.id == locationId ){
+											location.finded = true
+											console.log("finded",location.id)
+											if (location.name != name || location.address != address) {
+												data.push({
+													name : name,
+													address : address,
+													id : locationId,
+													action : "update"
+												})
+												console.log("updated",location.id)
+											}
+											break
+										}
+									}
+								}
+								//remove unexists locations
+								for (var i=0;i<locations.length;i++){
+									var location = locations[i]
+									if (location.finded !== true ){
+										data.push({
+											id : location.id,
+											action : "remove"
+										})
+										console.log("removed",location.id)
+									}
+								}
+								console.log(data)
+								return JSON.stringify(data)
+								//return []
 
+							},
+							success : function(response){
+								console.log("success")
+								console.log(response)
+								//loadPage("new-order")
+							},
+							error : function(response){
+								console.log("error")
+								console.log(response)
+								BootstrapDialog.show({
+									type: BootstrapDialog.TYPE_DANGER,
+									title: "Server error",
+									message: "Server returns error with status '"+response.statusText+"'",
+								})
+							}
+						})
+					} else {
+						Templates.makeNiceSubmitButton({
+							form : container.find('#'+formId),
+							button : btn,
+							success : function(response){
+								//loadPage("new-order")
+							},
+							error : function(response){
+								BootstrapDialog.show({
+									type: BootstrapDialog.TYPE_DANGER,
+									title: "Server error",
+									message: "Server returns error with status '"+response.statusText+"'",
+								})
+							}
+						})
+					}
 				})
+
+				//locationID = container.find('[data-id]').attr('data-id')
 				
 				//fill page
 				blocks.content.html("")

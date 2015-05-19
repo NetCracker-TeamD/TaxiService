@@ -137,6 +137,7 @@ public class UserAddressesController {
     @ResponseBody
     public Map<String, Object> save(Reader reader) throws PropertyNotFoundException, NotFoundException, MapServiceNotAvailableException {
         JsonArray addresses = (JsonArray) new JsonParser().parse(reader);
+        System.out.println(addresses);
         AuthenticatedUser authenticatedUser = Utils.getCurrentUser();
         User user = userService.findById(authenticatedUser.getId());
 
@@ -169,6 +170,7 @@ public class UserAddressesController {
                 if (updatingAddress.getUser().getId() != user.getId()) {
                     throw new AccessDeniedException("action[" + action + "] not allowed");
                 }
+                toDelete.add(updatingAddress);
             }
         }
         //проверка валидности адресов
