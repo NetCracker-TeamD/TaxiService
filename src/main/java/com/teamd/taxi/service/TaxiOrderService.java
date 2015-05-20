@@ -2,9 +2,7 @@ package com.teamd.taxi.service;
 
 import com.google.maps.errors.NotFoundException;
 import com.teamd.taxi.entity.*;
-import com.teamd.taxi.exception.MapServiceNotAvailableException;
-import com.teamd.taxi.exception.NotCompatibleException;
-import com.teamd.taxi.exception.PropertyNotFoundException;
+import com.teamd.taxi.exception.*;
 import com.teamd.taxi.models.TaxiOrderForm;
 import com.teamd.taxi.persistence.repository.RouteRepository;
 import com.teamd.taxi.persistence.repository.ServiceTypeRepository;
@@ -229,6 +227,51 @@ public class TaxiOrderService {
         routes = routeRepository.save(routes);
         order.setRoutes(routes);
         return order;
+    }
+
+    @Transactional
+    public void setUpdating(long orderId) throws OrderNotUpdatableException {
+        TaxiOrder order = orderRepository.findOne(orderId);
+        List<Route> routes = order.getRoutes();
+        for (Route route : routes) {
+            if (route.getStatus() != RouteStatus.QUEUED) {
+                throw new OrderNotUpdatableException(orderId);
+            }
+            route.setStatus(RouteStatus.UPDATING);
+        }
+        orderRepository.save(order);
+    }
+
+    @Transactional
+    public TaxiOrder updateTaxiOrder(long orderId, TaxiOrderForm form) throws NotCompatibleException,
+            PropertyNotFoundException, NotFoundException, MapServiceNotAvailableException,
+            OrderNotUnderUpdatingException {
+        TaxiOrder old = orderRepository.findOne(orderId);
+        for (Route route : old.getRoutes()) {
+            if (route.getStatus() != RouteStatus.UPDATING) {
+                throw new OrderNotUnderUpdatingException(orderId);
+            }
+        }
+        TaxiOrder orderWithUpdates = fillOrder(form, null);
+        //копируем данные
+        old.setDriverSex(orderWithUpdates.getDriverSex());
+        old.setCarClass(orderWithUpdates.getCarClass());
+        old.setRegistrationDate(Calendar.getInstance());
+        old.setPaymentType(orderWithUpdates.getPaymentType());
+        old.setExecutionDate(orderWithUpdates.getExecutionDate());
+        old.setFeatures(orderWithUpdates.getFeatures());
+        //удаляем старые маршруты
+        List<Route> oldRoutes = old.getRoutes();
+        routeRepository.delete(oldRoutes);
+        //добавляем новые
+        List<Route> routes = orderWithUpdates.getRoutes();
+        for (Route route : routes) {
+            route.setOrder(old);
+        }
+        old.setRoutes(routes);
+        //сохраняем
+        old = orderRepository.save(old);
+        return old;
     }
 
     private List<Route> makeClones(Route prototype, int amount) {

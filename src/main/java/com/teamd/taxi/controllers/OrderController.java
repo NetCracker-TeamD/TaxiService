@@ -8,6 +8,7 @@ import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
+import com.teamd.taxi.models.MapResponse;
 import com.teamd.taxi.models.TaxiOrderForm;
 
 import static com.teamd.taxi.entity.RouteStatus.*;
@@ -221,7 +222,11 @@ public class OrderController {
         if (now && nowPrimitive != null) {
             form.setExecDate(Calendar.getInstance());
         } else if (specified && specifiedPrimitive != null) {
-            form.setExecDate(parseDate(specifiedPrimitive.getAsString()));
+            Calendar calendar = parseDate(specifiedPrimitive.getAsString());
+            if (calendar.compareTo(Calendar.getInstance()) < 0) {
+                throw new IllegalArgumentException("date from the past received: " + calendar.getTime());
+            }
+            form.setExecDate(calendar);
         } else {
             throw new PropertyNotFoundException("timing");
         }
@@ -262,10 +267,10 @@ public class OrderController {
                 .getAuthentication();
         User user;
         if (authentication instanceof AnonymousAuthenticationToken) {
-            JsonElement name = getAndCheck(orderObject, "name");
+            JsonElement name = getAndCheck(orderObject, "firstName");
             JsonElement lastName = getAndCheck(orderObject, "lastName");
             JsonElement email = getAndCheck(orderObject, "email");
-            JsonElement phoneNumber = getAndCheck(orderObject, "phone_number");
+            JsonElement phoneNumber = getAndCheck(orderObject, "phoneNumber");
 
             user = new User(null, name.getAsString(), lastName.getAsString(), UserRole.ROLE_ANONYMOUS, phoneNumber.getAsString());
             user.setEmail(email.getAsString());
@@ -283,6 +288,28 @@ public class OrderController {
         //TODO: add real link with MvcComponentsBuilder, don't add a secret key if user is authenticated
         jsonObject.addProperty("trackLink", "/viewOrder?trackNum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
         return new GsonBuilder().disableHtmlEscaping().create().toJson(jsonObject);
+    }
+
+    @RequestMapping(value = "/setUpdating", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public Map<String, Object> setUpdating(@RequestParam("id") TaxiOrder order) throws OrderNotUpdatableException {
+        if (order == null) {
+            return new MapResponse().put("status", "notFound");
+        }
+        taxiOrderService.setUpdating(order.getId());
+        return new MapResponse().put("status", "OK");
+    }
+
+
+    @RequestMapping(value = "/updateOrder", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public Map<String, Object> updateOrder(@RequestParam("id") long orderId, Reader reader)
+            throws ParseException, PropertyNotFoundException, ItemNotFoundException,
+            MapServiceNotAvailableException, NotFoundException, NotCompatibleException, OrderNotUnderUpdatingException {
+        JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
+        TaxiOrderForm form = fillForm(orderObject);
+        taxiOrderService.updateTaxiOrder(orderId, form);
+        return new MapResponse().put("status", "OK");
     }
 
     @RequestMapping(value = "/getOrder", produces = "application/json;charset=UTF-8")
@@ -310,7 +337,8 @@ public class OrderController {
             NotFoundException.class,
             MapServiceNotAvailableException.class,
             JsonSyntaxException.class,
-            JsonParseException.class
+            JsonParseException.class,
+            IllegalArgumentException.class
     })
     public void handleException(Exception e, HttpServletResponse response) throws IOException {
         logger.error(e);
