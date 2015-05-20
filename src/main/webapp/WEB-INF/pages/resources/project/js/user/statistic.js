@@ -67,21 +67,13 @@ $(document).ready(function () {
         $.get(mapping, function (data) {
             if (data.length != 0) {
                 drawTable(data);
-            } else {
+            }
+            else {
                 drawAttention();
             }
         });
     }
 
-    function drawAttention() {
-        $('#main_table_content').empty();
-        $("#main_table_content").append("<h2 align='center'>No records found</h2>");
-    }
-
-    function drawError() {
-        $('#main_table_content').empty();
-        $("#main_table_content").append("<h2 align='center'>Wrong date</h2>");
-    }
 
     function drawTable(data) {
         $('#main_table_content').empty();
@@ -103,6 +95,16 @@ $(document).ready(function () {
         }
         var row_end = $("</tbody>");
         $("#main_table_content").append(row_end);
+    }
+
+    function drawAttention() {
+        $('#main_table_content').empty();
+        $("#main_table_content").append("<h2 align='center'>No records found</h2>");
+    }
+
+    function drawError() {
+        $('#main_table_content').empty();
+        $("#main_table_content").append("<h2 align='center'>Wrong date</h2>");
     }
 
 
@@ -201,6 +203,7 @@ $(document).ready(function () {
                     drawError();
                 }
             });
+
         } else {
             alert("Please pick period of time");
         }
