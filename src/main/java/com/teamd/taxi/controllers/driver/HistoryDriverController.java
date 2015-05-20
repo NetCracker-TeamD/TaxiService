@@ -48,9 +48,6 @@ public class HistoryDriverController {
 
     Logger logger = Logger.getLogger(HistoryDriverController.class);
 
-    /*
-    * @RequestMapping(value = "/history/{driverId}", method = RequestMethod.GET)
-    * */
     @RequestMapping(value = "/history/{driverId}", method = RequestMethod.GET)
     public String getDriverHistoryById(Model model, @RequestParam Map<String, String> requestParam, @PathVariable int driverId) {
         Driver driver = driverService.getDriver(driverId);
@@ -63,7 +60,7 @@ public class HistoryDriverController {
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication authentication = context.getAuthentication();
         AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("DRIVER_ROLE"))) {
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_DRIVER"))) {
             Driver driver = driverService.getDriver((int) auth.getId());
             setViewHistory(model, requestParam, driver);
         }
@@ -87,7 +84,6 @@ public class HistoryDriverController {
         }
         List<TaxiOrder> orders = orderList.getContent();
         setFilteringOFRoutesForDriver(orders, driver.getId());
-
         model.addAttribute("orderList", orders);
         model.addAttribute("pages", orderList.getTotalPages());
         model.addAttribute("serviceTypes", typeList);

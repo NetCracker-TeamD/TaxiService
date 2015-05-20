@@ -37,13 +37,13 @@
             <ul class="nav navbar-nav">
                 <li><a href="#">Users</a></li>
                 <li><a href="#">Groups</a></li>
-                <li><a href="#">Drivers</a></li>
-                <li><a href="#">Cars</a></li>
+                <li><a href="drivers.jsp">Drivers</a></li>
+                <li><a href="cars">Cars</a></li>
                 <li><a href="#">Tariffs</a></li>
                 <li><a href="statistic">Reports</a></li>
             </ul>
             <div class="navbar-form navbar-right">
-                <button type="button" class="btn btn-primary">Sign out</button>
+                <button type="button" class="btn btn-primary">Log out</button>
             </div>
         </div>
     </div>
@@ -53,7 +53,7 @@
 
 <div align="center" class="container">
     <ul id="my-menu">
-        <li class="nav nav-pills nav-stacked" class="active"><h2>Pick type of report</h2>
+        <li class="nav nav-pills nav-stacked" class="active"><h2>Pick type of report<span class="caret"></span></h2>
             <ul>
                 <li role="presentation"><a class="profit_by_period">Most profitable taxi service</a></li>
                 <li role="presentation"><a class="popular_car">Most popular car</a></li>
@@ -71,29 +71,78 @@
 <div id="report_1" class="container">
     <h2>Most profitable service</h2>
 
-    <form class="container">
-        <input type="radio" name="period" id="week" class="checkboxes" checked>Week</input><br>
-        <input type="radio" name="period" id="month" class="checkboxes">Month</input><br>
-        <input type="radio" name="period" id="decade" class="checkboxes">Decade</input>
+    <form class="container" action="statistic/exportMostProfitable">
+        <input type="submit" value="Export to Excel" class="btn btn-primary"><br>
+        <input type="radio" name="period" id="week" value="WEEK" class="checkboxes" checked>Week</input><br>
+        <input type="radio" name="period" id="month" value="MONTH" class="checkboxes">Month</input><br>
+        <input type="radio" name="period" id="decade" value="DECADE" class="checkboxes">Decade</input>
+
     </form>
 </div>
+
+<style>
+    #excel {
+        display: inline-block;
+        float: right;
+        margin: 0;
+        position: relative;
+    }
+
+</style>
 <div id="report_2" class="container">
     <h2>Most popular car</h2>
+
+    <form action="statistic/exportMostPopularCar">
+        <input type="submit" value="Export to Excel" class="btn btn-primary">
+    </form>
 </div>
 <div id="report_3" class="container">
     <h2>Most popular additional car options for each customer user</h2>
+
+    <form action="statistic/exportAdditionalOptionsForUser">
+        <input type="submit" value="Export to Excel" class="btn btn-primary">
+    </form>
 </div>
 <div id="report_4" class="container">
     <h2>Most popular additional car options overall</h2>
+
+    <form action="statistic/exportAdditionalOptions">
+        <input type="submit" value="Export to Excel" class="btn btn-primary">
+    </form>
 </div>
 <div id="report_5" class="container">
     <h2>New orders per period</h2>
-    Pick start date<input type="text" id="datepicker1">
-    Pick end date<input type="text" id="datepicker">
-    <button id="generate" class="btn btn-default" type="submit">Generate report</button>
+
+    <table class="table">
+        <thead>
+        <td>
+            <form action="statistic/exportNewOrders">
+                Pick start date<input type="text" id="datepicker1" name="startDate">
+        </td>
+        <td>
+            Pick end date<input type="text" id="datepicker" name="endDate">
+        </td>
+        <td>
+            <input type="submit" value="Export to Excel" class="btn btn-primary">
+            </form>
+        </td>
+
+        <td>
+            <button id="generate" class="btn btn-primary" type="submit">Generate report</button>
+        </td>
+        <td>
+        </td>
+        </thead>
+    </table>
+
+
 </div>
 <div id="report_6" class="container">
     <h2>Service profitability by month</h2>
+
+    <form action="statistic/exportServiceProfitability">
+        <input type="submit" value="Export to Excel" class="btn btn-primary">
+    </form>
 </div>
 
 <div class="container" id="main_table">

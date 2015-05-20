@@ -222,8 +222,9 @@ public class PriceCountService {
 
     private void filterByDriverId(List<Route> all, int driverId) {
         for (Iterator<Route> routeIterator = all.iterator(); routeIterator.hasNext(); ) {
-            Driver driver = routeIterator.next().getDriver();
-            if (driver == null || driver.getId() != driverId) {
+            Route next = routeIterator.next();
+            Driver driver = next.getDriver();
+            if (driver == null || driver.getId() != driverId || next.getStatus() == RouteStatus.REFUSED) {
                 routeIterator.remove();
             }
         }

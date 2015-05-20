@@ -1,6 +1,7 @@
 package com.teamd.taxi.models;
 
 import com.teamd.taxi.validation.Phone;
+import com.teamd.taxi.validation.UniqueUserEmail;
 import org.hibernate.validator.constraints.*;
 
 public class RegistrationForm {
@@ -19,6 +20,7 @@ public class RegistrationForm {
 
     @NotBlank
     @Email(regexp = "^(.+)@(.+)$")
+    @UniqueUserEmail
     private String email;
 
     @NotBlank

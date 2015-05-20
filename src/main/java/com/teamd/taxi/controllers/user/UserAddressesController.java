@@ -26,8 +26,11 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -61,83 +64,30 @@ public class UserAddressesController {
             .registerTypeAdapter(UserAddress.class, new AddressSerializer())
             .create();
 
-    @RequestMapping(value = "/addresses", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/addresses", produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public String getUserAddresses() {
-        AuthenticatedUser user = Utils.getCurrentUser();
-        List<UserAddress> addressList = addressService.findAddressesByUserId(user.getId());
-        return gson.toJson(addressList);
-    }
-
-    @RequestMapping(value = "/addAddress", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public Object addAddress(@Valid AddressForm form, BindingResult result) {
-        Map<String, Object> response = new HashMap<>();
-        if (result.hasErrors()) {
-            response.put("status", "validationError");
-            response.put("fieldErrors", Utils.convertToMap(env, result));
-            return response;
+    public String getUserAddresses(/*HttpServletResponse response*/) throws IOException {
+        List<UserAddress> addressList = new ArrayList<>();
+        if (Utils.isAuthenticated()) {//if user isn`t authenticated 500
+            AuthenticatedUser user = Utils.getCurrentUser();
+            addressList = addressService.findAddressesByUserId(user.getId());
         }
-        AuthenticatedUser auth = Utils.getCurrentUser();
-        User user = userService.findById(auth.getId());
-        UserAddress address = new UserAddress(null, form.getName(), form.getAddress());
-        address.setUser(user);
-        address = addressService.save(address);
-
-        response.put("addressId", address.getId());
-        response.put("status", "OK");
-        return response;
+        String addressJsonString = gson.toJson(addressList);
+        logger.info("addresses: " + addressJsonString);
+        /*
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json");
+        try (Writer writer = response.getWriter()) {
+            writer.write(addressJsonString);
+        }*/
+        return addressJsonString;
     }
 
-    @RequestMapping(value = "/deleteAddress", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    @PreAuthorize("#address.user.id == principal.id")
-    public Map<String, Object> deleteAddress(@RequestParam("id") UserAddress address) {
-        //TODO: think about whether its necessary or not
-        if (address != null) {
-            addressService.delete(address);
-        }
-        return new MapResponse()
-                .put("status", "OK");
-    }
-
-
-    @RequestMapping(value = "/updateAddress", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    @PreAuthorize("#addressToUpdate.user.id == principal.id")
-    public Map<String, Object> updateAddress(
-            @RequestParam("id") UserAddress addressToUpdate,
-            @Valid AddressForm form, BindingResult result) {
-        if (result.hasErrors()) {
-            return new MapResponse()
-                    .put("status", "validationError")
-                    .put("fieldErrors", Utils.convertToMap(env, result));
-        }
-        addressToUpdate.setAddress(form.getAddress());
-        addressToUpdate.setName(form.getName());
-        addressService.save(addressToUpdate);
-        return new MapResponse()
-                .put("status", "OK");
-    }
-
-
-    private void deleteAddress() {
-
-    }
-
-    private void updateAddress() {
-
-    }
-
-    private void saveNewAddress() {
-
-    }
-
-    @RequestMapping("/saveAddresses")
+    @RequestMapping(value = "/saveAddresses", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public Map<String, Object> save(Reader reader) throws PropertyNotFoundException, NotFoundException, MapServiceNotAvailableException {
         JsonArray addresses = (JsonArray) new JsonParser().parse(reader);
-        System.out.println(addresses);
+        logger.info("saveAddresses: " + addresses);
         AuthenticatedUser authenticatedUser = Utils.getCurrentUser();
         User user = userService.findById(authenticatedUser.getId());
 
@@ -205,10 +155,13 @@ public class UserAddressesController {
     }
 
     @ExceptionHandler({
-            PropertyNotFoundException.class
+            PropertyNotFoundException.class,
+            JsonParseException.class,
+            JsonSyntaxException.class,
+            NullPointerException.class
     })
     @ResponseBody
-    public Map<String, Object> handleJsontExceptions(Exception e) {
+    public Map<String, Object> handleJsonExceptions(Exception e) {
         return new MapResponse()
                 .put("exception", e.getClass().getName())
                 .put("message", e.getMessage());

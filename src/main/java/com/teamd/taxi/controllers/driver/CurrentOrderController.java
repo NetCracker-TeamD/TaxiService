@@ -78,7 +78,7 @@ public class CurrentOrderController {
                     break;
                 }
             }
-            System.out.println("Taxi Order ID = "+taxiOrder.getId()+"  Driever "+driver.getId());
+            System.out.println("Taxi Order ID = " + taxiOrder.getId() + "  Driever " + driver.getId());
             List<Route> sortRoutes = getChainForDriver(taxiOrder, drvId);
 
             if (!isRouteChain(taxiOrder)) {
@@ -207,7 +207,7 @@ public class CurrentOrderController {
             route.setCustomerLate(false);
             route.setDriver(driver);
             route.setOrder(taxiOrder);
-            route.setDistance( distance);
+            route.setDistance(distance);
 
             taxiOrder.getRoutes().add(route);
             driver.getRoutes().add(route);
@@ -239,13 +239,13 @@ public class CurrentOrderController {
 
         JsonObject to = new JsonObject();
         Driver driver = driverService.getDriver(driverId);
-        TaxiOrder taxiOrder ;
+        TaxiOrder taxiOrder;
 
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) {
 
             long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 1000;
             long executeOrderDate = taxiOrder.getExecutionDate().getTimeInMillis();
-            System.out.println(" ServiceType "+taxiOrder.getServiceType().isDestinationLocationsChain());
+            System.out.println(" ServiceType " + taxiOrder.getServiceType().isDestinationLocationsChain());
 
             //TODO В БАЗІ ПОМИЛКА isDestinationLocationsChain повинно бути true/false aле не null
             if (taxiOrder.getServiceType().isDestinationLocationsChain() != null
@@ -277,7 +277,7 @@ public class CurrentOrderController {
 
             to.addProperty("idleFreeTime", idleFreeTime);
             to.addProperty("executeOrderDate", executeOrderDate);
-        }else{
+        } else {
             to.addProperty("currentOrderState", "noCurrentOrder");
         }
 
@@ -298,12 +298,12 @@ public class CurrentOrderController {
 
     private Calendar getTimeOfLastComletionRouteInChain(TaxiOrder taxiOrder, int driverId) {
         List<Route> sortRoutes = getChainForDriver(taxiOrder, driverId);
-        for ( int i = 0; i < sortRoutes.size(); i++){
-            Route r =  sortRoutes.get(i);
-            if(driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.IN_PROGRESS){
+        for (int i = 0; i < sortRoutes.size(); i++) {
+            Route r = sortRoutes.get(i);
+            if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.IN_PROGRESS) {
                 return null;
-            }else if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.ASSIGNED) {
-                return sortRoutes.get(i-1).getCompletionTime();
+            } else if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.ASSIGNED) {
+                return sortRoutes.get(i - 1).getCompletionTime();
             }
         }
         return null;
@@ -366,7 +366,7 @@ public class CurrentOrderController {
     }
 
     private List<Route> getChainForDriver(TaxiOrder taxiOrder, int driverId) {
-        System.out.println("Taxi Order ID = "+taxiOrder.getId()+"  Driever "+driverId);
+        System.out.println("Taxi Order ID = " + taxiOrder.getId() + "  Driever " + driverId);
         AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
         List<AssembledRoute> assRoutes = assembledOrder.getAssembledRoutes();
         List<Route> routes = new ArrayList<>();

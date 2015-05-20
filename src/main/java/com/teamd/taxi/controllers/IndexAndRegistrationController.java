@@ -9,7 +9,6 @@ import com.teamd.taxi.models.RegistrationForm;
 import com.teamd.taxi.service.CustomerUserService;
 import com.teamd.taxi.service.email.MailService;
 import com.teamd.taxi.validation.RegistrationFormPasswordValidator;
-import com.teamd.taxi.validation.UniqueEmailValidator;
 import org.apache.log4j.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -47,9 +46,6 @@ public class IndexAndRegistrationController {
 
     private static final Logger logger = Logger.getLogger(IndexAndRegistrationController.class);
 
-    @Autowired
-    private UniqueEmailValidator uniqueEmailValidator;
-
     @Resource
     private Environment env;
 
@@ -59,8 +55,7 @@ public class IndexAndRegistrationController {
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         binder.addValidators(
-                new RegistrationFormPasswordValidator(),
-                uniqueEmailValidator
+                new RegistrationFormPasswordValidator()
         );
     }
 
@@ -73,13 +68,13 @@ public class IndexAndRegistrationController {
         return "index";
     }
 
-    @RequestMapping(value = "/checkFreeEmail", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/checkFreeEmail", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public String checkEmail(@RequestParam("email") String email) {
         return "{\"isEmailFree\":" + userService.isEmailFree(email) + "}";
     }
 
-    @RequestMapping("/register")
+    @RequestMapping(value = "/register", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public Map<String, Object> registerNewCustomer(
             @Valid RegistrationForm form, BindingResult errors) throws MessagingException {

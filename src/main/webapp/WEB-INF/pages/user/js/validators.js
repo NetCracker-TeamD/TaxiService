@@ -1,3 +1,3 @@
-var Validator = (function(){
-	return {}
+var Validator = (function () {
+    return {}
 })()

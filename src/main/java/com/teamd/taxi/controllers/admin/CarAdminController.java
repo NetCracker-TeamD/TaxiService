@@ -7,6 +7,7 @@ import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.models.admin.AdminResponseModel;
 import com.teamd.taxi.models.admin.CarModel;
 import com.teamd.taxi.models.admin.CarsPageModel;
+import com.teamd.taxi.models.admin.UpdateCarModel;
 import com.teamd.taxi.service.AdminPagesUtil;
 import com.teamd.taxi.service.CarService;
 import com.teamd.taxi.validation.AdminCarValidator;
@@ -176,6 +177,32 @@ public class CarAdminController {
         }
     }
 
+    @RequestMapping(value = "/update_car", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public AdminResponseModel<Map<String, String>> updateCar(@RequestBody UpdateCarModel updateCarModel, BindingResult result){
+
+        AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
+
+        if (result.hasErrors()) {
+
+            response.setResultFailure();
+
+            Map<String, String> mapError = new HashMap<>();
+
+            for (FieldError fieldError : result.getFieldErrors()) {
+                mapError.put(fieldError.getField(), fieldError.getCode());
+            }
+            response.setContent(mapError);
+            return response;
+        }else {
+            response.setResultSuccess();
+            response.setContent(new HashMap<String, String>() {{
+                put("message", "Update norm");
+            }});
+            return response;
+        }
+    }
+
     @RequestMapping(value = "/getDrivers", method = RequestMethod.GET)
     @ResponseBody
     public List<Map<String, String>> getDrivers() {
@@ -183,7 +210,7 @@ public class CarAdminController {
         List<Map<String, String>> result = new ArrayList<>();
         Map<String, String> parametersOfDriver = null;
 
-        List<Driver> drivers = carService.getDrivers();
+        List<Driver> drivers = carService.getDriversWhereCarIdNull();
 
         for (Driver driver : drivers) {
             parametersOfDriver = new HashMap<>();

@@ -41,7 +41,7 @@ public class ChangePasswordController {
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication authentication = context.getAuthentication();
         AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("DRIVER_ROLE"))) {
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_DRIVER"))) {
             Driver driver = driverService.getDriver((int) auth.getId());
             if (newpass != null && repass != null /*&& newpass.length() > 5 */ && newpass.equals(repass)
                     && encoder.matches(oldPass, driver.getPassword())) {

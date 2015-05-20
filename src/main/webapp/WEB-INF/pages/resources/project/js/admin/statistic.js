@@ -1,8 +1,3 @@
-/**
- * Created by Vika on 4/29/15.
- */
-
-
 var period;
 
 //время from to
@@ -70,10 +65,23 @@ $(document).ready(function () {
         var recursiveDecoded = decodeURIComponent($.param(parameterName));
         var mapping = "statistic/" + "mostProfitableService?" + recursiveDecoded;
         $.get(mapping, function (data) {
-            drawTable(data);
+            if (data.length != 0) {
+                drawTable(data);
+            } else {
+                drawAttention();
+            }
         });
     }
 
+    function drawAttention() {
+        $('#main_table_content').empty();
+        $("#main_table_content").append("<h2 align='center'>No records found</h2>");
+    }
+
+    function drawError() {
+        $('#main_table_content').empty();
+        $("#main_table_content").append("<h2 align='center'>Wrong date</h2>");
+    }
 
     function drawTable(data) {
         $('#main_table_content').empty();
@@ -108,7 +116,11 @@ $(document).ready(function () {
         $("#report_6").hide();
         $("#report_5").hide();
         $.get("statistic/mostPopularCar", function (data) {
-            drawTable(data);
+            if (data.length != 0) {
+                drawTable(data);
+            } else {
+                drawAttention();
+            }
         });
     });
 
@@ -123,7 +135,11 @@ $(document).ready(function () {
         $("#report_5").hide();
         $('ul#my-menu li ul').hide("normal");
         $.get("statistic/mostPopularAdditionalCarOptionsForEachCustomerUser", function (data) {
-            drawTable(data);
+            if (data.length != 0) {
+                drawTable(data);
+            } else {
+                drawAttention();
+            }
         });
 
     });
@@ -138,12 +154,18 @@ $(document).ready(function () {
         $("#report_4").show();
         $("#report_6").hide();
         $.get("statistic/mostPopularAdditionalCarOptionsOverall", function (data) {
-            drawTable(data);
+            if (data.length != 0) {
+                drawTable(data);
+            } else {
+                drawAttention();
+            }
         });
     });
 
     //New orders per period show table
     $(".new_order").click(function () {
+        $("#datepicker1").datepicker('setDate', 'today');
+        $("#datepicker").datepicker('setDate', 'today');
         $('#main_table_content').empty();
         $('ul#my-menu li ul').hide("normal");
         $("#report_5").show();
@@ -164,8 +186,20 @@ $(document).ready(function () {
             };
             var recursiveDecoded = decodeURIComponent($.param(parameterName));
             var mapping = "statistic/" + "newOrdersPerPeriod" + "?" + recursiveDecoded;
-            $.get(mapping, function (data) {
-                drawTable(data);
+            $.ajax({
+                url: mapping,
+                type: 'GET',
+                success: function (data) {
+                    if (data.length != 0) {
+                        drawTable(data);
+                    }
+                    else {
+                        drawAttention();
+                    }
+                },
+                error: function (data) {
+                    drawError();
+                }
             });
         } else {
             alert("Please pick period of time");
@@ -183,7 +217,11 @@ $(document).ready(function () {
         $("#report_4").hide();
         $("#report_6").show();
         $.get("statistic/serviceProfitabilityByMonth", function (data) {
-            drawTable(data);
+            if (data.length != 0) {
+                drawTable(data);
+            } else {
+                drawAttention();
+            }
         });
 
     });
