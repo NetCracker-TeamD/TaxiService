@@ -369,6 +369,11 @@ var DataTools = (function () {
                     console.log(response)
                     caches.fav_locations = response
                     formatedData.fav_locations = response
+                    if (userLocation!=null) {
+						formatedData.fav_locations = [].concat(userLocation, caches.fav_locations)
+					} else {
+						formatedData.fav_locations = caches.fav_locations
+					}
                     realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
                     loader.setStatus(threadName, 'success')
                 },

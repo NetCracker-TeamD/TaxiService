@@ -67,8 +67,11 @@ public class UserAddressesController {
     @RequestMapping(value = "/addresses", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public String getUserAddresses(/*HttpServletResponse response*/) throws IOException {
-        AuthenticatedUser user = Utils.getCurrentUser();
-        List<UserAddress> addressList = addressService.findAddressesByUserId(user.getId());
+        List<UserAddress> addressList = new ArrayList<>();
+        if (Utils.isAuthenticated()) {//if user isn`t authenticated 500
+            AuthenticatedUser user = Utils.getCurrentUser();
+            addressList = addressService.findAddressesByUserId(user.getId());
+        }
         String addressJsonString = gson.toJson(addressList);
         logger.info("addresses: " + addressJsonString);
         /*
