@@ -34,6 +34,7 @@ var PagingUtils = (function () {
 
     //підготовка даних до відправки у такі формі, якій їх чекає сервер
     function prepareDataForSending(state) {
+        //основні дані
         var dataToSend = {};
         dataToSend.page = state.pageNum;
         if (state.sort) {
@@ -44,8 +45,16 @@ var PagingUtils = (function () {
                 dataToSend[prop] = state.additional[prop];
             }
         }
+        //приховані дані, тобто ті, яких не має
+        //бути видно у рядку URL
+        var hiddenData = {};
+        if (state.hidden) {
+            for (var prop in state.hidden) {
+                hiddenData[prop] = state.hidden[prop];
+            }
+        }
         //prepare filtration data
-        return dataToSend;
+        return {main: dataToSend, hidden: hiddenData};
     }
 
     function convertIntoGetParams(sentData) {
@@ -63,6 +72,17 @@ var PagingUtils = (function () {
         reloadContent(collectedData, isFirstLoad);
     }
 
+    function joinObjects(object1, object2) {
+        var result = {};
+        for (var i in object1) {
+            result[i] = object1[i];
+        }
+        for (var i in object2) {
+            result[i] = object2[i];
+        }
+        return result;
+    }
+
     //вызывается для загрузки данных соотв. переданному состоянию
     function reloadContent(state, isFirstLoad) {
         var sentData = prepareDataForSending(state);
@@ -70,10 +90,12 @@ var PagingUtils = (function () {
         console.log(state);
         console.log('data for sending');
         console.log(sentData);
-
+        var data = $.param(joinObjects(sentData.main, sentData.hidden), true);
+        console.log('data');
+        console.log(data);
         $.ajax({
             url: dataStoreUrl,
-            data: $.param(sentData, true),
+            data: data,
             method: 'POST',
             success: function (data) {
                 console.log('Received data:');
@@ -97,7 +119,7 @@ var PagingUtils = (function () {
     }
 
     function updateHistory(state, sentData) {
-        var getParams = convertIntoGetParams(sentData);
+        var getParams = convertIntoGetParams(sentData.main);
         console.log('Resulting get params');
         console.log(getParams);
         window.history.pushState(state, null, location.pathname + '?' + getParams);

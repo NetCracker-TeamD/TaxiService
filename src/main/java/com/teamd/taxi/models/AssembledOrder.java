@@ -50,7 +50,8 @@ public class AssembledOrder {
                 }
             });
         }
-        return new AssembledOrder(order, routes);
+        AssembledOrder retValue = new AssembledOrder(order, routes);
+        return retValue;
     }
 
     public Float getTotalPrice() {
@@ -93,5 +94,15 @@ public class AssembledOrder {
 
     public TaxiOrder getOrder() {
         return order;
+    }
+
+    @Override
+    public String toString() {
+        return "AssembledOrder{" +
+                "order=" + order +
+                ", assembledRoutes=" + assembledRoutes +
+                ", totalPrice=" + totalPrice +
+                ", complete=" + complete +
+                '}';
     }
 }

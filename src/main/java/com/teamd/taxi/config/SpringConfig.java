@@ -132,21 +132,6 @@ public class SpringConfig extends SpringDataWebConfiguration {
         return new MailService("teamdnetcracker@gmail.com", "NetCrackerTeamD", props);
     }
 
-    /* May need for generating JSP with error messages
-    @Bean
-    public MessageSource messageSource() {
-        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasename("messages");
-        return messageSource;
-    }
-    */
-
-    /* Unnecessary just now
-        @Bean(name = "validator")
-        public LocalValidatorFactoryBean validator() {
-            return new LocalValidatorFactoryBean();
-        }
-    */
     @Bean
     public UniqueEmailValidator uniqueEmailValidator() {
         return new UniqueEmailValidator();

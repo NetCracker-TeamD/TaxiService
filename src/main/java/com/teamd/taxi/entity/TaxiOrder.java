@@ -48,7 +48,11 @@ public class TaxiOrder implements Serializable {
     @Column(name = "secret_view_key")
     private String secretViewKey;
 
-    @ManyToMany(mappedBy = "comprisingOrders")
+    //@ManyToMany(mappedBy = "comprisingOrders")
+    @JoinTable(name = "order_features",
+            joinColumns = {@JoinColumn(name = "order_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "feature_id", referencedColumnName = "id")})
+    @ManyToMany
     private List<Feature> features;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "order")

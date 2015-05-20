@@ -241,7 +241,7 @@ public class UserHistoryController {
         }
     }
 
-    @RequestMapping(value = "/loadHistory", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/loadHistory", produces = "application/json;charset=UTF-8")
     @ResponseBody
     @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or #userId == principal.id")
     public String loadHistory(Pageable pageable, @RequestParam("userId") long userId, @RequestParam MultiValueMap<String, String> params) {
@@ -270,8 +270,8 @@ public class UserHistoryController {
         model.addAttribute("pageable", pageable);
         model.addAttribute("allowedSortProperties", allowedSortProperties());
         model.addAttribute("selectedSorts", extractPropertiesFromSort(sort));
+        model.addAttribute("userId", userId);
         Map<String, String> additionalParams = extractAdditionalParams(params);
-        additionalParams.put("userId", userId + "");
         model.addAttribute("additionalParams", additionalParams);
     }
 

@@ -73,13 +73,13 @@ public class IndexAndRegistrationController {
         return "index";
     }
 
-    @RequestMapping(value = "/checkFreeEmail", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/checkFreeEmail", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public String checkEmail(@RequestParam("email") String email) {
         return "{\"isEmailFree\":" + userService.isEmailFree(email) + "}";
     }
 
-    @RequestMapping("/register")
+    @RequestMapping(value = "/register", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public Map<String, Object> registerNewCustomer(
             @Valid RegistrationForm form, BindingResult errors) throws MessagingException {

@@ -63,9 +63,10 @@ public class OrderController {
             .registerTypeAdapter(UserAddress.class, new AddressSerializer())
             .create();
 
-    @RequestMapping(value = "/services", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/services", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public String getServices() {
+        logger.info("request for services information");
         Authentication authentication = SecurityContextHolder
                 .getContext()
                 .getAuthentication();
@@ -249,7 +250,9 @@ public class OrderController {
             NotCompatibleException, NotFoundException, MapServiceNotAvailableException {
         //заполняем форму
         JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
+        logger.info("Received orderObject: " + orderObject);
         TaxiOrderForm form = fillForm(orderObject);
+        logger.info("Resulting TO form: " + form);
         //находим или создаем пользователя
         Authentication authentication = SecurityContextHolder
                 .getContext()
@@ -262,15 +265,13 @@ public class OrderController {
 
             user = new User(null, name.getAsString(), "", UserRole.ROLE_ANONYMOUS, phoneNumber.getAsString());
             user.setEmail(email.getAsString());
-            //TODO: SAVE IT!!!
-            //user = userService.save(user);
+            user = userService.save(user);
         } else {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authentication.getPrincipal();
             user = userService.findById(authenticatedUser.getId());
         }
         //вносим заказ в базу
-        //TODO: change stub to real user
-        TaxiOrder order = taxiOrderService.createNewTaxiOrder(form, userService.findById(2L));
+        TaxiOrder order = taxiOrderService.createNewTaxiOrder(form, user);
 
         //отправка ответа
         JsonObject jsonObject = new JsonObject();
