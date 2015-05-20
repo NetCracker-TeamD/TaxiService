@@ -2,7 +2,6 @@ package com.teamd.taxi.config;
 
 import com.teamd.taxi.service.email.MailService;
 import com.teamd.taxi.validation.AddressExistenceValidator;
-import com.teamd.taxi.validation.UniqueEmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -130,11 +129,6 @@ public class SpringConfig extends SpringDataWebConfiguration {
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtp.port", "587");
         return new MailService("teamdnetcracker@gmail.com", "NetCrackerTeamD", props);
-    }
-
-    @Bean
-    public UniqueEmailValidator uniqueEmailValidator() {
-        return new UniqueEmailValidator();
     }
 
     @Bean

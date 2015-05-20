@@ -64,6 +64,7 @@ public class ChangePasswordController {
         }
         return "changePassword";
     }
+
     @RequestMapping(value = "/changePassword", method = RequestMethod.GET)
     public String viewPageChangePassword() {
         return "changePassword";

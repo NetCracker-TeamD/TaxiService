@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class AdditionalOptionsExcelView extends AbstractExcelView{
+public class AdditionalOptionsExcelView extends AbstractExcelView {
     @Override
     protected void buildExcelDocument(Map model, HSSFWorkbook workbook,
                                       HttpServletRequest request, HttpServletResponse response)
@@ -23,15 +23,15 @@ public class AdditionalOptionsExcelView extends AbstractExcelView{
         response.setContentType("application/vnd.ms-excel");
         response.setHeader("Content-disposition", "attachment; filename=MostPopularAdditionalOption.xls");
         HSSFSheet excelSheet = workbook.createSheet("Most popular additional car options overall");
-        setExcelHeader(excelSheet,workbook);
+        setExcelHeader(excelSheet, workbook);
         excelSheet.setDefaultColumnWidth(30);
 
         List report = (List) model.get("report");
-        setExcelRows(excelSheet,report);
+        setExcelRows(excelSheet, report);
 
     }
 
-    public void setExcelHeader(HSSFSheet excelSheet,HSSFWorkbook workbook) {
+    public void setExcelHeader(HSSFSheet excelSheet, HSSFWorkbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
         font.setFontName("Arial");
@@ -47,7 +47,7 @@ public class AdditionalOptionsExcelView extends AbstractExcelView{
         excelHeader.getCell(1).setCellStyle(style);
     }
 
-    public void setExcelRows(HSSFSheet excelSheet, List<Report> reports){
+    public void setExcelRows(HSSFSheet excelSheet, List<Report> reports) {
         int record = 1;
         for (Report report : reports) {
             HSSFRow excelRow = excelSheet.createRow(record++);

@@ -32,7 +32,7 @@ import java.util.*;
 @RequestMapping("/user")
 public class GroupReportController {
 
-    //TODO insert authorized user
+    //TODO: insert authorized user
     long userId = 7;
     long groupId;
 
@@ -49,9 +49,9 @@ public class GroupReportController {
     @RequestMapping(value = "/statistic")
     public String viewStatistic(@RequestParam("group") int groupId) {
         this.groupId = groupId;
-        if (groupsService.isManager(userId, groupId)){
+        if (groupsService.isManager(userId, groupId)) {
             return "user/statistic";
-        }else {
+        } else {
             return "user/statistic-error";
         }
     }

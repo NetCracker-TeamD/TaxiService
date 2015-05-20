@@ -260,10 +260,11 @@ public class OrderController {
         User user;
         if (authentication instanceof AnonymousAuthenticationToken) {
             JsonElement name = getAndCheck(orderObject, "name");
+            JsonElement lastName = getAndCheck(orderObject, "lastName");
             JsonElement email = getAndCheck(orderObject, "email");
             JsonElement phoneNumber = getAndCheck(orderObject, "phone_number");
 
-            user = new User(null, name.getAsString(), "", UserRole.ROLE_ANONYMOUS, phoneNumber.getAsString());
+            user = new User(null, name.getAsString(), lastName.getAsString(), UserRole.ROLE_ANONYMOUS, phoneNumber.getAsString());
             user.setEmail(email.getAsString());
             user = userService.save(user);
         } else {
