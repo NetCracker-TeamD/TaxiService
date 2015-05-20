@@ -4,6 +4,8 @@ import com.teamd.taxi.entity.ServiceType;
 import com.teamd.taxi.persistence.repository.ServiceTypeRepository;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +21,7 @@ public class ServiceTypeService {
     private ServiceTypeRepository serviceTypeRepository;
 
     @Transactional
-    public List<ServiceType> findAll() {
+     public List<ServiceType> findAll() {
         List<ServiceType> serviceTypes = serviceTypeRepository.findAll();
         for (ServiceType serviceType : serviceTypes) {
             Hibernate.initialize(serviceType.getAllowedCarClasses());
@@ -27,7 +29,19 @@ public class ServiceTypeService {
         }
         return serviceTypes;
     }
-
+    @Transactional
+    public void save(ServiceType serviceType){
+        serviceTypeRepository.save(serviceType);
+    }
+    @Transactional
+    public List<ServiceType> findAll(Sort sort) {
+        List<ServiceType> serviceTypes = serviceTypeRepository.findAll(sort);
+        for (ServiceType serviceType : serviceTypes) {
+            Hibernate.initialize(serviceType.getAllowedCarClasses());
+            Hibernate.initialize(serviceType.getAllowedFeatures());
+        }
+        return serviceTypes;
+    }
     @Transactional
     public ServiceType findById(int serviceTypeId) {
         ServiceType serviceType = serviceTypeRepository.findOne(serviceTypeId);
