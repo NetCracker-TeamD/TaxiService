@@ -6,10 +6,16 @@ import com.google.maps.errors.NotFoundException;
 import com.teamd.taxi.authentication.AuthenticatedUser;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
+import com.teamd.taxi.models.AssembledOrder;
+import com.teamd.taxi.models.AssembledRoute;
 import com.teamd.taxi.models.TaxiOrderForm;
+
+import static com.teamd.taxi.entity.RouteStatus.*;
+
 import com.teamd.taxi.service.*;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -46,15 +53,16 @@ public class OrderController {
     private FeatureService featureService;
 
     @Autowired
-    private GroupsService groupsService;
-
-    @Autowired
     private UserAddressService addressService;
 
     @Autowired
     private PriceCountService priceCountService;
 
     private static final Logger logger = Logger.getLogger(OrderController.class);
+
+    @Autowired
+    @Qualifier("dateFormatter")
+    private SimpleDateFormat dateFormat;
 
     private Gson gson = new GsonBuilder()
             .registerTypeAdapter(ServiceType.class, new ServiceTypeSerializer())
@@ -81,11 +89,6 @@ public class OrderController {
             retVal.put("locations", addressService.findAddressesByUserId(userId));
         }
         return gson.toJson(retVal);
-    }
-
-    @RequestMapping("/order")
-    public String sendOrderFormPage() {
-        return "new-order";
     }
 
     private List<String> readStringList(JsonObject jsonObject, String propName, boolean checkEmpty) throws PropertyNotFoundException {
@@ -278,8 +281,15 @@ public class OrderController {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("success", true);
         //TODO: add real link with MvcComponentsBuilder, don't add a secret key if user is authenticated
-        jsonObject.addProperty("trackLink", "/vieworder?tracknum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
+        jsonObject.addProperty("trackLink", "/viewOrder?trackNum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
         return new GsonBuilder().disableHtmlEscaping().create().toJson(jsonObject);
+    }
+
+    @RequestMapping(value = "/getOrder", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public String getOrder(@RequestParam("id") long orderId) {
+        TaxiOrder order = taxiOrderService.findOneById(orderId);
+        return gson.toJson(convertTaxiOrderToObject(order));
     }
 
     private JsonElement getAndCheck(JsonObject object, String propName) throws PropertyNotFoundException {
@@ -298,7 +308,9 @@ public class OrderController {
             ParseException.class,
             NotCompatibleException.class,
             NotFoundException.class,
-            MapServiceNotAvailableException.class
+            MapServiceNotAvailableException.class,
+            JsonSyntaxException.class,
+            JsonParseException.class
     })
     public void handleException(Exception e, HttpServletResponse response) throws IOException {
         logger.error(e);
@@ -308,6 +320,167 @@ public class OrderController {
                 "\"error\": \"" + e.getClass() + "\", " +
                 "\"message\":\"" + e.getMessage() + "\"" +
                 "}");
+    }
+
+    private JsonObject convertToObject(Route route) {
+        JsonObject routeObject = new JsonObject();
+        routeObject.addProperty("status", route.getStatus().name());
+        Calendar startTime = route.getStartTime();
+        Calendar completeTime = route.getCompletionTime();
+        if (startTime != null) {
+            routeObject.addProperty("startTime", formatter.format(startTime.getTime()));
+            if (completeTime != null) {
+                routeObject.addProperty("completeTime", formatter.format(completeTime.getTime()));
+            }
+        }
+        return routeObject;
+    }
+
+    private List<List<Route>> separateRoutes(List<AssembledRoute> assembledRoutes) {
+        int chainsAmount = assembledRoutes.get(0).getRoutes().size();
+        List<List<Route>> chains = new ArrayList<>(chainsAmount);
+        for (int i = 0; i < chainsAmount; i++) {
+            List<Route> chain = new ArrayList<>();
+            for (AssembledRoute assembledRoute : assembledRoutes) {
+                chain.add(assembledRoute.getRoutes().get(i));
+            }
+            chains.add(chain);
+        }
+        return chains;
+    }
+
+    private static final List<RouteStatus> HAS_START_TIME = Arrays.asList(IN_PROGRESS, COMPLETED);
+
+    private JsonObject convertChainToObject(List<Route> chain) {
+        JsonObject chainObject = new JsonObject();
+        Route first = chain.get(0);
+        Route last = chain.get(chain.size() - 1);
+        //status
+        RouteStatus firstStatus = first.getStatus();
+        RouteStatus result = firstStatus;
+        RouteStatus lastStatus = last.getStatus();
+        if (result == COMPLETED && lastStatus != COMPLETED) {
+            result = lastStatus;
+        }
+        chainObject.addProperty("status", result.name());
+        //startTime
+        if (HAS_START_TIME.contains(firstStatus)) {
+            Calendar startTime = first.getStartTime();
+            Calendar completeTime = null;
+            chainObject.addProperty("startTime", formatter.format(startTime.getTime()));
+            if (lastStatus == COMPLETED) {
+                completeTime = last.getCompletionTime();
+            } else if (lastStatus == REFUSED) {
+                //если попали сюда, значит в цепочке как минимум 2 маршрута
+                int i = chain.size() - 2;
+                while (chain.get(i).getStatus() == REFUSED) {
+                    i--;
+                }
+                System.out.println(chain);
+                System.out.println(firstStatus);
+                System.out.println(lastStatus);
+                System.out.println(i);
+                System.out.println(chain.get(i));
+                System.out.println(chain.get(i).getCompletionTime().getTime());
+                completeTime = chain.get(i).getCompletionTime();
+            }
+            if (completeTime != null) {
+                chainObject.addProperty("completeTime", formatter.format(completeTime.getTime()));
+            }
+        }
+        return chainObject;
+    }
+
+    private JsonObject convertTaxiOrderToObject(TaxiOrder order) {
+        //атрибуты всего заказа
+        JsonObject orderObject = new JsonObject();
+        //состояние (обновляется или нет)
+        boolean updating = false;
+        for (Route route : order.getRoutes()) {
+            if (route.getStatus() == UPDATING) {
+                updating = true;
+                break;
+            }
+        }
+        orderObject.addProperty("updating", updating);
+        orderObject.addProperty("executionDate", formatter.format(order.getExecutionDate().getTime()));
+        orderObject.addProperty("registrationDate", formatter.format(order.getRegistrationDate().getTime()));
+        orderObject.addProperty("musicStyle", order.getMusicStyle());
+        orderObject.addProperty("comment", order.getComment());
+        orderObject.addProperty("carClassId", order.getCarClass().getId());
+        ServiceType serviceType = order.getServiceType();
+        orderObject.addProperty("serviceType", serviceType.getId());
+        orderObject.addProperty("driverSex", order.getDriverSex().name());
+        orderObject.addProperty("paymentType", order.getPaymentType().name());
+        JsonArray features = new JsonArray();
+        for (Feature feature : order.getFeatures()) {
+            features.add(new JsonPrimitive(feature.getId()));
+        }
+        orderObject.add("features", features);
+        AssembledOrder assembledOrder = AssembledOrder.assembleOrder(order);
+        orderObject.addProperty("complete", assembledOrder.isComplete());
+        if (assembledOrder.isComplete()) {
+            orderObject.addProperty("price", assembledOrder.getTotalPrice());
+        }
+        //марштуры
+        JsonArray startAddresses = new JsonArray();
+        JsonArray intermediateAddresses = new JsonArray();
+        JsonArray destinationAddresses = new JsonArray();
+        JsonArray carsAmount = new JsonArray();
+
+        List<AssembledRoute> assembledRoutes = assembledOrder.getAssembledRoutes();
+        System.out.println(assembledRoutes);
+        Boolean isChain = serviceType.isDestinationLocationsChain();
+        if (isChain != null && isChain) {
+            startAddresses.add(new JsonPrimitive(assembledRoutes.get(0).getSource()));
+            int i = 1;
+            for (; i < assembledRoutes.size(); i++) {
+                intermediateAddresses.add(new JsonPrimitive(assembledRoutes.get(i).getSource()));
+            }
+            destinationAddresses.add(new JsonPrimitive(assembledRoutes.get(--i).getDestination()));
+            List<List<Route>> chains = separateRoutes(assembledRoutes);
+            JsonArray routes = new JsonArray();
+            for (List<Route> chain : chains) {
+                routes.add(convertChainToObject(chain));
+            }
+            carsAmount.add(routes);
+        } else if (serviceType.isMultipleSourceLocations()) {
+            for (AssembledRoute assembledRoute : assembledRoutes) {
+                startAddresses.add(new JsonPrimitive(assembledRoute.getSource()));
+                JsonArray routes = new JsonArray();
+                for (Route route : assembledRoute.getRoutes()) {
+                    routes.add(convertToObject(route));
+                }
+                carsAmount.add(routes);
+            }
+            destinationAddresses.add(new JsonPrimitive(assembledRoutes.get(0).getDestination()));
+        } else {
+            AssembledRoute singleRoute = assembledRoutes.get(0);
+            startAddresses.add(new JsonPrimitive(singleRoute.getSource()));
+            JsonArray routes = new JsonArray();
+            for (Route route : singleRoute.getRoutes()) {
+                routes.add(convertToObject(route));
+            }
+            carsAmount.add(routes);
+        }
+        orderObject.add("startAddresses", startAddresses);
+        orderObject.add("intermediateAddresses", intermediateAddresses);
+        orderObject.add("destinationAddresses", destinationAddresses);
+        /*
+        * cars: [
+        *   [
+        *       {
+        *           status: 'QUEUED',
+        *           startTime:
+        *           completeTime:
+        *       },
+        *       ...
+        *   ],
+        *   ...
+        * ]
+        * */
+        orderObject.add("carsAmount", carsAmount);
+        return orderObject;
     }
 
     private static class ServiceTypeSerializer implements JsonSerializer<ServiceType> {
