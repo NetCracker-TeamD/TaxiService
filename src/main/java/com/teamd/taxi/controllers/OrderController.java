@@ -1,7 +1,6 @@
 package com.teamd.taxi.controllers;
 
 import com.google.gson.*;
-import com.google.gson.annotations.JsonAdapter;
 import com.google.maps.errors.NotFoundException;
 import com.teamd.taxi.authentication.AuthenticatedUser;
 import com.teamd.taxi.entity.*;
@@ -26,7 +25,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -292,7 +290,7 @@ public class OrderController {
 
     @RequestMapping(value = "/setUpdating", produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public Map<String, Object> setUpdating(@RequestParam("id") TaxiOrder order) throws OrderNotUpdatableException {
+    public Map<String, Object> setUpdating(@RequestParam("id") TaxiOrder order) throws OrderUpdatingException {
         if (order == null) {
             return new MapResponse().put("status", "notFound");
         }
@@ -300,12 +298,21 @@ public class OrderController {
         return new MapResponse().put("status", "OK");
     }
 
+    @RequestMapping(value = "/cancelUpdating", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public Map<String, Object> cancelUpdating(@RequestParam("id") TaxiOrder order) throws OrderUpdatingException {
+        if (order == null) {
+            return new MapResponse().put("status", "notFound");
+        }
+        taxiOrderService.cancelUpdating(order.getId());
+        return new MapResponse().put("status", "OK");
+    }
 
     @RequestMapping(value = "/updateOrder", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public Map<String, Object> updateOrder(@RequestParam("id") long orderId, Reader reader)
             throws ParseException, PropertyNotFoundException, ItemNotFoundException,
-            MapServiceNotAvailableException, NotFoundException, NotCompatibleException, OrderNotUnderUpdatingException {
+            MapServiceNotAvailableException, NotFoundException, NotCompatibleException, OrderUpdatingException {
         JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
         TaxiOrderForm form = fillForm(orderObject);
         taxiOrderService.updateTaxiOrder(orderId, form);
@@ -338,7 +345,8 @@ public class OrderController {
             MapServiceNotAvailableException.class,
             JsonSyntaxException.class,
             JsonParseException.class,
-            IllegalArgumentException.class
+            IllegalArgumentException.class,
+            OrderUpdatingException.class
     })
     public void handleException(Exception e, HttpServletResponse response) throws IOException {
         logger.error(e);

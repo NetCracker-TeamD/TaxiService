@@ -230,12 +230,12 @@ public class TaxiOrderService {
     }
 
     @Transactional
-    public void setUpdating(long orderId) throws OrderNotUpdatableException {
+    public void setUpdating(long orderId) throws OrderUpdatingException {
         TaxiOrder order = orderRepository.findOne(orderId);
         List<Route> routes = order.getRoutes();
         for (Route route : routes) {
             if (route.getStatus() != RouteStatus.QUEUED) {
-                throw new OrderNotUpdatableException(orderId);
+                throw new OrderUpdatingException("not updatable", orderId);
             }
             route.setStatus(RouteStatus.UPDATING);
         }
@@ -243,13 +243,26 @@ public class TaxiOrderService {
     }
 
     @Transactional
+    public void cancelUpdating(long orderId) throws OrderUpdatingException {
+        TaxiOrder order = orderRepository.findOne(orderId);
+        List<Route> routes = order.getRoutes();
+        for (Route route : routes) {
+            if (route.getStatus() != RouteStatus.UPDATING) {
+                throw new OrderUpdatingException("not under updating", orderId);
+            }
+            route.setStatus(RouteStatus.QUEUED);
+        }
+        orderRepository.save(order);
+    }
+
+    @Transactional
     public TaxiOrder updateTaxiOrder(long orderId, TaxiOrderForm form) throws NotCompatibleException,
             PropertyNotFoundException, NotFoundException, MapServiceNotAvailableException,
-            OrderNotUnderUpdatingException {
+            OrderUpdatingException {
         TaxiOrder old = orderRepository.findOne(orderId);
         for (Route route : old.getRoutes()) {
             if (route.getStatus() != RouteStatus.UPDATING) {
-                throw new OrderNotUnderUpdatingException(orderId);
+                throw new OrderUpdatingException("not under updating", orderId);
             }
         }
         TaxiOrder orderWithUpdates = fillOrder(form, null);
