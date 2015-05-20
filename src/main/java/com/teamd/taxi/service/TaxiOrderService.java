@@ -1,7 +1,7 @@
 package com.teamd.taxi.service;
 
+import com.google.maps.errors.NotFoundException;
 import com.teamd.taxi.entity.*;
-import com.teamd.taxi.exception.AddressNotFoundException;
 import com.teamd.taxi.exception.MapServiceNotAvailableException;
 import com.teamd.taxi.exception.NotCompatibleException;
 import com.teamd.taxi.exception.PropertyNotFoundException;
@@ -12,15 +12,12 @@ import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -88,9 +85,6 @@ public class TaxiOrderService {
 
     @Transactional
     public Page<TaxiOrder> findAll(Specification<TaxiOrder> spec, Pageable pageable) {
-        if (spec == null) {
-            return findAll(pageable);
-        }
         Page<TaxiOrder> to = orderRepository.findAll(spec, pageable);
         for (TaxiOrder order : to.getContent()) {
             Hibernate.initialize(order.getFeatures());
@@ -109,12 +103,18 @@ public class TaxiOrderService {
     }
 
     @Transactional
-    public TaxiOrder createNewTaxiOrder(TaxiOrderForm form, User user) throws NotCompatibleException, MapServiceNotAvailableException, AddressNotFoundException, PropertyNotFoundException {
+    public TaxiOrder fillOrder(TaxiOrderForm form, User user)
+            throws PropertyNotFoundException, NotFoundException,
+            MapServiceNotAvailableException, NotCompatibleException {
         TaxiOrder order = new TaxiOrder();
         ServiceType serviceType = form.getServiceType();
         //проверка совместимости класса автомобиля и сервиса
         CarClass carClass = form.getCarClass();
-        if (carClass != null && !serviceType.getAllowedCarClasses().contains(form.getCarClass())) {
+        List<CarClass> allowedCarClasses = serviceType.getAllowedCarClasses();
+        if ((carClass == null && allowedCarClasses.size() != 0) ||
+                (carClass != null && !allowedCarClasses.contains(form.getCarClass()))) {
+            //или класс не указан, хотя должен быть
+            //или указан неверно
             throw new NotCompatibleException();
         }
         //проверка совместимости фич и сервиса
@@ -129,40 +129,45 @@ public class TaxiOrderService {
         }
         //создание прототипов маршрутов и проверка адрессов
         List<Route> routes = new ArrayList<>();
-        List<String> addressesToCheck = new ArrayList<>();
         Boolean isChain = serviceType.isDestinationLocationsChain();
         if (isChain != null && isChain) {
             List<String> intermediate = form.getIntermediate();
+            if (intermediate == null) {
+                intermediate = new ArrayList<>();
+            }
             intermediate.add(0, form.getSource().get(0));
             intermediate.add(form.getDestination().get(0));
-            addressesToCheck = intermediate;
             for (int i = 1; i < intermediate.size(); i++) {
-                routes.add(new Route(
+                Route route = new Route(
                         null,
                         RouteStatus.QUEUED,
                         intermediate.get(i - 1),
                         intermediate.get(i),
                         false
+                );
+                route.setChainPosition(i);
+                route.setDistance(mapService.calculateDistanceInKilometers(
+                        route.getSourceAddress(),
+                        route.getDestinationAddress()
                 ));
+                routes.add(route);
             }
         } else if (serviceType.isMultipleSourceLocations()) {
             List<String> sources = form.getSource();
             String destination = form.getDestination().get(0);
             for (String source : sources) {
-                routes.add(new Route(null, RouteStatus.QUEUED, source, destination, false));
+                Route route = new Route(null, RouteStatus.QUEUED, source, destination, false);
+                route.setDistance(
+                        mapService.calculateDistanceInKilometers(
+                                route.getSourceAddress(),
+                                route.getDestinationAddress()
+                        ));
+                routes.add(route);
             }
-            addressesToCheck.addAll(sources);
-            addressesToCheck.add(destination);
         } else {
             String source = form.getSource().get(0);
+            mapService.checkAddress(source);
             routes.add(new Route(null, RouteStatus.QUEUED, source, null, false));
-            addressesToCheck.add(source);
-        }
-        //проверка адрессов
-        for (String address : addressesToCheck) {
-            if (!mapService.isExists(address)) {
-                throw new AddressNotFoundException(address);
-            }
         }
         //размножаем их до необх. количества автомобилей
         if (serviceType.isMultipleSourceLocations()) {
@@ -198,15 +203,26 @@ public class TaxiOrderService {
         order.setPaymentType(form.getPaymentType());
         order.setExecutionDate(form.getExecDate());
         order.setFeatures(form.getFeatures());
+        order.setRoutes(routes);
+        return order;
+    }
+
+    @Transactional
+    public TaxiOrder createNewTaxiOrder(TaxiOrderForm form, User user)
+            throws NotCompatibleException,
+            MapServiceNotAvailableException,
+            PropertyNotFoundException,
+            NotFoundException {
+        TaxiOrder order = fillOrder(form, user);
+        List<Route> routes = order.getRoutes();
+        order.setRoutes(null);
         //создание ключа для анон. пользователя
         if (user.getUserRole() == UserRole.ROLE_ANONYMOUS) {
             String secretKey = stringGenerator.generateString(KEY_LENGTH);
             order.setSecretViewKey(secretKey);
         }
+        //необходимо отдельно сохранить заказ и все маршруты
         order = orderRepository.save(order);
-
-        logger.info("saved order: " + order);
-
         for (Route route : routes) {
             route.setOrder(order);
         }
@@ -229,6 +245,23 @@ public class TaxiOrderService {
         clone.setDestinationAddress(route.getDestinationAddress());
         clone.setStatus(route.getStatus());
         clone.setCustomerLate(route.isCustomerLate());
+        clone.setDistance(route.getDistance());
+        clone.setChainPosition(route.getChainPosition());
         return clone;
     }
+
+    @Transactional
+    public TaxiOrder findCurrentOrderByDriverId(int id) {
+        List<TaxiOrder> orders = orderRepository.findCurrentOrderByDriverId(id);
+        if (orders.isEmpty()) {
+            return null;
+        }
+        TaxiOrder order = orders.get(0);
+        Hibernate.initialize(order.getFeatures());
+        Hibernate.initialize(order.getRoutes());
+        Hibernate.initialize(order.getServiceType());
+
+        return order;
+    }
+
 }

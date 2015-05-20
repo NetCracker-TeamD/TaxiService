@@ -9,11 +9,13 @@
 
     <!--<http pattern="/res/**" security="none"/>-->
     <!--<http pattern="/test*" security="none"/>-->
+    <global-method-security pre-post-annotations="enabled"/>
 
     <http auto-config="false" use-expressions="true" entry-point-ref="loginUrlAuthenticationEntryPoint">
         <csrf disabled="true"/>
         <!--<intercept-url pattern="/auth" access="isAnonymous()"/>-->
-        <!--<intercept-url pattern="/admin" access="hasRole('ROLE_ADMIN')"/>-->
+        <intercept-url pattern="/method" access="hasRole('ROLE_CUSTOMER')"/>
+        <intercept-url pattern="/method/{var}" access="hasRole('ROLE_ADMINISTRATOR')"/>
         <!--<intercept-url pattern="/posts/**" access="hasAnyRole('ROLE_ADMIN', 'ROLE_USER')"/>-->
 
         <!--<access-denied-handler error-page="/res/403.html"/>-->

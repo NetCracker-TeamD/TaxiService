@@ -6,7 +6,11 @@ package com.teamd.taxi.controllers.admin.orders;
  * @author Nazar Dub
  */
 public enum DriverOrder {
-    LAST_NAME("lastName");
+    LAST_NAME("lastName"),
+    FIRST_NAME("firstName"),
+    AT_WORK("atWork"),
+    ENABLED("isEnabled"),
+    SEX("sex");
     private String order;
 
     DriverOrder(String order) {

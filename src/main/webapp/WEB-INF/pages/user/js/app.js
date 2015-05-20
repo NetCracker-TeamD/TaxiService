@@ -11,11 +11,8 @@ var App = (function(){
 		},
 		current_page_name = "",
 		controls = {},
-		lockAllControls = function(holder){
-			holder.find(":input").prop({'readonly': true, 'disabled': true});
-		},
-		unlockAllControls = function(holder){
-			holder.find(":input").prop({'readonly': false, 'disabled': false});
+		tmpStorage = {
+			user : null,
 		},
 		showLoadPage = function(){
 			blocks.content.html("")
@@ -25,86 +22,242 @@ var App = (function(){
 			blocks.content.html("")
 			blocks.content.append(Templates.getBlocked())
 		},
-		loadPage = function(pageName, addition_data){
-			//TODO: add history api support
+		showLogoutPage = function(){window.location = "/logout";},
+		showOrderPage = function(orderId, secretKey){
 			showLoadPage()
-			current_page_name = pageName
+			current_page_name = "make-order"
 			updateHeader()
+			var loadOrder = $.isSet(orderId)
+			var createDOM = function(){
+				//create page in memory		
+				var orderInfo = null
+				if ($.isSet(tmpStorage.currentOrder)) {
+					orderInfo = tmpStorage.currentOrder
+				}
+				var 
+					user = tmpStorage.user,
+					container = Templates.getOrderPage(orderInfo),
+					serviceTypes = container.find("#serviceType"),
+					orderDetails = container.find('[data-type="order-details"]'),
+					map = container.find('[data-type="map"]'),
+					orderForm = container.find('#orderForm'),
+					enableEditing = (loadOrder) ? (user.isLogged && !user.isBlocked) : false
+				if (loadOrder) {
+				} else {
+					var makeOrderBtn = container.find('[data-action="make-order"]')
+		   			Templates.makeNiceSubmitButton({
+		   				form : orderForm,
+		   				button : makeOrderBtn,
+		   				useJSON : true,
+		   				success : function(response){
+		   					console.log("response")
+		   					console.log(response)
+							var watchIt = function(){
+								console.log("go to track link")
+								showOrderPage("id","secret")
+							}
+							BootstrapDialog.show({
+								type: BootstrapDialog.TYPE_SUCCESS, closable: false,
+								title: "Order successfully created",
+								message: function(dialog){
+									return $("<div>Your order successfully created<br>You can track it via this link </div>")
+										.append( $("<a href='/somelink''>some link with tracknumber</a>")
+											.bind("click", function(e){
+												e.preventDefault()
+												dialog.close()
+												watchIt()
+											}))
+								},
+								buttons: [{
+									label : "Watch it",
+									action: function(dialog){
+										dialog.close()
+										watchIt()
+					                }
+								}],							
+							})
+						},
+						error : function(response){
+		   					console.log("response err")
 
-			//if logout
-			//if about
-			var user = DataTools.getUser() 
-			if (user.isBlocked){
-				showBlockedPage()
-				return;
+							console.log(response)
+							BootstrapDialog.show({
+								type: BootstrapDialog.TYPE_DANGER,
+								title: "Server error",
+								message: "Server returns error with status '"+response.statusText+"'",
+							})
+						}
+		   			})
+				}
+
+				//fill service types
+				$.each(tmpStorage.serviceTypes, function (i, item) {
+				    serviceTypes.append($('<option>', { value: item.id, text : item.name }))
+				})
+
+				serviceTypes.bind("change", function(e){
+					var newServiceType = $(e.target).find('option[value="'+$(e.target).val()+'"]').text()
+					container.find('[data-type="price-holder"]').hide()
+					createInputsForServiceType(orderDetails, newServiceType)
+				})
+
+				//fill page
+				blocks.content.html("")
+				blocks.content.append(container)
+
+				//[0] coz new google.maps.Map accepts clear html element, not wraped by jquery
+				MapTools.init(map[0])
+				MapTools.enableDraggableMarkers(true)
+				MapTools.removeListenerChain("onMarkerMoved")
+				MapTools.removeListenerChain("onPlacePicked")
+				MapTools.removeListenerChain("onDistanceChange")
+				MapTools.addListener("onMarkerMoved", function(marker_id, newLocationName){
+					$('[data-number="'+marker_id+'"').val(newLocationName)
+					MapTools.calcAndDrawRoute()
+				})
+
+				MapTools.addListener("onPlacePicked", function(lat, lgn){
+					BootstrapDialog.show({
+						title: 'Address picking',
+						message : function(dialog){
+							var msg = $("<div><p>You picked location on map, choose what to do with it<p></div>"),
+								getButton= function(label_postfix, context, inputs_selector, add_btn_selector){
+									var inputs = context.find(inputs_selector),
+										addBtn = context.find(add_btn_selector),
+										canBeAdded = addBtn.length>0,
+										canBeSetted = false,
+										emptyInput = null
+
+									if (inputs.length==1){//if we heve only 1 input we can set in anyway
+										canBeSetted = true
+										emptyInput = inputs
+									} else {
+										inputs.each(function(i,input){
+											if ($(input).val().length<1) {
+												canBeSetted = true
+												emptyInput = $(input)
+												return false
+											}
+										})
+									}
+									if ((!canBeSetted && !canBeAdded) || (inputs.length==0 && !canBeAdded)) {
+										return null;
+									}
+									var label = '',
+										action = ''
+									if (canBeAdded) {
+										label = "Add as "
+										action = "add"
+									} else {
+										label = "Set as "
+										action = "set"
+									}
+									label += label_postfix
+									var btn = $('<button type="button" class="btn btn-default" data-action="'+action
+										+'" data-target="'+label_postfix+'">'+label+'</button>')
+									btn.bind("click", function(e){
+										var jqDialog = $(dialog.$modalBody)
+										jqDialog.html("")
+										jqDialog.append(Templates.getWhiteLoader())
+										MapTools.getNameForLocation(lat, lgn, function(locationName){
+											if (action=="add"){
+												var startNumber = addBtn.attr('data-start-number'),
+													hasCarsAmount = (addBtn.attr('data-mod')=="addCarsAmount"),
+													name = addBtn.attr("data-name"),
+													newAddressField = Templates.getAddress(tmpStorage.favouriteLocations, name, hasCarsAmount, true, startNumber)
+												emptyInput = newAddressField.find("input")[0]
+												$(addBtn.parent()).find('[data-type="address-group"]').append(newAddressField)
+												MapTools.modAutocompleteAddressInput(emptyInput, updateRoutes)
+												emptyInput = $(emptyInput)
+											}
+											emptyInput.val(locationName).trigger('change')
+											dialog.close()
+										})
+									})
+									return btn
+								}
+							var context = blocks.content.find('#addressesContainer'),
+								btn = getButton("source", context, 'input[name="start_addresses"]', 'button[data-name="start_addresses"]')
+							if (btn != null){ msg.append(btn) }
+							btn = getButton("intermediate", context, 'input[name="intermediate_addresses"]', 'button[data-name="intermediate_addresses"]')
+							if (btn != null){ msg.append(btn) }
+							btn = getButton("destination", context, 'input[name="destination_addresses"]', 'button[data-name="destination_addresses"]')
+							if (btn != null){ msg.append(btn) }
+							return msg
+						},
+						buttons: [{
+							label: 'Cancel',
+							action: function(dialog){ dialog.close(); }
+						}]
+					})
+				})
+
+				MapTools.addListener("onDistanceChanged", function(newDistance){
+					var priceHolder = container.find('[data-type="price-holder"]'),
+						priceValue = priceHolder.find('[data-type="price-value"]')
+					//console.log(newDistance)
+					priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
+					priceHolder.show()
+				})
+
+				serviceTypes.trigger("change")
+							
+				updateLocationsLists()
 			}
-			switch (pageName){
-				case "new-order": 
-					var loader = new Loader()
-					loader.addCallBack(function(){ showOrderPage(blocks.content) })
-					DataTools.init(null, loader)
-					break;
-				case "login":
-					showLoginPage(blocks.content, addition_data)
-					break;
-				case "register":
-					showRegisterPage(blocks.content, addition_data)
-					break;
-				case "about": 
-					showAboutPage(blocks.content, addition_data)
-					break;
-				case "account":
-					showEditAccountPage(blocks.content, addition_data)
-					break;
-				case "order":
-					showViewOrderPage(blocks.content, addition_data)
-					break;
-				case "history":
-					showHistoryPage(blocks.content, addition_data)
-					break;
-				default :
-					loadPage("new-order", addition_data)
-					break;
-			}
-		},
-		updateHeader = function(key, value){
-			var user = DataTools.getUser(),
-				items = [],
-				actions = []
-			
-			items.push(Templates.getHeaderItem("About","/about", "about"))
-			items.push(Templates.getHeaderItem("Make order","/new-order", "new-order"))
-			if (user.isLogged){
-				//TODO:add username
-				items.push(Templates.getHeaderItem("View History","/history", "history"))
-				items.push(Templates.getHeaderItem("Edit Account","/edit-account", "account"))
-				actions.push(Templates.getHeaderItemIcon("Logout","/logout", "logout", "log-out"))
+
+			//init loader and bind callback when all necessary datas will be loaded
+			var loader = new Loader()
+			loader.addCallBack(function(){ createDOM() })
+			//data loading
+			var ids = loader.getArrayUniqId(3)
+			DataTools.getUser(loader, ids[0], function(status, response, userInfo){
+				tmpStorage.user = userInfo
+			})
+			DataTools.getServiceTypes(loader, ids[1], function(status, response, serviceTypes){
+				tmpStorage.serviceTypes = serviceTypes
+			})
+			if (loadOrder) {
+				DataTools.getOrderInfo(loader, ids[2], function(status, response, orderInfo){
+					tmpStorage.currentOrder = orderInfo
+				}, orderId, secretKey)
 			} else {
-				actions.push(Templates.getHeaderItemIcon("Register","/register", "register", "user"))
-				actions.push(Templates.getHeaderItemIcon("Login","/login", "login", "log-in"))
+				loader.setStatus(ids[2], 'no reason for load this')
 			}
-			//fill pages
+
+		},
+		updateHeader = function(){
+			var items = [],
+				actions = [],
+				getItem = Templates.getHeaderItem
+
+			for (var i in pages){
+				var page = pages[i]
+				if ($.isSet(page.action)){
+					if (!$.isSet(page.action)) continue
+					if (page.hideLogged && tmpStorage.user.isLogged) continue
+					if (page.hideNonLogged && !tmpStorage.user.isLogged) continue
+
+					if (page.pullRight){
+						actions.push(getItem(page))
+					} else {
+						items.push(getItem(page))
+					}
+				}
+			}
+			
+			//TODO:add username
+
 			blocks.header_items.html("")
-			for(var i in items){
-				var item = items[i]
-				blocks.header_items.append(item)
-				//TODO: make better selector
-				if (item.attr("data-action")==current_page_name ||
-					item.find('[data-action="'+current_page_name+'"]').length>0){
-					item.addClass("active")
-				}
-			}
-			//fill action
 			blocks.header_actions.html("")
-			for(var i in actions){
-				var action = actions[i]
-				blocks.header_actions.append(action)
-				if (action.attr("data-action")==current_page_name ||
-					action.find('[data-action="'+current_page_name+'"]').length>0){
-					action.addClass("active")
+			var place_in = function(items, target){
+				var item;
+				for(var i=0, item = items[i]; i<items.length; i++, item = items[i]){
+					target.append(item)
 				}
+				target.find('[data-action="'+current_page_name+'"]').closest('li').addClass("active")
 			}
-			console.log(current_page_name)
+			place_in(items, blocks.header_items)
+			place_in(actions, blocks.header_actions)
 		},
 		initHeader = function(){
 			blocks.header = Templates.getHeaderContainer()
@@ -113,13 +266,17 @@ var App = (function(){
 			var toggleBtn = blocks.header.find(".navbar-toggle"),
 				menuOnClick = function(e){
 					e.preventDefault() 
-					var target = $(e.target),
-						new_page = target.attr("data-action")
+					var target = $(e.target)
+					if (target.prop("tagName")=="SPAN"){
+						target = target.parent()
+					}
+					var	new_page = target.attr("data-action")
 					if (new_page != current_page_name){
 						if (toggleBtn.css("display")!="none"){
 							toggleBtn.click()
 						}
-						loadPage(new_page)
+						pages[new_page].show()
+						updateHeader()
 					}
 				}
 			blocks.header_items.bind("click", menuOnClick)
@@ -127,24 +284,35 @@ var App = (function(){
 			updateHeader()
 		},
 		updateRoutes = function(invoker, place){
-			var id = $(invoker).attr("data-number"),
-				location = place.geometry.location
-			MapTools.addMarker(id, location)
+			invoker = $(invoker)
+			var id = invoker.attr("data-number"),
+				location = place.geometry.location,
+				type = invoker.attr('name').split('_')[0]
+			MapTools.addMarker(id, location, type)
 			MapTools.markersFitWindow()
-		}
+		},
 		updateLocationsLists = function(){
-			var locationsList = DataTools.getFavLocations()
-			if (locationsList.length>0){
-				$.each(blocks.content.find('[data-type="address-group"] .input-group'),function(i,group){
-					var igb = $(group).find(".input-group-btn"),
-						isRemovable = false
-					if (igb.has('[data-action="remove"]').length>0) {
-						isRemovable = true
-					}
-					igb.remove()
-					$(group).append(Templates.getDropDownAddressHTML(locationsList, isRemovable))
-				})
+			var createDOM = function(){
+				var FL = tmpStorage.favouriteLocations
+				if (FL.length>0){
+					$.each(blocks.content.find('[data-type="address-group"] .input-group'),function(i,group){
+						var list = $(group).find('[data-type="dropdown-address-list"]'),
+						holder = list.closest(".input-group")
+							isRemovable = list.has('[data-action="remove"]').length > 0
+						if (list.length>0){
+							list.remove()
+							holder.append(Templates.getDropDownAddressHTML(FL, isRemovable))
+						}
+					})
+				}
 			}
+			//init loader and bind callback when all necessary datas will be loaded
+			var loader = new Loader()
+			loader.addCallBack(function(){ createDOM() })
+			//binding data loaders
+			DataTools.getFavLocations(loader, "fav_locations", function(status, response, favouriteLocations){
+				tmpStorage.favouriteLocations = favouriteLocations
+			})
 		},
 		addressesClick = function(e){
 			var target = $(e.target),
@@ -181,7 +349,7 @@ var App = (function(){
 					var startNumber = btn.attr('data-start-number'),
 						hasCarsAmount = (btn.attr('data-mod')=="addCarsAmount"),
 						name = btn.attr("data-name"),
-						newAddressField = Templates.getAddress(DataTools.getFavLocations(), name, hasCarsAmount, true, startNumber),
+						newAddressField = Templates.getAddress(tmpStorage.favouriteLocations, name, hasCarsAmount, true, startNumber),
 						input = newAddressField.find("input")[0]
 					$(target.parent()).find('[data-type="address-group"]').append(newAddressField)
 					MapTools.modAutocompleteAddressInput(input, updateRoutes)
@@ -189,262 +357,213 @@ var App = (function(){
 				}
 			}
 		},
-		createInputsForServiceType = function(holder, serviceDescription, featuresList) {
-			MapTools.clearAllMarker()
-			MapTools.markersFitWindow()
-			var SD = serviceDescription,
-				user = DataTools.getUser()
-			//create DOM
-			holder.html("")
-			//add contacts
-			if (!user.isLogged){
-				holder.append(Templates.getContacts())
-			}
-			holder.append(Templates.getTime(SD.timing.indexOf("now")>-1, SD.timing.indexOf("specified")>-1))
-			var locationsList = DataTools.getFavLocations()
-			//add addresses
-			var addresses = $(Templates.getAddressesContainer())
-			var mult = SD.multipleSourceLocations
-			var addrGroup = $(Templates.getAddressesGroup("Source:","start_addresses", mult, mult, 0))
-			addrGroup.find('[data-type="address-group"]').append(Templates.getAddress(locationsList,"start_addresses", mult, false))
-			addresses.append(addrGroup)
-
-			//console.log(SD)
-			if (SD.chain) {
-				addrGroup = $(Templates.getAddressesGroup("Intermediate:","intermediate_addresses", true, false, 100))
-				addresses.append(addrGroup)
-			}
-
-			if (SD.destinationRequired) {
-				var mult = SD.multipleDestinationLocations
-				addrGroup = $(Templates.getAddressesGroup("Destination:","destination_addresses", mult, mult, 1000))
-				addrGroup.find('[data-type="address-group"]').append(Templates.getAddress(locationsList,"destination_addresses", false, 1000))
-				addresses.append(addrGroup)
-			}
-
-			holder.append(addresses)
-			//add cars number input
-			if (SD.specifyCarsNumbers && !SD.multipleDestinationLocations && !SD.multipleSourceLocations) {
-				holder.append(Templates.getCarsAmount(SD.minCarsNumbers))
-			}
-
-			var features = Templates.getFeaturesContainer()
-			features.append()
-			for (var i in featuresList) {
-				feature = featuresList[i]
-				if (feature.isCategory==true){
-					features.append(Templates.getFeaturesGroup(feature,"features"))
-				} else {
-					features.append(Templates.getFeaturesItem(feature,"features"))
+		favAddressesClick = function(e){
+			var target = $(e.target),
+				tagName = target[0].tagName.toLowerCase()
+			//select fav location part
+			if (tagName == "a" || tagName == "small"){
+				var input = target.closest('.input-group').find('input'),
+					text_container = target;
+				if (tagName == "a") {
+					text_container = target.find("small")
+				}
+				if ( text_container.closest('li').attr('data-action')=="none" ) {
+					return;
+				}			
+				//.trigger('change'); is important whe you change value programly onChange event doesn`t calls
+				input.val(text_container.html()).trigger('change')
+				return;
+			} 
+			//remove and add address part
+			if (tagName == "button" || tagName == "span"){
+				var btn = target
+				if (tagName == "span"){
+					btn = target.closest("button")
+				}
+				if (btn.attr('data-action')=="remove"){
+					var container = target.closest('.input-group.fav-address'),
+						input = $(container.find('input')[0]),
+						markerId = input.attr("data-number")
+					MapTools.removeMarker(markerId)
+					MapTools.markersFitWindow()
+					container.remove()
+					return;
+				} else if (btn.attr('data-action')=="add"){
+					var startNumber = btn.attr('data-start-number'),
+						name = btn.attr("data-name"),
+						newAddressBlock = Templates.getFavAddress(tmpStorage.favouriteLocations, name, startNumber),
+						input = newAddressBlock.find('[data-type="address"]')[0]
+					var holder = $(target.parent()).find('[data-type="address-group"]')
+					console.log(holder)
+					holder.append(newAddressBlock)
+					MapTools.modAutocompleteAddressInput(input, updateRoutes)
+					return;
 				}
 			}
-			holder.append(features)
-
-			holder.find('input[data-type="address"]').each(function(i,input){
-				MapTools.modAutocompleteAddressInput(input, updateRoutes)
-			})
-
-			//bind events
-			addresses.bind("click", addressesClick)
 		},
-		showOrderPage = function(holder){
-			var container = Templates.getOrderPage(),
-				serviceTypesList = DataTools.getServiceTypes(),
-				serviceTypes = container.find("#serviceType"),
-				orderDetails = container.find('[data-type="order-details"]'),
-				map = container.find('[data-type="map"]'),
-				orderForm = container.find('#orderForm'),
-				makeOrderBtn = container.find('[data-action="make-order"]')
-			
-			makeOrderBtn.bind("click", function(e){
-				//TODO : add validation
-				if (makeOrderBtn.attr("disabled") !== undefined) return;
-				var method = orderForm.attr("method").toLowerCase(),
-					url = orderForm.attr("action"),
-					data = JSON.stringify(orderForm.serializeObject()),
-					onQueryEnded = function(status){
-						//enable form
-						unlockAllControls(orderForm);
-						makeOrderBtn.removeClass("active")
-						makeOrderBtn.removeAttr("disabled")
-					}
-				//lock form
-				lockAllControls(orderForm);
-				makeOrderBtn.addClass("active")
-				makeOrderBtn.attr("disabled","")
-
-				method = (method != "get" && method != "post") ? "post" : method
-				console.log(data)
-				$.ajax({
-					type: method,
-					url: url,
-					contentType: "application/json; charset=utf-8",
-					data: data,
-					cache: false,
-            		processData:false,
-					success : function(response){
-						console.log("response is '"+response+"'")
-						onQueryEnded("success")
-						var watchIt = function(){
-							console.log("go to track link")
-						}
-						BootstrapDialog.show({
-							type: BootstrapDialog.TYPE_SUCCESS,
-							title: "Order successfully created",
-							closable: false,
-							message: function(dialog){
-								var msg = $("<div>Your order successfully created<br>You can track it via this link </div>"),
-									link = $("<a href='#''>some link with tracknumber</a>")
-								link.bind("click", function(e){
-									dialog.close()
-									watchIt()
-								})
-								msg.append(link)
-								return msg
-							},
-							buttons: [
-								{
-									label : "Watch it",
-									action: function(dialog){
-										dialog.close()
-										watchIt()
-					                }
-								}
-							],							
-						})
-					},
-					error : function(response){
-						console.log(response)
-						onQueryEnded("error")
-						BootstrapDialog.show({
-							type: BootstrapDialog.TYPE_DANGER,
-							title: "Server error",
-							message: "Server returns error with status '"+response.statusText+"'",
-						})
-					}
-				})
-			})
-
-			//fill service types
-			$.each(serviceTypesList, function (i, item) {
-			    serviceTypes.append($('<option>', { 
-			        value: item.id,
-			        text : item.name 
-			    }))
-			})
-
-			serviceTypes.bind("change", function(e){
-				var newServiceType = $(e.target).find('option[value="'+$(e.target).val()+'"]').text()
-				//console.log(newServiceType)
-				createInputsForServiceType(orderDetails, 
-					DataTools.getServiceDescription(newServiceType), 
-					DataTools.getFeatureList(newServiceType))
-			})
-
-			//fill page
+		createInputsForServiceType = function(holder, newServiceType, loader) {
+			MapTools.clearAllMarker()
+			MapTools.markersFitWindow()
 			holder.html("")
-			holder.append(container)
+			holder.append(Templates.getWhiteLoader)
+			//create DOM))
+			var createDOM = function(){
+				var SD = tmpStorage.serviceDescription,
+					SF = tmpStorage.serviceFeatures,
+					FL = tmpStorage.favouriteLocations,
+					user = tmpStorage.user
+				holder.html("")
+				//add contacts
+				if (!user.isLogged){
+					holder.append(Templates.getContacts())
+				}
+				console.log(SD)
+				holder.append(Templates.getTime(SD.timing.indexOf("now")>-1, SD.timing.indexOf("specified")>-1))
+				//add addresses
+				var addresses = $(Templates.getAddressesContainer())
+				var mult = SD.multipleSourceLocations
+				var addrGroup = $(Templates.getAddressesGroup("Source:","start_addresses", mult, mult))
+				addrGroup.find('[data-type="address-group"]').append(Templates.getAddress(FL,"start_addresses", mult, false))
+				addresses.append(addrGroup)
 
-			//[0] coz new google.maps.Map accepts clear html element, not wraped by jquery
-			MapTools.init(map[0])
+				//console.log(SD)
+				if (SD.chain) {
+					addrGroup = $(Templates.getAddressesGroup("Intermediate:","intermediate_addresses", true, false))
+					addresses.append(addrGroup)
+				}
 
-			serviceTypes.trigger("change")
-						
-			updateLocationsLists()
+				if (SD.destinationRequired) {
+					var mult = SD.multipleDestinationLocations
+					addrGroup = $(Templates.getAddressesGroup("Destination:","destination_addresses", mult, mult))
+					addrGroup.find('[data-type="address-group"]').append(Templates.getAddress(FL,"destination_addresses", false))
+					addresses.append(addrGroup)
+				}
+
+				holder.append(addresses)
+				//add cars number input
+				if (SD.specifyCarsNumbers && !SD.multipleDestinationLocations && !SD.multipleSourceLocations) {
+					holder.append(Templates.getCarsAmount(SD.minCarsNumbers))
+				}
+
+				var features = Templates.getFeaturesContainer()
+				features.append()
+				for (var i in SF) {
+					feature = SF[i]
+					if (feature.isCategory==true){
+						features.append(Templates.getFeaturesGroup(feature,"features"))
+					} else {
+						features.append(Templates.getFeaturesItem(feature,"features"))
+					}
+				}
+				holder.append(features)
+
+				holder.find('input[data-type="address"]').each(function(i,input){
+					MapTools.modAutocompleteAddressInput(input, updateRoutes)
+				})
+
+				//bind events
+				addresses.bind("click", addressesClick)
+			}
+
+			//init loader and bind callback when all necessary datas will be loaded
+			if (!$.isSet(loader)) {
+				loader = new Loader()
+			}
+			loader.addCallBack(function(){ createDOM() })
+			//binding data loaders
+			var ids = loader.getArrayUniqId(3)
+			DataTools.getServiceDescription(loader, ids[0], function(status, response, serviceDescription){
+				tmpStorage.serviceDescription = serviceDescription
+			}, newServiceType)
+			DataTools.getServiceFeatures(loader, ids[1], function(status, response, serviceFeatures){
+				tmpStorage.serviceFeatures = serviceFeatures
+			}, newServiceType)
+			DataTools.getFavLocations(loader, ids[2], function(status, response, favouriteLocations){
+				tmpStorage.favouriteLocations = favouriteLocations
+			}, newServiceType)
 		},
-		showLoginPage = function(holder){
+		showLoginPage = function(){
+			current_page_name = "login"
+			showLoadPage()
 			var container = Templates.getLogin(),
 				loginForm = container.find("#login-form"),
 				loginBtn = container.find('[data-action="login"]')
 			
-			loginBtn.bind("click", function(e){
-				//TODO : add validation
-				if (loginBtn.attr("disabled") !== undefined) return;
-				var method = loginForm.attr("method").toLowerCase(),
-					url = loginForm.attr("action"),
-					data = JSON.stringify(loginForm.serializeObject()),
-					onQueryEnded = function(status){
-						//enable form
-						unlockAllControls(loginForm);
-						loginBtn.removeClass("active")
-						loginBtn.removeAttr("disabled")
-					}
-				//lock form
-				lockAllControls(loginForm);
-				loginBtn.addClass("active")
-				loginBtn.attr("disabled","")
-
-				method = (method != "get" && method != "post") ? "post" : method
-				console.log(data)
-				$.ajax({
-					type: method,
-					url: url,
-					contentType: "application/json; charset=utf-8",
-					data: data,
-					cache: false,
-            		processData:false,
-					success : function(response){
-						console.log("response is '"+response+"'")
-						//TODO: check response
-						onQueryEnded("success")
-						//loadPage("new-order")
-					},
-					error : function(response){
-						console.log(response)
-						onQueryEnded("error")
+    		Templates.makeNiceSubmitButton({
+    			form : loginForm,
+            	button : loginBtn,
+    			success : function(response){
+					//loadPage("new-order")
+					console.log("success")
+					console.log(response)
+					if (!response.authenticationStatus){
 						BootstrapDialog.show({
 							type: BootstrapDialog.TYPE_DANGER,
-							title: "Server error",
-							message: "Server returns error with status '"+response.statusText+"'",
+							title: "Invalid login credentioals",
+							message: "Invalid login credentioals",
+						})
+					} else {
+						
+						var loader = new Loader()
+						loader.addCallBack(function(){ 
+							console.log(tmpStorage.user)
+							switch (tmpStorage.user.role) {
+								case "ROLE_CUSTOMER" : 
+									pages["make-order"].show()
+									break;
+								case "ROLE_DRIVER" : 
+									window.location = "/driver";
+									break;
+								case "ROLE_ADMINISTRATOR" : 
+									window.location = "/admin";
+									break;
+								default:
+									console.log("UNKNOW ROLE NAME");
+									break;
+							}
+							
+						})
+						//data loading
+						DataTools.getUser(loader, loader.getUniqId(), function(status, response, userInfo){
+							tmpStorage.user = userInfo
 						})
 					}
-				})
-			})
+				},
+				error : function(response){
+					console.log("error")
+					console.log(response)
+					BootstrapDialog.show({
+						type: BootstrapDialog.TYPE_DANGER,
+						title: "Server error",
+						message: "Server returns error with status '"+response.statusText+"'",
+					})
+				}
+    		}/*, DataTools.tryLogin*/)
 
 			//fill page
-			holder.html("")
-			holder.append(container)
+			blocks.content.html("")
+			blocks.content.append(container)
 		},
-		showRegisterPage = function(holder){
+		showRegisterPage = function(){
+			showLoadPage()
+			current_page_name = "register"
 			var container = Templates.getRegistration(),
 				form = container.find("#reg-form"),
 				submBtn = container.find('[data-action="reg"]')
 			
-			submBtn.bind("click", function(e){
-				//TODO : add validation
-				if (submBtn.attr("disabled") !== undefined) return;
-				var method = form.attr("method").toLowerCase(),
-					url = form.attr("action"),
-					data = JSON.stringify(form.serializeObject()),
-					onQueryEnded = function(status){
-						//enable form
-						unlockAllControls(form);
-						submBtn.removeClass("active")
-						submBtn.removeAttr("disabled")
-					}
-				//lock form
-				lockAllControls(form);
-				submBtn.addClass("active")
-				submBtn.attr("disabled","")
-
-				method = (method != "get" && method != "post") ? "post" : method
-				console.log(data)
-				$.ajax({
-					type: method,
-					url: url,
-					contentType: "application/json; charset=utf-8",
-					data: data,
-					cache: false,
-            		processData:false,
+				Templates.makeNiceSubmitButton({
+					form : form,
+					button : submBtn,
 					success : function(response){
-						console.log("response is '"+response+"'")
-						//TODO: check response
-						onQueryEnded("success")
-						//loadPage("new-order")
+						console.log(response)
+						BootstrapDialog.show({
+							type: BootstrapDialog.TYPE_SUCCESS,
+							title: "Congradulations!",
+							message: "You are succesfully registered. Plese, check your mail for confirmation link",
+						})
 					},
 					error : function(response){
 						console.log(response)
-						onQueryEnded("error")
 						BootstrapDialog.show({
 							type: BootstrapDialog.TYPE_DANGER,
 							title: "Server error",
@@ -452,35 +571,173 @@ var App = (function(){
 						})
 					}
 				})
-			})
+
 			//fill page
-			holder.html("")
-			holder.append(container)
+			blocks.content.html("")
+			blocks.content.append(container)
 		},
-		showAboutPage = function(holder){
+		showAboutPage = function(){
+			showLoadPage()
+			current_page_name = "about"
 			var container = Templates.getAbout()
 			//fill page
-			holder.html("")
-			holder.append(container)
+			blocks.content.html("")
+			blocks.content.append(container)
 		},
-		showViewOrderPage = function(holder){
-			var container = Templates.getViewOrder()
+		showViewOrderPage = function(){
+			showLoadPage()
+			current_page_name = "view-order"
+			var container = Templates.getAbout()
 			//fill page
-			holder.html("")
-			holder.append(container)
-		}
+			blocks.content.html("")
+			blocks.content.append(container)
+		},
 		showHistoryPage = function(holder){
-			var container = Templates.getViewHistory()
+			current_page_name = "history"
+			showLoadPage()
+			var container = Templates.getViewHistory(DataTools.getHistory())
 			//fill page
-			holder.html("")
-			holder.append(container)
-		}
-		showEditAccountPage = function(holder){
-			var container = Templates.getEditAccount()
-			//fill page
-			holder.html("")
-			holder.append(container)			
-		}
+			blocks.content.html("")
+			blocks.content.append(container)
+		},
+		showEditAccountPage = function(){
+			current_page_name = "account"
+			showLoadPage()
+			var createDOM = function(){
+				console.log(tmpStorage.favouriteLocations)
+				var locations = []
+				var fav_locations = tmpStorage.favouriteLocations
+				for (var i=0;i<fav_locations.length;i++){
+					var location = fav_locations[i]
+					console.log(location)
+					if ($.isSet(location) && !location.isUserLocation) {
+						console.log("pushed")
+						locations.push({
+							name : location.name,
+							address : location.address,
+							id : location.id,
+							action : "none",
+						})
+					}
+				}
+				console.log(locations)
+				var container = Templates.getEditAccount(tmpStorage.favouriteLocations),
+				saveBtns = container.find('[data-action="save"]'),
+				addresses = container.find('#addresses')
+				addresses.bind('click',favAddressesClick)
+				
+				$.each(saveBtns, function(i,btn){
+					btn = $(btn)
+					var formId = btn.attr("data-form-id")
+					if (formId == "addresses") {
+						Templates.makeNiceSubmitButton({
+							form : container.find('#'+formId),
+							button : btn,
+							dataFormater : function(){
+								var data = [],
+									addresses = container.find('[data-type="address-group"]').find('.input-group.fav-address')
+								for (var j=0;j<locations.length;j++){
+									locations[j].finded = false
+								}
+								for (var i = 0;i<addresses.length;i++){
+									var addressBlock = $(addresses[i]),
+										address = addressBlock.find('[data-type="address"]').val(),
+										name = addressBlock.find('[data-type="address-name"]'),
+										locationId = name.attr('data-id'),
+										name = name.val()
+									if (!$.isSet(locationId)) {
+										data.push({
+											name : name,
+											address : address,
+											action : "add"
+										})
+										continue;
+									}
+									//search current location in array
+									for (var j=0;j<locations.length;j++){
+										var location = locations[j]
+										if (location.id == locationId ){
+											location.finded = true
+											console.log("finded",location.id)
+											if (location.name != name || location.address != address) {
+												data.push({
+													name : name,
+													address : address,
+													id : locationId,
+													action : "update"
+												})
+												console.log("updated",location.id)
+											}
+											break
+										}
+									}
+								}
+								//remove unexists locations
+								for (var i=0;i<locations.length;i++){
+									var location = locations[i]
+									if (location.finded !== true ){
+										data.push({
+											id : location.id,
+											action : "remove"
+										})
+										console.log("removed",location.id)
+									}
+								}
+								console.log(data)
+								return JSON.stringify(data)
+								//return []
+
+							},
+							success : function(response){
+								console.log("success")
+								console.log(response)
+								//loadPage("new-order")
+							},
+							error : function(response){
+								console.log("error")
+								console.log(response)
+								BootstrapDialog.show({
+									type: BootstrapDialog.TYPE_DANGER,
+									title: "Server error",
+									message: "Server returns error with status '"+response.statusText+"'",
+								})
+							}
+						})
+					} else {
+						Templates.makeNiceSubmitButton({
+							form : container.find('#'+formId),
+							button : btn,
+							success : function(response){
+								//loadPage("new-order")
+							},
+							error : function(response){
+								BootstrapDialog.show({
+									type: BootstrapDialog.TYPE_DANGER,
+									title: "Server error",
+									message: "Server returns error with status '"+response.statusText+"'",
+								})
+							}
+						})
+					}
+				})
+
+				//locationID = container.find('[data-id]').attr('data-id')
+				
+				//fill page
+				blocks.content.html("")
+				blocks.content.append(container)		
+			}
+			//init loader and bind callback when all necessary datas will be loaded
+			var loader = new Loader()
+			loader.addCallBack(function(){ 
+				createDOM()
+			})
+			//binding data loaders
+			var ids = loader.getArrayUniqId(1)
+			DataTools.getFavLocations(loader, ids[0], function(status, response, favouriteLocations){
+				tmpStorage.favouriteLocations = favouriteLocations
+			})
+		},
 		initBasePage = function(){
 			//binding elements
 			initHeader()
@@ -493,11 +750,81 @@ var App = (function(){
 		},
 		init = function(){
 			MapTools.addListener("onGeolocationAllowed",function(pos){
-				DataTools.setUserLocation("Your location", pos.latitude+', '+pos.longitude, true)
-				updateLocationsLists()
+				MapTools.getNameForLocation(pos.latitude, pos.longitude, function(name){
+					DataTools.setUserLocation("Your location", name, true)
+					updateLocationsLists()
+				})
 			})
-			initBasePage()
-			loadPage("new-order")		
+
+			var loader = new Loader()
+			loader.addCallBack(function(){ 
+				console.log("hi")
+				initBasePage()
+				console.log("show default page")
+				pages["default"].show()
+			})
+			loader.addThreadNames("user")
+			DataTools.getUser(loader, "user", function(status, response, userInfo){
+				tmpStorage.user = userInfo
+				console.log(tmpStorage.user)
+			})
+		},
+		pages = {
+			"default" : {
+				show : showOrderPage
+			},
+			"load" : {
+				show : showLoadPage
+			},
+			"blocked" : {
+				show : showBlockedPage
+			},
+			"login" : {
+				label : "Sign In",
+				action : "login",
+				show : showLoginPage,
+				pullRight : true,
+				icon : "log-in",
+				hideLogged : true
+			},
+			"register" : {
+				label : "Sign Up",
+				action : "register",
+				show : showRegisterPage,
+				pullRight : true,
+				icon : "user",
+				hideLogged : true
+			},
+			"logout" : {
+				label : "Logout",
+				action : "logout",
+				show : showLogoutPage,
+				pullRight : true,
+				icon : "log-out",
+				hideNonLogged : true
+			},
+			"about" : {
+				label : "About",
+				action : "about",
+				show : showAboutPage
+			},
+			"make-order" : {
+				label : "Make order",
+				action : "make-order",
+				show : showOrderPage
+			},
+			"view-orders" : {
+				label : "View order history",
+				action : "view-orders",
+				show : showHistoryPage,
+				hideNonLogged : true
+			},
+			"account" : {
+				label : "Edit account",
+				action : "account",
+				show : showEditAccountPage,
+				hideNonLogged : true
+			},
 		}
 
 	return public_interface = {

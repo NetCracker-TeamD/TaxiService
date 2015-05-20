@@ -1,6 +1,7 @@
 package com.teamd.taxi.config;
 
 import com.teamd.taxi.service.email.MailService;
+import com.teamd.taxi.validation.AddressExistenceValidator;
 import com.teamd.taxi.validation.UniqueEmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -131,24 +132,14 @@ public class SpringConfig extends SpringDataWebConfiguration {
         return new MailService("teamdnetcracker@gmail.com", "NetCrackerTeamD", props);
     }
 
-    /* May need for generating JSP with error messages
-    @Bean
-    public MessageSource messageSource() {
-        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasename("messages");
-        return messageSource;
-    }
-    */
-
-    /* Unnecessary just now
-        @Bean(name = "validator")
-        public LocalValidatorFactoryBean validator() {
-            return new LocalValidatorFactoryBean();
-        }
-    */
     @Bean
     public UniqueEmailValidator uniqueEmailValidator() {
         return new UniqueEmailValidator();
+    }
+
+    @Bean
+    public AddressExistenceValidator addressValidator() {
+        return new AddressExistenceValidator();
     }
 
     @Bean

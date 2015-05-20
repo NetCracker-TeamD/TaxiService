@@ -1,6 +1,8 @@
 package com.teamd.taxi.controllers.driver;
 
+import com.teamd.taxi.authentication.AuthenticatedUser;
 import com.teamd.taxi.entity.*;
+import com.teamd.taxi.service.DriverService;
 import com.teamd.taxi.service.ServiceTypeService;
 import com.teamd.taxi.service.TaxiOrderService;
 import com.teamd.taxi.service.TaxiOrderSpecificationFactory;
@@ -12,9 +14,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,44 +32,67 @@ import java.util.*;
 @Controller
 @RequestMapping("/driver")
 public class HistoryDriverController {
+
     @Autowired
     TaxiOrderService orderService;
     @Autowired
     private TaxiOrderSpecificationFactory factory;
     @Autowired
     private ServiceTypeService service;
-    private List<ServiceType> typeList;
-    Logger logger=Logger.getLogger(HistoryDriverController.class);
-    @RequestMapping(value = "/history", method = RequestMethod.GET)
-    public String viewHistory(Model model, @RequestParam Map<String,String> requestParam) {
-        int page=0;
-        if(requestParam.get("page")!=null)
-            page=Integer.parseInt(requestParam.get("page"))-1;
 
+    @Autowired
+    private DriverService driverService;
+
+    private List<ServiceType> typeList;
+
+
+    Logger logger = Logger.getLogger(HistoryDriverController.class);
+
+    @RequestMapping(value = "/history/{driverId}", method = RequestMethod.GET)
+    public String getDriverHistoryById(Model model, @RequestParam Map<String, String> requestParam, @PathVariable int driverId) {
+        Driver driver = driverService.getDriver(driverId);
+        setViewHistory(model, requestParam, driver);
+        return "driver/drv-history";
+    }
+
+    @RequestMapping(value = "/history", method = RequestMethod.GET)
+    public String getCurrentDriverHistory(Model model, @RequestParam Map<String, String> requestParam) {
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication = context.getAuthentication();
+        AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_DRIVER"))) {
+            Driver driver = driverService.getDriver((int) auth.getId());
+            setViewHistory(model, requestParam, driver);
+        }
+        return "driver/drv-history";
+    }
+
+    private void setViewHistory(Model model, Map<String, String> requestParam, Driver driver) {
+        int page = 0;
+        if (requestParam.get("page") != null)
+            page = Integer.parseInt(requestParam.get("page")) - 1;
         String sort = checkSort(requestParam.get("sort"));
         int numberOfRows = 7;
-        int idDriver=2;
-        typeList=service.findAll();
-        Pageable pageable=new PageRequest(page,numberOfRows, Sort.Direction.ASC, sort);
+        typeList = service.findAll();
+        Pageable pageable = new PageRequest(page, numberOfRows, Sort.Direction.ASC, sort);
         Page<TaxiOrder> orderList = orderService.findTaxiOrderByDriver(
-                resolveSpecification(requestParam, idDriver),
+                resolveSpecification(requestParam, driver.getId()),
                 pageable
         );
-        if(orderList==null){
-            //redirect error page
+        if (orderList == null) {
+            //TODO redirect error page
         }
         List<TaxiOrder> orders = orderList.getContent();
-        setFilteringOFRoutesForDriver(orders, idDriver);
-
+        setFilteringOFRoutesForDriver(orders, driver.getId());
         model.addAttribute("orderList", orders);
         model.addAttribute("pages", orderList.getTotalPages());
         model.addAttribute("serviceTypes", typeList);
-        return "driver/drv-history";
     }
-    private Specification<TaxiOrder> resolveSpecification(Map<String, String> params,int idDriver) {
+
+    private Specification<TaxiOrder> resolveSpecification(Map<String, String> params, int idDriver) {
         List<Specification<TaxiOrder>> specs = new ArrayList<>();
         //to date
-        String to_date= params.get("startDate");
+        String to_date = params.get("startDate");
         if (to_date != null) {
             try {
                 specs.add(factory.executionDateGreaterThan(getCalendarByStr(to_date)));
@@ -72,7 +101,7 @@ public class HistoryDriverController {
             }
         }
         //from date
-        String from_date= params.get("endDate");
+        String from_date = params.get("endDate");
         if (from_date != null) {
             try {
                 specs.add(factory.executionDateLessThan(getCalendarByStr(from_date)));
@@ -80,19 +109,19 @@ public class HistoryDriverController {
                 logger.error("error from endDate");
             }
         }
-        String service_type=params.get("service_type");
-        if(service_type!=null){
-            ServiceType service=getServiceType(service_type);
-            if(service!=null){
+        String service_type = params.get("service_type");
+        if (service_type != null) {
+            ServiceType service = getServiceType(service_type);
+            if (service != null) {
                 specs.add(factory.serviceTypeEqual(service.getId()));
             }
         }
-        if(params.get("id_order")!=null){
-            int id_order=Integer.parseInt(params.get("id_order"));
+        if (params.get("id_order") != null) {
+            int id_order = Integer.parseInt(params.get("id_order"));
             specs.add(factory.taxiOrderEqual(id_order));
         }
-        String address=params.get("address");
-        if(address!=null){
+        String address = params.get("address");
+        if (address != null) {
             specs.add(factory.sourceOrDestinationAddressLike(address));
         }
         specs.add(factory.statusRouteEqual(RouteStatus.COMPLETED));
@@ -109,50 +138,54 @@ public class HistoryDriverController {
         }
         return null;
     }
-    private Calendar getCalendarByStr(String strDate){
+
+    private Calendar getCalendarByStr(String strDate) {
         SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
-        Calendar cal=Calendar.getInstance(Locale.ROOT);
+        Calendar cal = Calendar.getInstance(Locale.ROOT);
         try {
-             cal.setTimeInMillis(f.parse(strDate).getTime());
+            cal.setTimeInMillis(f.parse(strDate).getTime());
         } catch (ParseException e) {
             logger.error("Bad format date");
         }
         return cal;
     }
-    private ServiceType getServiceType(String name_type){
-        for(ServiceType serviceType:typeList){
-            if(serviceType.getName().equals(name_type)){
+
+    private ServiceType getServiceType(String name_type) {
+        for (ServiceType serviceType : typeList) {
+            if (serviceType.getName().equals(name_type)) {
                 return serviceType;
             }
         }
         return null;
     }
-    private String checkSort(String sort){
-        if(sort==null){
+
+    private String checkSort(String sort) {
+        if (sort == null) {
             return "id";
         }
-        if(sort.equals("date")){
+        if (sort.equals("date")) {
             return "executionDate";
-        }else
+        } else
             return "id";
     }
-    private void setFilteringOFRoutesForDriver(List<TaxiOrder> orders,int idDriver){
-        for(TaxiOrder order:orders){
-            List<Route> routes=order.getRoutes();
 
-            Iterator<Route> i=routes.iterator();
-            while(i.hasNext()){
-                Route r=i.next();
-                if(r.getDriver().getId()!=idDriver){
+    private void setFilteringOFRoutesForDriver(List<TaxiOrder> orders, int idDriver) {
+        for (TaxiOrder order : orders) {
+            List<Route> routes = order.getRoutes();
+
+            Iterator<Route> i = routes.iterator();
+            while (i.hasNext()) {
+                Route r = i.next();
+                if (r.getDriver().getId() != idDriver) {
                     i.remove();
                 }
             }
-            Collections.sort(routes,new Comparator<Route>() {
+            Collections.sort(routes, new Comparator<Route>() {
                 @Override
                 public int compare(Route o1, Route o2) {
-                    if(o1.getStartTime().compareTo(o2.getStartTime())==1){
+                    if (o1.getStartTime().compareTo(o2.getStartTime()) == 1) {
                         return 1;
-                    }else if(o1.getStartTime().compareTo(o2.getStartTime())==-1){
+                    } else if (o1.getStartTime().compareTo(o2.getStartTime()) == -1) {
                         return -1;
                     }
                     return 0;
@@ -160,16 +193,4 @@ public class HistoryDriverController {
             });
         }
     }
-    /*private Map<String,Integer> allowedServiceType=new HashMap<String,Integer>(){{
-        put("Taxi asap",1);
-        put("Taxi in advance",2);
-        put("Sober driver",3);
-        put("Convey corp. emps.",4);
-        put("Cargo taxi",5);
-        put("Taxi for long term",6);
-        put("Meet my guest",7);
-        put("Celebration taxi",8);
-        put("Foodstuff delivery",9);
-        put("Guest Delivery",10);
-    }};*/
 }

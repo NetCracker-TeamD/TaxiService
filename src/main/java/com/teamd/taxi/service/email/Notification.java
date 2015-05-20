@@ -7,7 +7,11 @@ package com.teamd.taxi.service.email;
  */
 public enum Notification {
 
-    REGISTRATION("You successfully registered in the system. Follow this link to confirm yourself <a href=\"%1$s\">%1$s</a>");
+    REGISTRATION("You successfully registered in the system. Follow this link to confirm yourself <a href=\"%1$s\">%1$s</a>"),
+    ASSIGNED("Your order is accepted. Expect a taxi at %1$tm %1$te,%1$tY %1$tT at %2$s"),
+    IN_PROGRESS("Your order with source: %s is in progress"),
+    COMPLETED("Your order with source: %1$s is completed at %2$tT "),
+    REFUSED("Sorry, but you didn't manage to show up at %s in time. Your order was rejected.");
 
     private String pattern;
 

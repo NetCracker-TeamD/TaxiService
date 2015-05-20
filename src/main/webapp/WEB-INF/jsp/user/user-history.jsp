@@ -18,6 +18,7 @@
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
     <script src="/pages/resources/project/js/history/history.js" type="text/javascript"></script>
     <script src="/pages/resources/jsrenderer/jsrender.min.js/"></script>
+    <script src="/pages/resources/project/js/paging.js" type="text/javascript"></script>
     <script src="/pages/resources/project/js/user/user-history.js" type="text/javascript"></script>
     <script>
         var startState = {
@@ -27,6 +28,9 @@
                 <c:forEach var="entry" items="${additionalParams}">
                 "${entry.key}": ${entry.value},
                 </c:forEach>
+            },
+            hidden: {
+                userId: ${userId}
             }
         };
     </script>
@@ -130,6 +134,10 @@
                 </div>
             </div>
         </div>
+
+
+
+
 
 
 

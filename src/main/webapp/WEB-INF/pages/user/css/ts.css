@@ -63,12 +63,51 @@ a {
   margin: 0 auto;
 }
 
+.center {
+     float: none;
+     margin-left: auto;
+     margin-right: auto;
+}
 
+.input-group.fav-address input:nth-child(1){
+	
+}
 
 /*
 Fixes
 */
 
+
+.input-group.fav-address{
+	width:100%;
+}
+
+.input-group.fav-address button{
+	width:40px;
+}
+
+.input-group.fav-address .input-group{
+	margin:0px;
+}
+
+.input-group.fav-address .input-group:first-child {
+	margin-bottom: -1px;
+}
+.input-group.fav-address .form-control:focus {
+  z-index: 7;
+}
+.input-group.fav-address .input-group:first-child input, .input-group.fav-address .input-group:first-child button {
+	border-bottom-right-radius: 0;
+	border-bottom-left-radius: 0;
+}
+
+.input-group.fav-address .input-group:last-child input, .input-group.fav-address .input-group:last-child button {
+	border-top-right-radius: 0;
+	border-top-left-radius: 0;
+}
+.input-group.fav-address .input-group:last-child button {
+	z-index: 5;
+}
 .form-group .input-group {
 	margin-bottom: 7px;
 }

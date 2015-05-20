@@ -3,10 +3,8 @@ package com.teamd.taxi.models;
 import com.teamd.taxi.entity.Route;
 import com.teamd.taxi.entity.ServiceType;
 import com.teamd.taxi.entity.TaxiOrder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+
+import java.util.*;
 
 public class AssembledOrder {
 
@@ -46,43 +44,14 @@ public class AssembledOrder {
         Boolean chain = type.isDestinationLocationsChain();
         //Переупорядочиваем маршруты, так чтобы они стояли друг за другом
         if (chain != null && chain) {
-            LinkedList<AssembledRoute> reordered = new LinkedList<>();
-            AssembledRoute globalPivot = routes.pollFirst();
-            reordered.add(globalPivot);
-            //достраиваем вправо от ведущего
-            AssembledRoute pivot = globalPivot;
-            boolean found;
-            do {
-                found = false;
-                for (Iterator<AssembledRoute> it = routes.iterator(); it.hasNext(); ) {
-                    AssembledRoute element = it.next();
-                    if (element.getSource().equals(pivot.getDestination())) {
-                        reordered.add(element);
-                        pivot = element;
-                        it.remove();
-                        found = true;
-                        break;
-                    }
+            Collections.sort(routes, new Comparator<AssembledRoute>() {
+                public int compare(AssembledRoute a, AssembledRoute b) {
+                    return Integer.compare(a.getChainPosition(), b.getChainPosition());
                 }
-            } while (found);
-            //достраиваем влево от ведущего
-            pivot = globalPivot;
-            do {
-                found = false;
-                for (Iterator<AssembledRoute> it = routes.iterator(); it.hasNext(); ) {
-                    AssembledRoute element = it.next();
-                    if (element.getDestination().equals(pivot.getSource())) {
-                        reordered.addFirst(element);
-                        pivot = element;
-                        it.remove();
-                        found = true;
-                        break;
-                    }
-                }
-            } while (found);
-            routes = reordered;
+            });
         }
-        return new AssembledOrder(order, routes);
+        AssembledOrder retValue = new AssembledOrder(order, routes);
+        return retValue;
     }
 
     public Float getTotalPrice() {
@@ -99,15 +68,18 @@ public class AssembledOrder {
             String destination = sample.getDestinationAddress();
             for (int i = 0; i < originalRoutes.size(); i++) {
                 Route candidate = originalRoutes.get(i);
-                if (candidate.getSourceAddress().equals(source)
-                        && candidate.getDestinationAddress().equals(destination)) {
+                String candidateSource = candidate.getSourceAddress();
+                String candidateDestination = candidate.getDestinationAddress();
+                if (candidateSource.equals(source) && //точки отправления равны
+                        ((destination == null && candidateDestination == null) //точки назначения или обе отсутствуют
+                                || candidateDestination.equals(destination))) { //или равны
                     assembled.add(candidate);
                     originalRoutes.remove(i);
                     i--;
                 }
             }
             assembled.add(sample);
-            routes.add(new AssembledRoute(source, destination, assembled));
+            routes.add(new AssembledRoute(source, destination, sample.getChainPosition(), assembled));
         }
         return routes;
     }
@@ -122,5 +94,15 @@ public class AssembledOrder {
 
     public TaxiOrder getOrder() {
         return order;
+    }
+
+    @Override
+    public String toString() {
+        return "AssembledOrder{" +
+                "order=" + order +
+                ", assembledRoutes=" + assembledRoutes +
+                ", totalPrice=" + totalPrice +
+                ", complete=" + complete +
+                '}';
     }
 }

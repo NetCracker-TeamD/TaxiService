@@ -1,13 +1,13 @@
 $(function () {
+    var userId = startState.hidden.userId;
     PagingUtils.install({
         paginationId: 'pagination',
         dataStoreUrl: '/user/loadHistory',
         collectDataCallback: function collectData() {
             //all necessary data except page number
-            var data = {};
+            var data = {additional: {}, hidden: {}};
             data.sort = $('#sort-menu a.selected-property').data('property');
             //add data filtration
-            data.additional = {};
             var fromDate = $('#date-from').datepicker('getDate');
             if (fromDate != null) {
                 data.additional.from = fromDate.getTime();
@@ -16,6 +16,7 @@ $(function () {
             if (toDate != null) {
                 data.additional.to = toDate.getTime();
             }
+            data.hidden.userId = userId;
             return data;
         },
         displayDataCallback: function updateMainContent(status, orders, details) {

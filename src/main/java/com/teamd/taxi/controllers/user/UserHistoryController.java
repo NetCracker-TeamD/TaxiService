@@ -1,13 +1,12 @@
 package com.teamd.taxi.controllers.user;
 
 import com.google.gson.*;
+import com.teamd.taxi.authentication.Utils;
+import com.teamd.taxi.entity.CarClass;
 import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.entity.ServiceType;
 import com.teamd.taxi.entity.TaxiOrder;
-import com.teamd.taxi.models.AssembledOrder;
-import com.teamd.taxi.models.AssembledRoute;
-import com.teamd.taxi.models.PageDetails;
-import com.teamd.taxi.models.PagingLink;
+import com.teamd.taxi.models.*;
 import com.teamd.taxi.service.PagingLinksGenerator;
 import com.teamd.taxi.service.TaxiOrderService;
 import com.teamd.taxi.service.TaxiOrderSpecificationFactory;
@@ -24,16 +23,15 @@ import static org.springframework.data.jpa.domain.Specifications.*;
 
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -124,8 +122,9 @@ public class UserHistoryController {
         return calendar;
     }
 
-    private Specification<TaxiOrder> resolveSpecification(MultiValueMap<String, String> params) {
+    private Specification<TaxiOrder> resolveSpecification(long userId, MultiValueMap<String, String> params) {
         List<Specification<TaxiOrder>> specs = new ArrayList<>();
+        specs.add(factory.userIdEqual(userId));
         //"to" date
         List<String> toVals = params.get("to");
         if (toVals != null && toVals.size() > 0) {
@@ -137,7 +136,7 @@ public class UserHistoryController {
         }
         //"from" date
         List<String> fromVals = params.get("from");
-        if (toVals != null && toVals.size() > 0) {
+        if (fromVals != null && fromVals.size() > 0) {
             try {
                 long fromDate = Long.parseLong(fromVals.get(0));
                 specs.add(factory.registrationDateGreaterThan(getCalendarByTime(fromDate)));
@@ -146,15 +145,12 @@ public class UserHistoryController {
         }
         System.out.println(specs.size());
         //join specifications
-        if (specs.size() != 0) {
-            Iterator<Specification<TaxiOrder>> specIt = specs.iterator();
-            Specifications<TaxiOrder> spec = Specifications.where(specIt.next());
-            while (specIt.hasNext()) {
-                spec = spec.and(specIt.next());
-            }
-            return spec;
+        Iterator<Specification<TaxiOrder>> specIt = specs.iterator();
+        Specifications<TaxiOrder> spec = Specifications.where(specIt.next());
+        while (specIt.hasNext()) {
+            spec = spec.and(specIt.next());
         }
-        return null;
+        return spec;
     }
 
     //filtering sorting parameters
@@ -208,20 +204,21 @@ public class UserHistoryController {
         return foundParams;
     }
 
-    @RequestMapping(value = "/loadHistory", produces = MediaType.APPLICATION_JSON_VALUE)
-     @ResponseBody
-     public String loadHistory(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
-        logger.info("pageable = " + pageable);
-        logger.info("All params = " + params);
+
+    private Map<String, Object> loadHistoryByUserId(
+            long userId,
+            UriComponentsBuilder builder,
+            Pageable pageable,
+            MultiValueMap<String, String> params
+    ) {
         //retrieving data from database
         Sort filtered = filterSort(pageable.getSort());
         //TODO: добавить второстепенную сортировку по id (предсказуемость порядка появления результатов)
         Page<TaxiOrder> page = orderService.findAll(
-                resolveSpecification(params),
+                resolveSpecification(userId, params),
                 new PageRequest(pageable.getPageNumber(), PAGE_SIZE, filtered)
         );
         List<TaxiOrder> content = page.getContent();
-        HashMap<String, Object> returnValue = new HashMap<>();
         if (content.size() != 0) {
             //assembling orders
             List<AssembledOrder> assembledOrders = new ArrayList<>(content.size());
@@ -229,27 +226,41 @@ public class UserHistoryController {
                 assembledOrders.add(AssembledOrder.assembleOrder(taxiOrder));
             }
             //generating links for paging
-            UriComponentsBuilder builder = MvcUriComponentsBuilder.fromMethodName(
-                    UserHistoryController.class, "viewHistory", null, null, null
-            );
             addSortingParams(builder, params);
             addAdditionalParams(builder, params);
             List<PagingLink> links = linksGenerator.generateLinks(page, builder);
             //send data to the receiver
-            returnValue.put("orders", assembledOrders);
-            returnValue.put("pageDetails", new PageDetails(page));
-            returnValue.put("links", links);
-            returnValue.put("status", "ok");
+            return new MapResponse()
+                    .put("orders", assembledOrders)
+                    .put("pageDetails", new PageDetails(page))
+                    .put("links", links)
+                    .put("status", "ok");
         } else {
-            returnValue.put("status", "notFound");
+            return new MapResponse()
+                    .put("status", "notFound");
         }
-        return getGson().toJson(returnValue);
     }
 
-    @RequestMapping(value = "/history", method = RequestMethod.GET)
-    public String viewHistory(Pageable pageable, @RequestParam MultiValueMap<String, String> params, Model model) {
-        logger.info(pageable);
-        logger.info(params);
+    @RequestMapping(value = "/loadHistory", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or #userId == principal.id")
+    public String loadHistory(Pageable pageable, @RequestParam("userId") long userId, @RequestParam MultiValueMap<String, String> params) {
+        return getGson().toJson(
+                loadHistoryByUserId(
+                        userId,
+                        MvcUriComponentsBuilder.fromMethodName(
+                                UserHistoryController.class,
+                                "loadHistory",
+                                null, userId, null
+                        ),
+                        pageable,
+                        params
+                )
+        );
+    }
+
+
+    private void populateModel(Pageable pageable, long userId, MultiValueMap<String, String> params, Model model) {
         Sort sort = filterSort(pageable.getSort());
         if (sort != null) {
             List<String> sorts = getStringBySort(sort);
@@ -259,7 +270,24 @@ public class UserHistoryController {
         model.addAttribute("pageable", pageable);
         model.addAttribute("allowedSortProperties", allowedSortProperties());
         model.addAttribute("selectedSorts", extractPropertiesFromSort(sort));
-        model.addAttribute("additionalParams", extractAdditionalParams(params));
+        model.addAttribute("userId", userId);
+        Map<String, String> additionalParams = extractAdditionalParams(params);
+        model.addAttribute("additionalParams", additionalParams);
+    }
+
+    @RequestMapping(value = "/history", method = RequestMethod.GET)
+    public String viewHistoryCurrentUser(Pageable pageable, @RequestParam MultiValueMap<String, String> params, Model model) {
+        populateModel(pageable, Utils.getCurrentUser().getId(), params, model);
+        return "user/user-history";
+    }
+
+    @RequestMapping(value = "/history/{userId}", method = RequestMethod.GET)
+    public String viewHistoryAnyUser(
+            Pageable pageable,
+            @PathVariable("userId") long userId,
+            @RequestParam MultiValueMap<String, String> params,
+            Model model) {
+        populateModel(pageable, userId, params, model);
         return "user/user-history";
     }
 
@@ -278,7 +306,8 @@ public class UserHistoryController {
             to.addProperty("id", taxiOrder.getId());
             to.addProperty("comment", taxiOrder.getComment());
             to.addProperty("musicStyle", taxiOrder.getMusicStyle());
-            to.addProperty("carClass", taxiOrder.getCarClass().getClassName());
+            CarClass carClass = taxiOrder.getCarClass();
+            to.addProperty("carClass", carClass == null ? null : carClass.getClassName());
             to.addProperty("executionDate", fmt.format(taxiOrder.getExecutionDate().getTime()));
             to.addProperty("registrationDate", fmt.format(taxiOrder.getRegistrationDate().getTime()));
             //lists

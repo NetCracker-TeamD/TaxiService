@@ -26,39 +26,7 @@
     <script src="../../pages/resources/bootstrap/js/bootstrap-datepicker.js"></script>
     <script src="../../pages/resources/project/js/driver/drv-history.js" type="text/javascript"></script></head>
 <body>
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">Smart Taxi</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
-                <li><a href="#">Queue</a></li>
-                <li><a href="#">History</a></li>
-            </ul>
-            <div class="navbar-form navbar-right">
-                <div class="form-group">
-                    <input type="text" placeholder="Email" class="form-control">
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="Password" class="form-control">
-                </div>
-                <button type="button" class="btn btn-primary">Sign in</button>
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#t_and_c_m">Sign up
-                </button>
-            </div>
-        </div>
-        <!--/.navbar-collapse -->
-    </div>
-</nav>
+<%@ include file="../../pages/driver/drv-header.html"%>
 <div class="jumbotron welcome" style="height:150px;">
     <div class="container" style="height:150px;">
         <h1 style="color:yellow; text-align:right;">History</h1>

@@ -15,7 +15,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface License {
 
-    String message() default "License number contains illegal characters";
+    String message() default "License number has illegal format";
 
     Class<?>[] groups() default {};
 

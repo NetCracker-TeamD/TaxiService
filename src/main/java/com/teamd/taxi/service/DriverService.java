@@ -4,6 +4,7 @@ import com.teamd.taxi.entity.Car;
 import com.teamd.taxi.entity.Driver;
 import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.entity.FeatureType;
+import com.teamd.taxi.models.admin.UpdateDriverModel;
 import com.teamd.taxi.persistence.repository.CarRepository;
 import com.teamd.taxi.persistence.repository.DriverRepository;
 import com.teamd.taxi.persistence.repository.FeatureRepository;
@@ -15,8 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.List;
 
 /**
  * Created by Іван on 06.05.2015.
@@ -73,9 +73,10 @@ public class DriverService {
 //        System.out.println(Arrays.toString(driver.getFeatures().toArray()));
         driverRepository.delete(id);
     }
-    @Transactional
-    public void updatePassword(int id,String newpass,String oldpass){
-        driverRepository.updatePasswordByDriverId(id, encoder.encode(newpass),encoder.encode(oldpass));
+
+
+    public void save(Driver driver) {
+        driverRepository.save(driver);
     }
 
     @Transactional
@@ -85,9 +86,14 @@ public class DriverService {
 
         driver.setPassword(encoder.encode(password));
         driverRepository.save(driver);
-        Car car = carRepository.findOne(driver.getCar().getCarId());
-        car.setDriver(new Driver(driver.getId()));
-        carRepository.save(car);
     }
+
+    @Transactional
+    public void updateDriverAccount(UpdateDriverModel newDriver) {
+        Driver driver = driverRepository.findOne(newDriver.getId());
+        driver = newDriver.mergeWith(driver);
+        driverRepository.save(driver);
+    }
+
 
 }

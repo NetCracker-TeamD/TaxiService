@@ -7,7 +7,6 @@ package com.teamd.taxi.entity;
 
 import java.io.Serializable;
 import java.util.Calendar;
-import java.util.Date;
 import javax.persistence.*;
 
 /**
@@ -21,11 +20,11 @@ public class TariffByTime implements Serializable {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "from")
+    @Column(name = "from_value")
     @Temporal(TemporalType.TIMESTAMP)
     private Calendar from;
 
-    @Column(name = "to")
+    @Column(name = "to_value")
     @Temporal(TemporalType.TIMESTAMP)
     private Calendar to;
 
@@ -115,7 +114,12 @@ public class TariffByTime implements Serializable {
 
     @Override
     public String toString() {
-        return "com.teamd.taxi.entity.TariffByTime[ id=" + id + " ]";
+        return "TariffByTime{" +
+                "id=" + id +
+                ", from=" + from.getTime() +
+                ", to=" + to.getTime() +
+                ", price=" + price +
+                ", tariffType=" + tariffType +
+                '}';
     }
-
 }

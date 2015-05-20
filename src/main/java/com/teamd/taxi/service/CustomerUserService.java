@@ -93,4 +93,8 @@ public class CustomerUserService {
     public User save(User user) {
         return userRepository.save(user);
     }
+
+    public boolean isEmailFree(String email) {
+        return userRepository.findByEmail(email) == null;
+    }
 }

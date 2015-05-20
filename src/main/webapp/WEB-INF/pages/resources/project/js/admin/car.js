@@ -18,16 +18,24 @@ var successModal = $('#successModal');
 
 var showCarsUrl = '/admin/cars';
 var showAddFormCarUrl = '/admin/getForm_add_car';
+var getDriversUrl = '/admin/getDrivers';
 var divIdForGeneratedFeatures = '#car_features_generated';
 var classInternalDivs = 'checkbox';
-var arrayIdFeaturesInHTML = null;
+var arrayIdFeaturesInHTML = Array();
 
 var createCarUrl = '/admin/create_car';
-var carModelIdIntoHTML = 'car_model';
-var carClassIdIntoHTML = 'car_class';
-var carDriverIdIntoHTML = 'car_driver';
+
+var modalErrorHidden = "alert alert-danger alert-dismissible modal-error hidden";
+var modalErrorVisible = "alert alert-danger alert-dismissible modal-error";
+
+var countButtonStartEditCar = 0;
+var maxNumberCarsOnPage = 50;
 
 function startEditCar(node) {
+    countButtonStartEditCar++;
+    if (countButtonStartEditCar > maxNumberCarsOnPage) {
+        countButtonStartEditCar = 0;
+    }
     var record = $(node.target).closest('tr');
 
     var normalState = record.html();        //for cancel
@@ -74,14 +82,32 @@ function startEditCar(node) {
     var driverName = driver.eq(0).text();
     driver.eq(0).text('');
     driver.eq(0).html(selectInput);
-    driver.find('select').append($("<option></option>").attr("value", driverId).text(driverName));
-    driver.find('select').append($("<option></option>").attr("value", '-1').text('No driver'));
+    //driver.find('select').append($("<option></option>").attr("value", driverId).text(driverName));
+    //driver.find('select').append($("<option></option>").attr("value", '-1').text('No driver'));
     //driver.find('option:contains("' + driverName + '")').attr('selected', 'selected');
-    //TODO: dynamic  downloading of drivers list
+
+
+    driver.find("select").attr("id", "car_driver_edit_" + countButtonStartEditCar);
+    driver.find("select").attr("load", "true");
+    driver.find("select").attr("loadByChange", "true");
+    driver.find("select").attr("onclick", "generationDrivers(this, 'No driver')");
+    driver.find("select").attr("onchange", "changeDriver(this)");
+
+    generationDrivers(driver.find("select"), "No driver");
+    driver.find("select").attr("load", "true");
+    driver.find("select").attr("loadByChange", "true");
+
+    var options = document.getElementById("car_driver_edit_" + countButtonStartEditCar).options;
+    $.each(options, function (key, selectOption) {
+        if (selectOption["value"] === driverId) {
+            $("#" + "car_driver_edit_" + countButtonStartEditCar + " option[value=" + driverId + "]").attr('selected', 'selected');
+            return;
+        }
+    });
 
     manage.children().remove();
     manage.append(saveButton);
-    manage.find(':first-child').attr('onclick', 'updateCar("hello");');
+    manage.find(':first-child').attr('onclick', 'updateCar("event");');
     manage.append(' ');
     manage.append(cancelButton);
     manage.find(':nth-child(2)').attr('onclick', 'cancelEdit(event);');
@@ -116,59 +142,129 @@ function removeCar(id) {
 
 function updateCar(value) {
     alert(updateCar);
-    //TODO Ajax here
-}
-
-function createCar() {
-
-    var car_model = $('#'+carModelIdIntoHTML).val();
-    var car_class = $('#'+carClassIdIntoHTML).val();
-    var car_driver = $('#'+carDriverIdIntoHTML).val();
-
-
-    var mapFeatures = new Object();
-
-    for(var i=0; i<arrayIdFeaturesInHTML.length; i++){
-        var value = $('#'+arrayIdFeaturesInHTML[i]).val();
-        mapFeatures[arrayIdFeaturesInHTML[i]] = value;
-    }
 
     var JSONPostData = new Object();
-    JSONPostData[carModelIdIntoHTML] = car_model;
-    JSONPostData[carClassIdIntoHTML] = car_class;
-    JSONPostData[carDriverIdIntoHTML] = car_driver;
-    JSONPostData['mapFeatures'] = mapFeatures;
+    JSONPostData['modelName'] = "BMW 310";
+    JSONPostData['classId'] = "  ";
+    JSONPostData['category'] = "   ";
+    JSONPostData['enable'] = "true";
+    JSONPostData['driverId'] = "1";
+    JSONPostData['features'] = [4,5];
+
+
+
+
+
 
     $.ajax({
         type: 'POST',
-        url:  createCarUrl,
+        url:  "/admin/update_car",
         contentType: 'application/json; charset=utf-8',
         data: JSON.stringify(JSONPostData),
         dataType: 'json',
         async: false,
-        success: function(result) {
-            alert(result);
+        success: function(response) {
+            if (response.result == "success") {
+                showSuccess(response.content["message"]);
+                removeCarModal.modal('hide');
+            } else {
+                if (response.result == "failure") {
+                    //hideAllErrors();
+                    //showModalErrors(response);
+
+                    showError(removeCarModal, response.content);
+
+                } else {
+                    showError(removeCarModal, "Something went wrong... Try again later");
+                }
+            }
+
         },
-        error: function(jqXHR, textStatus, errorThrown) {
-            alert(jqXHR.status + ' ' + jqXHR.responseText);
+        error: function(error) {
+            showError(removeCarModal, "Something went wrong... Try again later");
         }
     });
+}
+
+function createCar() {
+
+    var mapFeatures = new Object();
+
+
+    for (var i = 0; i < arrayIdFeaturesInHTML.length; i++) {
+        var value = $('#' + arrayIdFeaturesInHTML[i]).val();
+        mapFeatures[arrayIdFeaturesInHTML[i]] = value;
+    }
+
+    var JSONPostData = new Object();
+    JSONPostData['modelName'] = $('#car_model').val();
+    JSONPostData['classId'] = $('#car_class').val();
+    JSONPostData['category'] = $('#car_category').val();
+    JSONPostData['enable'] = $('#car_enable').val();
+    JSONPostData['driverId'] = $('#car_driver').val();
+    JSONPostData['mapFeatures'] = mapFeatures;
 
     $.ajax({
-        type: 'GET',
-        url: showCarsUrl,
-        dataType: 'html',
+        type: 'POST',
+        url: createCarUrl,
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify(JSONPostData),
+        dataType: 'json',
         async: false,
-        success: function(result){
-            //alert(result);
-            //$(this).html(result);
-            location.reload(true);
+        success: function (response) {
+            if (response.result == "success") {
+                showSuccess(response.content["message"]);
+                removeCarModal.modal('hide');
+            } else {
+                if (response.result == "failure") {
+                    hideAllErrors();
+                    showModalErrors(response);
+                } else {
+                    showError(removeCarModal, "Something went wrong... Try again later");
+                }
+            }
 
         },
-        error: function(jqXHR, textStatus, errorThrown){
-            alert(jqXHR.status+' '+jqXHR.responseText);
+        error: function (error) {
+            showError(removeCarModal, "Something went wrong... Try again later");
         }
     });
+}
+
+function hideAllErrors() {
+    $("#modelNameError").attr("class", modalErrorHidden);
+    $("#classIdError").attr("class", modalErrorHidden);
+    $("#mapFeaturesError").attr("class", modalErrorHidden);
+    $("#categoryError").attr("class", modalErrorHidden);
+    $("#enableError").attr("class", modalErrorHidden);
+    $("#driverIdError").attr("class", modalErrorHidden);
+}
+
+function showModalErrors(response) {
+    if (response.content["modelName"] != null) {
+        $("#modelNameError").attr("class", modalErrorVisible);
+        $("#modelNameError p").text(response.content["modelName"]);
+    }
+    if (response.content["classId"] != null) {
+        $("#classIdError").attr("class", modalErrorVisible);
+        $("#classIdError p").text(response.content["classId"]);
+    }
+    if (response.content["category"] != null) {
+        $("#categoryError").attr("class", modalErrorVisible);
+        $("#categoryError p").text(response.content["category"]);
+    }
+    if (response.content["enable"] != null) {
+        $("#enableError").attr("class", modalErrorVisible);
+        $("#enableError p").text(response.content["enable"]);
+    }
+    if (response.content["driverId"] != null) {
+        $("#driverIdError").attr("class", modalErrorVisible);
+        $("#driverIdError p").text(response.content["driverId"]);
+    }
+    if (response.content["mapFeatures"] != null) {
+        $("#mapFeaturesError").attr("class", modalErrorVisible);
+        $("#mapFeaturesError p").text(response.content["mapFeatures"]);
+    }
 }
 
 function cancelEdit(node) {
@@ -205,55 +301,132 @@ function showError(modalId, message) {
 
 createCarModal.on('show.bs.modal', function () {
 
+    $('#car_model').val('');
+    $('#car_enable').val('false');
+    $('#car_enable').attr("checked", false);
+
+    $("#car_category :contains('B')").val("B");
+    $('#car_category option[value=B]').attr('selected', 'selected');
+    $("#car_class :contains('Standard')").val('2');
+    $("#car_class option[value='2']").attr('selected', 'selected');
+
+    hideAllErrors();
+
     showAddFormCar();
 
-    $('#car_model').val('');
-    //$('#car_wifi').removeAttr('checked');
-    //$('#car_animal').removeAttr('checked');
+    $("#car_driver").attr("load", "true");
+    $("#car_driver").attr("loadByChange", "true");
+    generationDrivers(document.getElementById('car_driver'), 'No driver');
+    $("#car_driver").attr("load", "true");
+    $("#car_driver").attr("loadByChange", "true");
 });
 
-function showAddFormCar(){
+function showAddFormCar() {
     $.ajax({
         type: 'GET',
         url: showAddFormCarUrl,
         dataType: 'json',
         async: false,
-        success: function(result){
-            arrayIdFeaturesInHTML = result;
-            generateFeaturesInAddFormCar(result,divIdForGeneratedFeatures,classInternalDivs);
+        success: function (result) {
+            generateFeaturesInAddFormCar(result, divIdForGeneratedFeatures, classInternalDivs);
         },
-        error: function(jqXHR, textStatus, errorThrown){
-            alert(jqXHR.status+' '+jqXHR.responseText);
+        error: function (error) {
+            showError(removeCarModal, "Something went wrong... Try again later");
         }
     });
 }
 
-function generateFeaturesInAddFormCar(array, divId, classInternalDiv){
+function generateFeaturesInAddFormCar(arrayMaps, divId, classInternalDiv) {
 
-    $(divId+' div.' + classInternalDiv).remove();
+    $(divId + ' div.' + classInternalDiv).remove();
 
-    var startTag = '<div class="'+classInternalDiv+'"><label>';
+    var startTag = '<div class="' + classInternalDiv + '"><label>';
     var endTag = '</label></div>';
 
     var stringBuffer = null;
 
-    for(var i=0; i<array.length; i++){
-        if(stringBuffer==null){
-            stringBuffer=startTag;
-        }else {
+    for (var i = 0; i < arrayMaps.length; i++) {
+        if (stringBuffer == null) {
+            stringBuffer = startTag;
+        } else {
             stringBuffer = stringBuffer + startTag;
         }
-        stringBuffer=stringBuffer + '<input id="'+array[i]+'" type="checkbox" onclick="switcherFeatures(this)" value="off">'+array[i];
-        stringBuffer=stringBuffer+endTag;
+        stringBuffer = stringBuffer + '<input id="' + arrayMaps[i]['id'] + '" type="checkbox" onclick="switcherFeatures(this)" value="false">' + arrayMaps[i]['feature_name'];
+        stringBuffer = stringBuffer + endTag;
+
+        arrayIdFeaturesInHTML[i] = arrayMaps[i]['id'];
     }
 
     $(divId).append(stringBuffer);
 }
 
-function switcherFeatures(checkbox){
-    if(!checkbox.checked){
-        $(checkbox).val('off');
-    }else{
-        $(checkbox).val('on');
+function switcherFeatures(checkbox) {
+    if (!checkbox.checked) {
+        $(checkbox).val('false');
+    } else {
+        $(checkbox).val('true');
     }
+}
+
+function generationDrivers(selectElement, defaultOptionString) {
+
+    var selectionElementID = '#' + $(selectElement).attr('id');
+
+    if ($(selectionElementID).attr("loadByChange") === "false") {
+        $(selectionElementID).attr("load", "false");
+        return;
+    }
+    if ($(selectionElementID).attr("load") === "false") {
+        $(selectionElementID).attr("load", "true");
+        return;
+    }
+
+    var arrayMaps = getDrivers(getDriversUrl);
+
+    var endTag = '</option>';
+
+
+    $(selectionElementID + ' ' + 'option').remove();
+
+    var stringBuffer = null;
+
+    for (var i = 0; i < arrayMaps.length; i++) {
+        if (stringBuffer == null) {
+            stringBuffer = '<option value="-1" selected="selected">' + defaultOptionString + endTag + '<option value=' + arrayMaps[0]['id'] + '>';
+        } else {
+            stringBuffer = stringBuffer + '<option value=' + arrayMaps[i]['id'] + '>';
+        }
+        stringBuffer = stringBuffer + ' ' + arrayMaps[i]['last_name'] + ' ' + arrayMaps[i]['first_name'];
+        stringBuffer = stringBuffer + endTag;
+    }
+
+    $(selectionElementID).append(stringBuffer);
+    $(selectionElementID).attr("loadByChange", "false");
+    $(selectionElementID).attr("load", "false");
+}
+
+function getDrivers(driversUrl) {
+    var result;
+    $.ajax({
+        type: 'GET',
+        url: driversUrl,
+        dataType: 'json',
+        async: false,
+        success: function (response) {
+            result = response;
+        },
+        error: function (error) {
+            showError(removeCarModal, "Something went wrong... Try again later");
+        }
+    });
+    return result;
+}
+
+function changeDriver(selectElement) {
+    var selectionElementID = '#' + $(selectElement).attr('id');
+    $(selectionElementID).attr("loadByChange", "true");
+}
+
+function selectOrder(order) {
+    $("#sort-input").find("[value=" + order + "]").attr("selected", "selected");
 }

@@ -22,8 +22,8 @@ public class ReportsRepository {
 
 
     @Transactional(readOnly = true)
-    public List<Map<String,Object >> getReport(ReportResolver resolver) {
-        return template.query(resolver.getQuery(), resolver.getRowMapper(),resolver.getParams());
+    public List<Map<String, Object>> getReport(ReportResolver resolver) {
+        return template.query(resolver.getQuery(), resolver.getRowMapper(), resolver.getParams());
     }
 
 

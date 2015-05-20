@@ -2,6 +2,7 @@ package com.teamd.taxi.controllers;
 
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
+import com.google.maps.errors.NotFoundException;
 import com.teamd.taxi.authentication.AuthenticatedUser;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
@@ -17,7 +18,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.text.ParseException;
@@ -42,25 +45,41 @@ public class OrderController {
     @Autowired
     private FeatureService featureService;
 
+    @Autowired
+    private GroupsService groupsService;
+
+    @Autowired
+    private UserAddressService addressService;
+
+    @Autowired
+    private PriceCountService priceCountService;
+
     private static final Logger logger = Logger.getLogger(OrderController.class);
 
     private Gson gson = new GsonBuilder()
             .registerTypeAdapter(ServiceType.class, new ServiceTypeSerializer())
             .registerTypeAdapter(CarClass.class, new CarClassSerializer())
             .registerTypeAdapter(Feature.class, new FeatureSerializer())
+            .registerTypeAdapter(UserAddress.class, new AddressSerializer())
             .create();
 
-    @RequestMapping(value = "/services", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/services", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public String getServices() {
+        logger.info("request for services information");
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        boolean userAuthenticated = !(authentication instanceof AnonymousAuthenticationToken);
+
         HashMap<String, Object> retVal = new HashMap<>();
         retVal.put("status", "OK");
-        retVal.put("userAuthenticated",
-                !(SecurityContextHolder
-                        .getContext()
-                        .getAuthentication() instanceof AnonymousAuthenticationToken)
-        );
+        retVal.put("userAuthenticated", userAuthenticated);
         retVal.put("services", serviceTypeService.findAll());
+        if (userAuthenticated) {
+            long userId = ((AuthenticatedUser) authentication.getPrincipal()).getId();
+            retVal.put("locations", addressService.findAddressesByUserId(userId));
+        }
         return gson.toJson(retVal);
     }
 
@@ -70,17 +89,8 @@ public class OrderController {
     }
 
     private List<String> readStringList(JsonObject jsonObject, String propName, boolean checkEmpty) throws PropertyNotFoundException {
-        JsonElement jsonElement = getAndCheck(jsonObject, propName);
-        List<String> list;
-        if (jsonElement.isJsonArray()) {
-            JsonArray jsonArray = jsonElement.getAsJsonArray();
-            list = new ArrayList<>(jsonArray.size());
-            for (int i = 0; i < jsonArray.size(); i++) {
-                list.add(jsonArray.get(i).getAsString());
-            }
-        } else if (jsonElement.isJsonPrimitive()) {
-            list = Arrays.asList(jsonElement.getAsJsonPrimitive().getAsString());
-        } else {
+        List<String> list = getStrings(getAndCheck(jsonObject, propName));
+        if (list == null) {
             throw new PropertyNotFoundException(propName + " has incorrect type");
         }
         if (checkEmpty && list.isEmpty()) {
@@ -100,18 +110,35 @@ public class OrderController {
         return list;
     }
 
+    private List<String> getStrings(JsonElement jsonElement) {
+        List<String> list = null;
+        if (jsonElement.isJsonArray()) {
+            JsonArray jsonArray = jsonElement.getAsJsonArray();
+            list = new ArrayList<>(jsonArray.size());
+            for (int i = 0; i < jsonArray.size(); i++) {
+                list.add(jsonArray.get(i).getAsString());
+            }
+        } else if (jsonElement.isJsonPrimitive()) {
+            list = new ArrayList<>();
+            list.add(jsonElement.getAsJsonPrimitive().getAsString());
+        }
+        return list;
+    }
+
     private List<Integer> getInts(JsonElement intsElement) {
+        List<Integer> list = null;
         if (intsElement.isJsonArray()) {
             JsonArray intArray = intsElement.getAsJsonArray();
-            List<Integer> list = new ArrayList<>(intArray.size());
+            list = new ArrayList<>(intArray.size());
             for (int i = 0; i < intArray.size(); i++) {
                 list.add(intArray.get(i).getAsInt());
             }
             return list;
         } else if (intsElement.isJsonPrimitive()) {
-            return Arrays.asList(intsElement.getAsJsonPrimitive().getAsInt());
+            list = new ArrayList<>();
+            list.add(intsElement.getAsJsonPrimitive().getAsInt());
         }
-        return null;
+        return list;
     }
 
     //05/13/2015 12:47 AM
@@ -123,12 +150,8 @@ public class OrderController {
         return calendar;
     }
 
-    @RequestMapping("/makeOrder")
-    @ResponseBody
-    public String makeOrder(Reader reader) throws IOException,
-            PropertyNotFoundException, ItemNotFoundException, ParseException,
-            NotCompatibleException, AddressNotFoundException, MapServiceNotAvailableException {
-        JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
+    private TaxiOrderForm fillForm(JsonObject orderObject) throws PropertyNotFoundException,
+            ItemNotFoundException, ParseException {
         //тип сервиса
         JsonPrimitive serviceId = (JsonPrimitive) getAndCheck(orderObject, "serviceType");
         ServiceType serviceType = serviceTypeService.findById(serviceId.getAsInt());
@@ -143,7 +166,10 @@ public class OrderController {
         //промежуточные точки
         Boolean isChain = serviceType.isDestinationLocationsChain();
         if (isChain != null && isChain) {
-            form.setIntermediate(readStringList(orderObject, "intermediate_addresses", false));
+            JsonElement intermediateElement = orderObject.get("intermediate_addresses");
+            if (intermediateElement != null) {
+                form.setIntermediate(getStrings(intermediateElement));
+            }
         }
         //точки назначения
         if (serviceType.isDestinationRequired()) {
@@ -167,9 +193,10 @@ public class OrderController {
         //класс автомобиля
         JsonPrimitive carClassPrimitive = orderObject.getAsJsonPrimitive("car_class");
         if (carClassPrimitive != null) {
-            CarClass carClass = carClassService.findById(carClassPrimitive.getAsInt());
+            int carClassId = carClassPrimitive.getAsInt();
+            CarClass carClass = carClassService.findById(carClassId);
             if (carClass == null) {
-                throw new ItemNotFoundException();
+                throw new ItemNotFoundException("carClass: " + carClassId);
             }
             form.setCarClass(carClass);
         }
@@ -179,7 +206,7 @@ public class OrderController {
             List<Integer> featureIds = getInts(featuresElement);
             List<Feature> features = featureService.findByIdList(featureIds);
             if (featureIds.size() != features.size()) {
-                throw new ItemNotFoundException();
+                throw new ItemNotFoundException("some features not found");
             }
             form.setFeatures(features);
         }
@@ -195,26 +222,63 @@ public class OrderController {
         } else {
             throw new PropertyNotFoundException("timing");
         }
+        return form;
+    }
+
+
+    @RequestMapping(value = "/countPrice", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String countApproximatePrice(Reader reader)
+            throws ParseException, PropertyNotFoundException, ItemNotFoundException, MapServiceNotAvailableException, NotFoundException, NotCompatibleException {
+        JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
+        TaxiOrderForm form = fillForm(orderObject);
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        Long userId = null;
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            userId = ((AuthenticatedUser) authentication.getPrincipal()).getId();
+        }
+        TaxiOrder order = taxiOrderService.fillOrder(form, null);
+        return "{\"price\":" + priceCountService.approximateOrderPrice(order, userId) + "}";
+    }
+
+    @RequestMapping(value = "/makeOrder", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String makeOrder(Reader reader) throws IOException,
+            PropertyNotFoundException, ItemNotFoundException, ParseException,
+            NotCompatibleException, NotFoundException, MapServiceNotAvailableException {
+        //заполняем форму
+        JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
+        logger.info("Received orderObject: " + orderObject);
+        TaxiOrderForm form = fillForm(orderObject);
+        logger.info("Resulting TO form: " + form);
         //находим или создаем пользователя
         Authentication authentication = SecurityContextHolder
                 .getContext()
                 .getAuthentication();
         User user;
         if (authentication instanceof AnonymousAuthenticationToken) {
-            user = new User(null, "", "", UserRole.ROLE_ANONYMOUS, "");
+            JsonElement name = getAndCheck(orderObject, "name");
+            JsonElement email = getAndCheck(orderObject, "email");
+            JsonElement phoneNumber = getAndCheck(orderObject, "phone_number");
+
+            user = new User(null, name.getAsString(), "", UserRole.ROLE_ANONYMOUS, phoneNumber.getAsString());
+            user.setEmail(email.getAsString());
             user = userService.save(user);
         } else {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authentication.getPrincipal();
             user = userService.findById(authenticatedUser.getId());
         }
         //вносим заказ в базу
-        System.out.println("Form: " + form.toString());
-        TaxiOrder order = taxiOrderService.createNewTaxiOrder(form, userService.findById(2L));
-        logger.info(order);
-        for (Route r : order.getRoutes()) {
-            logger.info(r);
-        }
-        return "success";
+        TaxiOrder order = taxiOrderService.createNewTaxiOrder(form, user);
+
+        //отправка ответа
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("success", true);
+        //TODO: add real link with MvcComponentsBuilder, don't add a secret key if user is authenticated
+        jsonObject.addProperty("trackLink", "/vieworder?tracknum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
+        return new GsonBuilder().disableHtmlEscaping().create().toJson(jsonObject);
     }
 
     private JsonElement getAndCheck(JsonObject object, String propName) throws PropertyNotFoundException {
@@ -232,12 +296,17 @@ public class OrderController {
             ItemNotFoundException.class,
             ParseException.class,
             NotCompatibleException.class,
-            AddressNotFoundException.class,
+            NotFoundException.class,
             MapServiceNotAvailableException.class
     })
-    public void handleException(Exception e, Writer writer) throws IOException {
+    public void handleException(Exception e, HttpServletResponse response) throws IOException {
         logger.error(e);
-        writer.append("{\"error\": \"" + e.getClass() + "\", \"message\":\"" + e.getMessage() + "\"}");
+        response.setContentType("application/json");
+        response.getWriter().append("{" +
+                "\"success\": false," +
+                "\"error\": \"" + e.getClass() + "\", " +
+                "\"message\":\"" + e.getMessage() + "\"" +
+                "}");
     }
 
     private static class ServiceTypeSerializer implements JsonSerializer<ServiceType> {
@@ -285,6 +354,17 @@ public class OrderController {
             JsonObject f = new JsonObject();
             f.addProperty("featureId", feature.getId());
             f.addProperty("featureName", feature.getName());
+            return f;
+        }
+    }
+
+    private static class AddressSerializer implements JsonSerializer<UserAddress> {
+
+        @Override
+        public JsonElement serialize(UserAddress address, Type type, JsonSerializationContext jsonSerializationContext) {
+            JsonObject f = new JsonObject();
+            f.addProperty("name", address.getName());
+            f.addProperty("address", address.getAddress());
             return f;
         }
     }

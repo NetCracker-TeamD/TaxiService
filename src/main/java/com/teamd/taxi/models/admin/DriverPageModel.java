@@ -23,6 +23,10 @@ public class DriverPageModel {
     public DriverPageModel() {
     }
 
+    public DriverOrder getCleanOrder() {
+        return order;
+    }
+
     public Integer getPage() {
         return page;
     }
