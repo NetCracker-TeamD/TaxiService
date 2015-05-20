@@ -6,7 +6,13 @@ var uncheckedInput = '<input type="checkbox"  value="false"/>';
 var checkDiv = '<div class="checkbox"><label></label></div>';
 var hiddenDiv = '<div class="hidden"></div>';
 var textInput = '<input class="form-control-auto-size" type="text"/>';
-var selectInput = '<select class="form-control-auto-size"><option>Anton Antonov</option><option>Vladimid Vald</option><option>Ivan Ivamov</option><option>Petrov petrov</option></select>';
+var selectCarInput =
+    '<div class="form-group">' +
+    '<label class="control-label">Car:</label>' +
+    '<select class="form-control-auto-size">' +
+    '<option value="" selected="selected">No car</option>' +
+    '</select>' +
+    '</div>';
 
 var saveDriverButton = '<button type="button" onclick="updateDriver(event)" class="btn btn-primary btn-sm">Save changes</button>';
 var saveCarButton = '<button type="button" onclick="" data-toggle="modal" data-target="#" data-driver-id="" class="btn btn-primary btn-sm">Save changes</button>';
@@ -15,9 +21,11 @@ var cancelButton = '<button type="button" onclick="cancelEdit(event)" class="btn
 var radioInput = '<label class="radio-inline"><input type="radio" name="driver_new_gender" value="MALE">Male</label><label class="radio-inline"><input type="radio" name="driver_new_gender" value="FEMALE">Female</label>';
 
 var editDriverButton = '<button type="button" onclick="startEditDriver(event)" data-toggle="modal" data-target="#" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Edit</button>';
-var editCarButton = '<button type="button" onclick="startEditCar(event)" data-toggle="modal" data-target="#" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Edit</button>';
+var editCarButton = '<button type="button" onclick="startEditCar(event)" data-toggle="modal" data-target="#" data-driver-id="" class="hidden btn btn-primary btn-sm" aria-label="Left Align">Edit</button>';
 var removeDriverButton = '<button type="button" data-toggle="modal" data-target="#remove_driver" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
-var removeCarButton = '<button type="button" onclick="" data-toggle="modal" data-target="#remove_car" data-car-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
+var driverHistoryButton = '<a type="button" class="btn btn-info btn-sm" href="/driver/history/">History</a>';
+var unbindCarButton = '<button type="button" data-toggle="modal" data-target="#unbind_car" data-driver-id="" class="btn btn-primary btn-sm" aria-label="Left Align">Unbind Car</button>';
+var removeCarButton = '<button type="button" onclick="" data-toggle="modal" data-target="#remove_car" data-car-id="" class="hidden btn btn-primary btn-sm" aria-label="Left Align">Remove</button>';
 var driverInfo =
     '<tr class="hidden driver-info">' +
     '<td colspan="10" class="driver-panel"><div id="collapseThree" class="collapse" aria-expanded="false">' +
@@ -35,7 +43,9 @@ var driverInfo =
     '<div class="form-group"><label class="control-label">At work:</label></div>' +
     '<div class="form-group"><label class="control-label">License serial:</label></div>' +
     editDriverButton + ' ' +
-    removeDriverButton +
+    unbindCarButton + ' ' +
+    removeDriverButton + ' ' +
+    driverHistoryButton +
     '</div>' +
     '</div></div>' +
     '<div class="hide-driver-info" align="center" onclick="closeDriverInfo(event)">' +
@@ -57,10 +67,10 @@ var carInfo =
 
 var selectCarClassInput = '<select class="form-control-auto-size"><option>A</option><option>B</option><option>C</option><option>D</option></select>';
 var selectCarCategoryInput = '<select class="form-control-auto-size"><option>Business</option><option>Standard</option><option>Economy</option></select>';
-//var selectCarClassInput = '<select class="form-control-auto-size"><option>Premium</option><option>Standard</option><option>Cheep</option></select>';
 
 var createDriverModal = $('#create_driver');
 var removeDriverModal = $('#remove_driver');
+var unbindCarModal = $('#unbind_car');
 var successModal = $('#successModal');
 
 var newDriverCarSelect = $('#driver_car');
@@ -142,7 +152,9 @@ function openDriverInfo(node, driverId) {
                     }
                 });
                 // Driver features end
-
+                // Driver history
+                record.next().find("[href='/driver/history/']").attr('href',
+                    record.next().find("[href='/driver/history/']").attr('href') + content.id);
                 if (content.car != undefined) {
                     info.find('.row').eq(0).append(carInfo);
 
@@ -178,6 +190,8 @@ function openDriverInfo(node, driverId) {
                     });
                     // Car features end
 
+                } else {
+                    driverFeatureHtml.next().next().hide();     //hide unbind button
                 }
 
                 info.closest('tr').removeClass('hidden');
@@ -293,7 +307,7 @@ function startEditCar(node) {
     //TODO: Driver edit here
     var formControl = '<div class="form-group"><label class="control-label">Driver:</label></div>';
     lastElem.after(formControl);
-    lastElem.next().append(selectInput);
+    lastElem.next().append(selectCarInput);
 
     lastElem.next().after(cancelButton);
     lastElem.next().after(' ');
@@ -379,9 +393,36 @@ function startEditDriver(node) {
         feature = feature.next();
     }
 
+    feature.before(selectCarInput);
+    var carSelect = feature.prev().find('select');
+    var car = $(node.target).closest('tr').prev().find('[car-id]');
+    if (car.text() !== '') {
+        carSelect.append($("<option></option>").attr("value", car.attr('car-id')).text(car.text()));
+        carSelect.find('option').eq(1).attr('selected', 'selected');
+    }
+    $.ajax('/admin/cars-get', {
+        type: 'post',
+        dataType: 'json',
+        data: {},
+        success: function (response) {
+            if (response.result == "success") {
+                $.each(response.content, function (key, value) {
+                    carSelect.append($("<option></option>").attr("value", key).text(value));
+                });
+            } else {
+                showError($(node.target).closest('tr'), "Something on server side went wrong... Try again later");
+            }
+        },
+        error: function () {
+            showError($(node.target).closest('tr'), "Unable to get car list");
+        }
+    });
+
     var lastElem = feature.prev();
 
-    //Remove 'Edit' and 'Remove' buttons
+    //Remove 'Edit', 'Remove' 'Unbind' and 'History' buttons
+    feature.next().next().next().remove();
+    feature.next().next().remove();
     feature.next().remove();
     feature.remove();
 
@@ -418,6 +459,9 @@ function updateDriver(node) {
         }
         feature = feature.next();
     }
+    //alert(feature.html());
+    var carId = feature.prev().find(':selected').val();
+    //alert(carId);
     var changedData = {};
     changedData.id = $(node.target).closest('tr').prev().find('td[driver-id]').attr('driver-id');
     if (lastName !== oldData.eq(0).contents().eq(1).text().substr(1)) {
@@ -447,6 +491,10 @@ function updateDriver(node) {
     if (license !== oldData.eq(7).contents().eq(1).text().substr(1).toUpperCase()) {
         changedData.license = license;
     }
+    if (carId !== $(node.target).closest('tr').prev().find('td[car-id]').attr('car-id')) {
+        changedData.carId = carId;
+        changedData.carChange = true;
+    }
     var oldFeatures = [];
     feature = oldData.eq(8);
     while (feature.is('div')) {
@@ -459,7 +507,11 @@ function updateDriver(node) {
         changedData.features = JSON.stringify(features);
     }
     var errorMessage = $(node.target).closest('tr');
-    //alert(JSON.stringify(changedData, null, 2));
+    sendUpdateDriver(changedData, errorMessage);
+}
+
+function sendUpdateDriver(changedData, errorMessage, modal) {
+    alert(JSON.stringify(changedData));
     if (Object.keys(changedData).length === 1) {
         showError(errorMessage, "You didn't make any changes");
         return;
@@ -471,6 +523,9 @@ function updateDriver(node) {
         success: function (response) {
             if (response.result == "success") {
                 showSuccess(response.content);
+                if (modal !== undefined) {
+                    modal.modal('hide');
+                }
             } else {
                 if (response.result == "failure") {
                     showError(errorMessage, response.content)
@@ -584,6 +639,12 @@ function showError(modalId, message) {
     errorAlert.slideDown();
 }
 
+function unbindCar(driverId) {
+    var unbindData = {};
+    unbindData.id = driverId;
+    unbindData.carChange = true;
+    sendUpdateDriver(unbindData, unbindCarModal, unbindCarModal);
+}
 
 removeDriverModal.on('show.bs.modal', function (event) {
     var button = $(event.relatedTarget);
@@ -591,6 +652,13 @@ removeDriverModal.on('show.bs.modal', function (event) {
     modal.find("[name='driver_id']").val(button.data('driver-id'));
     removeDriverModal.find('.modal-error').hide();
     //alert(button.data('driver-id'));
+});
+
+unbindCarModal.on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var modal = $(this);
+    modal.find("[name='driver_id']").val(button.data('driver-id'));
+    unbindCarModal.find('.modal-error').hide();
 });
 
 createDriverModal.on('shown.bs.modal', function () {

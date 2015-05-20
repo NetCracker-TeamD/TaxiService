@@ -198,10 +198,10 @@
                 <form method="get">
                     <label for="sort-input">Sort</label>
                     <select class="form-control input-sm" id="sort-input" name="order" onchange="form.submit()">
-                        <option value="MODEL">by Model</option>
-                        <option value="DRIVER">by Driver</option>
-                        <option value="CLASS">by Class</option>
-                        <option value="CATEGORY">by Category</option>
+                        <option value="model">by Model</option>
+                        <option value="driver">by Driver</option>
+                        <option value="class">by Class</option>
+                        <option value="category">by Category</option>
                     </select>
                 </form>
             </div>

@@ -13,8 +13,9 @@ public class PhoneValidator implements ConstraintValidator<Phone, String> {
     public void initialize(Phone customConstraints) {
     }
 
+    // If phoneNumber equals null return false; Changed by Nazar Dub on 20.05.15
     @Override
     public boolean isValid(String phoneNumber, ConstraintValidatorContext constraintValidatorContext) {
-        return phoneNumber != null && PATTERN.matcher(phoneNumber).matches();
+        return phoneNumber == null || PATTERN.matcher(phoneNumber).matches();
     }
 }
