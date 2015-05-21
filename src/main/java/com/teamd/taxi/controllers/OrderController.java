@@ -474,7 +474,7 @@ public class OrderController {
         orderObject.addProperty("serviceType", serviceType.getId());
         Sex driverSex = order.getDriverSex();
         if (driverSex != null) {
-            orderObject.addProperty("driverSex", order.getDriverSex().name());
+            orderObject.addProperty("driverSex", driverSex.name());
         }
         orderObject.addProperty("paymentType", order.getPaymentType().name());
         JsonArray features = new JsonArray();

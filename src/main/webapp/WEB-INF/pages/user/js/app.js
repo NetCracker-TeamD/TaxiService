@@ -24,15 +24,22 @@ var App = (function(){
 		},
 		showLogoutPage = function(){window.location = "/logout";},
 		showOrderPage = function(orderId, secretKey){
+			console.log(orderId, secretKey)
 			showLoadPage()
 			current_page_name = "make-order"
-			updateHeader()
 			var loadOrder = $.isSet(orderId)
-			var createDOM = function(){
+			if (loadOrder) {
+				current_page_name = "view-order"
+			}
+			updateHeader()
+			console.log('loadOrder '+loadOrder)
+			var createDOM = function(){	
 				//create page in memory		
 				var orderInfo = null
-				if ($.isSet(tmpStorage.currentOrder)) {
+				var isOrderEditable = true
+				if ($.isSet(tmpStorage.currentOrder) && loadOrder) {
 					orderInfo = tmpStorage.currentOrder
+					orderInfo.orderId = orderId
 				}
 				var 
 					user = tmpStorage.user,
@@ -42,7 +49,48 @@ var App = (function(){
 					map = container.find('[data-type="map"]'),
 					orderForm = container.find('#orderForm'),
 					enableEditing = (loadOrder) ? (user.isLogged && !user.isBlocked) : false
+				//bind order status specific actions
 				if (loadOrder) {
+					switch (orderInfo.status) {
+						case "queued":
+							var editBtn = container.find('[data-action="edit"]'),
+								cancelBtn = container.find('[data-action="cancel"]')
+							Templates.makeNiceSubmitButton({
+								form: orderForm,
+								button: editBtn,
+								method : "get",
+								url : "/setUpdating?id="+orderInfo.orderId,
+								dataFormater : function(){
+									return ""
+								},
+								success: function(response){
+									console.log(response)
+									if (response.status=="OK"){
+										tmpStorage.currentOrder.updating = true
+										DataTools.calcOrderStatus(tmpStorage.currentOrder)
+										createDOM()
+									} else {
+										BootstrapDialog.show({
+											type: BootstrapDialog.TYPE_DANGER, closable: true,
+											title: "Server returns bad status",
+											message: "Server returns bad status '"+response.status+"'",
+										})
+										//craeteDOM()
+									}
+								}, 
+								error : function(response){
+									console.log(response)
+									BootstrapDialog.show({
+										type: BootstrapDialog.TYPE_DANGER, closable: true,
+										title: "Server error",
+										message: "Server returns error with status '"+response.statusText+"'",
+									})
+									//craeteDOM()
+								}
+							})
+							break
+					}
+
 				} else {
 					var makeOrderBtn = container.find('[data-action="make-order"]')
 		   			Templates.makeNiceSubmitButton({
@@ -52,9 +100,17 @@ var App = (function(){
 		   				success : function(response){
 		   					console.log("response")
 		   					console.log(response)
+		   					var trackLink = response.trackLink,
+		   					//: "/viewOrder?trackNum=10651&secretKey=null"
+		   						trackNumber = $.getURLParam(trackLink, "trackNum"),
+		   						secretKey = $.getURLParam(trackLink, "secretKey")
+		   					if (secretKey == "null") {
+		   						secretKey = null
+		   					}
+		   					console.log(trackNumber, secretKey)
 							var watchIt = function(){
 								console.log("go to track link")
-								showOrderPage("id","secret")
+								showOrderPage(trackNumber, secretKey)
 							}
 							BootstrapDialog.show({
 								type: BootstrapDialog.TYPE_SUCCESS, closable: false,
@@ -74,7 +130,7 @@ var App = (function(){
 										dialog.close()
 										watchIt()
 					                }
-								}],							
+								}],
 							})
 						},
 						error : function(response){
@@ -94,12 +150,21 @@ var App = (function(){
 				$.each(tmpStorage.serviceTypes, function (i, item) {
 				    serviceTypes.append($('<option>', { value: item.id, text : item.name }))
 				})
-
-				serviceTypes.bind("change", function(e){
-					var newServiceType = $(e.target).find('option[value="'+$(e.target).val()+'"]').text()
-					container.find('[data-type="price-holder"]').hide()
-					createInputsForServiceType(orderDetails, newServiceType)
-				})
+				if (!loadOrder){
+					serviceTypes.bind("change", function(e){
+						var newServiceType = $(e.target).find('option[value="'+$(e.target).val()+'"]').text()
+						container.find('[data-type="price-holder"]').hide()
+						createInputsForServiceType(orderDetails, newServiceType)
+					})
+				} else {
+					serviceTypes.val(orderInfo.serviceType)
+					Templates.lockAllControls(serviceTypes)
+					var newServiceType = serviceTypes.find('option[value="'+orderInfo.serviceType+'"]').text()
+					createInputsForServiceType(orderDetails, newServiceType, orderInfo)
+					if (orderInfo.status!="updating"){
+						Templates.lockAllControls(orderDetails)
+					}
+				}
 
 				//fill page
 				blocks.content.html("")
@@ -107,7 +172,11 @@ var App = (function(){
 
 				//[0] coz new google.maps.Map accepts clear html element, not wraped by jquery
 				MapTools.init(map[0])
-				MapTools.enableDraggableMarkers(true)
+				if (!loadOrder || (loadOrder && orderInfo.status=="updating")) {
+					MapTools.enableDraggableMarkers(true)
+				} else {
+					MapTools.enableDraggableMarkers(false)
+				}
 				MapTools.removeListenerChain("onMarkerMoved")
 				MapTools.removeListenerChain("onPlacePicked")
 				MapTools.removeListenerChain("onDistanceChange")
@@ -117,6 +186,10 @@ var App = (function(){
 				})
 
 				MapTools.addListener("onPlacePicked", function(lat, lgn){
+					//prevent from piking order
+					if (loadOrder && orderInfo.status!="updating") {
+						return;
+					}
 					BootstrapDialog.show({
 						title: 'Address picking',
 						message : function(dialog){
@@ -219,6 +292,7 @@ var App = (function(){
 			if (loadOrder) {
 				DataTools.getOrderInfo(loader, ids[2], function(status, response, orderInfo){
 					tmpStorage.currentOrder = orderInfo
+
 				}, orderId, secretKey)
 			} else {
 				loader.setStatus(ids[2], 'no reason for load this')
@@ -301,7 +375,7 @@ var App = (function(){
 							isRemovable = list.has('[data-action="remove"]').length > 0
 						if (list.length>0){
 							list.remove()
-							holder.append(Templates.getDropDownAddressHTML(FL, isRemovable))
+							holder.append(Templates.getDropDownAddress(FL, isRemovable))
 						}
 					})
 				}
@@ -319,7 +393,7 @@ var App = (function(){
 				tagName = target[0].tagName.toLowerCase()
 			//select fav location part
 			if (tagName == "a" || tagName == "small"){
-				var input = target.closest('.input-group').find('input'),
+				var input = target.closest('.input-group').find('[data-type="address"]'),
 					text_container = target;
 				if (tagName == "a") {
 					text_container = target.find("small")
@@ -350,7 +424,7 @@ var App = (function(){
 						hasCarsAmount = (btn.attr('data-mod')=="addCarsAmount"),
 						name = btn.attr("data-name"),
 						newAddressField = Templates.getAddress(tmpStorage.favouriteLocations, name, hasCarsAmount, true, startNumber),
-						input = newAddressField.find("input")[0]
+						input = newAddressField.find('[data-type="address"]')[0]
 					$(target.parent()).find('[data-type="address-group"]').append(newAddressField)
 					MapTools.modAutocompleteAddressInput(input, updateRoutes)
 					return;
@@ -401,11 +475,12 @@ var App = (function(){
 				}
 			}
 		},
-		createInputsForServiceType = function(holder, newServiceType, loader) {
+		createInputsForServiceType = function(holder, newServiceType, orderInfo) {
 			MapTools.clearAllMarker()
 			MapTools.markersFitWindow()
 			holder.html("")
 			holder.append(Templates.getWhiteLoader)
+			var loadOrder = $.isSet(orderInfo)
 			//create DOM))
 			var createDOM = function(){
 				var SD = tmpStorage.serviceDescription,
@@ -418,24 +493,69 @@ var App = (function(){
 					holder.append(Templates.getContacts())
 				}
 				console.log(SD)
-				holder.append(Templates.getTime(SD.timing.indexOf("now")>-1, SD.timing.indexOf("specified")>-1))
+				var timeBlock = Templates.getTime(SD.timing.indexOf("now")>-1, SD.timing.indexOf("specified")>-1)
+				holder.append(timeBlock)
+				if (loadOrder) {
+					if (SD.timing.indexOf("specified")>-1) {
+						var time = timeBlock.find('#time_specified')
+						if (time.length>0) {
+							time.val(orderInfo.executionDate)
+							timeBlock.find('[value="specified"]').prop('checked', true)
+						} else {
+							timeBlock.find('[value="now"]').prop('checked', true)
+						}
+					}
+				}
 				//add addresses
 				var addresses = $(Templates.getAddressesContainer())
 				var mult = SD.multipleSourceLocations
-				var addrGroup = $(Templates.getAddressesGroup("Source:","start_addresses", mult, mult))
-				addrGroup.find('[data-type="address-group"]').append(Templates.getAddress(FL,"start_addresses", mult, false))
+				var addrGroup = $(Templates.getAddressesGroup("Source:","start_addresses", mult, mult)),
+					addrHolder = addrGroup.find('[data-type="address-group"]')
+				if (loadOrder) {
+					var sa = orderInfo.startAddresses
+					for (var i=0;i<sa.length;i++){
+						var address = Templates.getAddress(FL,"start_addresses", mult, false)
+						address.find('[data-type="address"]').val(sa[i])
+						addrHolder.append(address)
+					}
+				} else {
+					addrHolder.append(Templates.getAddress(FL,"start_addresses", mult, false))
+				}
 				addresses.append(addrGroup)
 
 				//console.log(SD)
 				if (SD.chain) {
 					addrGroup = $(Templates.getAddressesGroup("Intermediate:","intermediate_addresses", true, false))
+
+					if (loadOrder) {
+						var ia = orderInfo.intermediateAddresses
+						for (var i=0;i<ia.length;i++){
+							var address = Templates.getAddress(FL,"intermediate_addresses", true, false)
+							address.find('[data-type="address"]').val(ia[i])
+							addrHolder.append(address)
+						}
+					}
 					addresses.append(addrGroup)
 				}
 
 				if (SD.destinationRequired) {
 					var mult = SD.multipleDestinationLocations
 					addrGroup = $(Templates.getAddressesGroup("Destination:","destination_addresses", mult, mult))
-					addrGroup.find('[data-type="address-group"]').append(Templates.getAddress(FL,"destination_addresses", false))
+					//addrGroup.find('[data-type="address-group"]').append(Templates.getAddress(FL,"destination_addresses", false))
+					//addresses.append(addrGroup)
+
+
+					addrHolder = addrGroup.find('[data-type="address-group"]')
+					if (loadOrder) {
+						var da = orderInfo.destinationAddresses
+						for (var i=0;i<da.length;i++){
+							var address = Templates.getAddress(FL,"destination_addresses", false)
+							address.find('[data-type="address"]').val(da[i])
+							addrHolder.append(address)
+						}
+					} else {
+						addrHolder.append(Templates.getAddress(FL,"destination_addresses", false))
+					}
 					addresses.append(addrGroup)
 				}
 
@@ -445,15 +565,54 @@ var App = (function(){
 					holder.append(Templates.getCarsAmount(SD.minCarsNumbers))
 				}
 
+				if (loadOrder) {
+					var cars = holder.find('[data-type="cars-amount"]')
+					for (var i=0;i<cars.length;i++){
+						var input = $(cars[i])
+						input.val(orderInfo.carsAmount[i].length)
+					}
+				}
+				console.log("----------------------------------")
+				console.log(orderInfo)
 				var features = Templates.getFeaturesContainer()
 				features.append()
 				for (var i in SF) {
 					feature = SF[i]
+					console.log(feature)
 					if (feature.isCategory==true){
-						features.append(Templates.getFeaturesGroup(feature,"features"))
+						var featureBlock = Templates.getFeaturesGroup(feature,"features", !loadOrder)
+						features.append(featureBlock)
+						if (loadOrder) {
+							switch (feature.featureSpecialName) {
+								case "car_class" : 
+									if ($.isSet(orderInfo.carClassId)) {
+										featureBlock.find('[value="'+orderInfo.carClassId+'"]').prop('checked', true)
+									}
+									break
+								case "payment_type" : 
+									if ($.isSet(orderInfo.paymentType)) {
+										featureBlock.find('[value="'+orderInfo.paymentType.toLowerCase()+'"]').prop('checked', true)
+									}
+									break
+								case "driver_sex" : 
+									if ($.isSet(orderInfo.driverSex)) {
+										featureBlock.find('[value="'+orderInfo.driverSex.toLowerCase()+'"]').prop('checked', true)
+									} else {
+										featureBlock.find('[value="any"]').prop('checked', true)
+									}
+									break
+								case "features" : 
+									for (var j=0;j<orderInfo.features.length;j++){
+										var val = orderInfo.features[j]
+										featureBlock.find('[value="'+val+'"]').prop('checked', true)
+									}
+									break
+
+							}
+						}
 					} else {
 						features.append(Templates.getFeaturesItem(feature,"features"))
-					}
+					} 
 				}
 				holder.append(features)
 
@@ -461,14 +620,16 @@ var App = (function(){
 					MapTools.modAutocompleteAddressInput(input, updateRoutes)
 				})
 
+				if (loadOrder && orderInfo.status!="updating"){
+					Templates.lockAllControls($(orderDetails))
+				}
 				//bind events
 				addresses.bind("click", addressesClick)
 			}
 
 			//init loader and bind callback when all necessary datas will be loaded
-			if (!$.isSet(loader)) {
-				loader = new Loader()
-			}
+			
+			var loader = new Loader()
 			loader.addCallBack(function(){ createDOM() })
 			//binding data loaders
 			var ids = loader.getArrayUniqId(3)
@@ -595,10 +756,85 @@ var App = (function(){
 		showHistoryPage = function(holder){
 			current_page_name = "history"
 			showLoadPage()
-			var container = Templates.getViewHistory(DataTools.getHistory())
-			//fill page
-			blocks.content.html("")
-			blocks.content.append(container)
+
+			var allowedSortProperties = []
+			var user = null
+			var history = null
+			var pagerInfo = null
+			var createDOM = function(){
+				var container = Templates.getHistoryContainer(),
+					filters = container.find('[data-type="filters"]'),
+					orders = container.find('[data-type="orders"]')
+					pager = container.find('[data-type="pager"]')
+				console.log(allowedSortProperties)
+				console.log(history)
+				console.log(pagerInfo)
+				filters.append(Templates.getHistoryFilters(allowedSortProperties))
+				orders.append(Templates.getHistoryOrders(history))
+				pager.append(Templates.getPager(pagerInfo))
+
+
+				Templates.makeNiceSubmitButton({
+						form : container.find('form'),
+						button : container.find('[data-action="apply"]')
+					})
+
+				orders.on('click', '[data-order-id]', function(e){
+					var orderId = $(e.target).attr('data-order-id')
+					showOrderPage(orderId)
+				})
+				pager.on('click', 'a', function(e){
+					var currentPage = pager.find('.active [data-page]').attr('data-page')
+					orders.html('')
+					orders.append(Templates.getWhiteLoader())
+					var createDOM = function(){
+
+					}
+
+					var loader = new Loader()
+					loader.addCallBack(function(){ createDOM() })
+					DataTools.getUserHistory(loader, loader.getUniqId(), function(status, response, historyInfo){
+						var pd = historyInfo.pageDetails
+						pagerInfo = {
+							currentPage : pd.pageNumber+1,
+							pagesAmount : pd.totalPage,
+							pagesAtOnce : 5
+						}
+						history = historyInfo.orders;
+						pager.html('')
+						pager.append(Templates.getPager(pagerInfo))
+						orders.html('')
+						orders.append(Templates.getHistoryOrders(history))
+					}, user.userId, currentPage)
+
+				})
+				//fill page
+				blocks.content.html("")
+				blocks.content.append(container)
+			}
+
+			var loader = new Loader()
+			loader.addCallBack(function(){ createDOM() })
+			var ids = loader.getArrayUniqId(3)
+			DataTools.getAllowedSortProperties(loader, ids[0], function(status, response, sortProperties){
+				allowedSortProperties = sortProperties
+			})
+
+			DataTools.getUser(loader, ids[1], function(status, response, userInfo){
+				user = userInfo
+				//don`t do this (one loader in other)
+				DataTools.getUserHistory(loader, ids[2], function(status, response, historyInfo){
+					var pd = historyInfo.pageDetails
+					pagerInfo = {
+						currentPage : pd.pageNumber+1,
+						pagesAmount : pd.totalPage,
+						pagesAtOnce : 5
+					}
+					history = historyInfo.orders;
+				}, user.userId)
+			})
+
+
 		},
 		showEditAccountPage = function(){
 			current_page_name = "account"
@@ -813,9 +1049,9 @@ var App = (function(){
 				action : "make-order",
 				show : showOrderPage
 			},
-			"view-orders" : {
+			"history" : {
 				label : "View order history",
-				action : "view-orders",
+				action : "history",
 				show : showHistoryPage,
 				hideNonLogged : true
 			},

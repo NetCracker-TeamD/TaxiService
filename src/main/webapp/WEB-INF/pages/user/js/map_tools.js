@@ -36,6 +36,7 @@ var MapTools = (function () {
         onMarkerMoved = function (marker_id) {
             var lis = listeners.onMarkerMoved
             if ($.isSet(lis)) {
+            	console.log(markers[marker_id])
                 getNameForLocation(markers[marker_id].gmm.position.k, markers[marker_id].gmm.position.D, function (locationName) {
                     for (var i = 0; i < lis.length; i++) {
                         lis[i](marker_id, locationName)
