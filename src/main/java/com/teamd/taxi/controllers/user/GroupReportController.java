@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.sql.ResultSet;
@@ -25,6 +26,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -33,7 +35,7 @@ import java.util.*;
 public class GroupReportController {
 
     //TODO: insert authorized user
-    long userId = 7;
+    long userId = 31;
     long groupId;
 
 
@@ -139,8 +141,18 @@ public class GroupReportController {
     @RequestMapping(value = "/statistic/exportNewOrders", method = RequestMethod.GET)
     public ModelAndView getExcelNewOrders(@RequestParam("startDate") final String startDate,
                                           @RequestParam("endDate") final String endDate) {
-        List report = reportService.getNewOrderList(reportService.getNewOrders(startDate, endDate, groupId));
-        return new ModelAndView("newOrders", "report", report);
+       if (isValidDate(startDate) & isValidDate(endDate)) {
+            List report = reportService.getNewOrderList(reportService.getNewOrders(startDate, endDate, groupId));
+            return new ModelAndView("newOrders", "report", report);
+        }else {
+           RedirectView view=new RedirectView("/user/statistic",true);
+           view.setExpandUriTemplateVariables(false);
+           Map params=new HashMap();
+           params.put("group",groupId);
+           view.setAttributesMap(params);
+            return new ModelAndView(view);
+        }
+
     }
 
     @RequestMapping(value = "/statistic/exportMostProfitable", method = RequestMethod.GET)
@@ -148,5 +160,17 @@ public class GroupReportController {
         List report = reportService.getProfitByPeriodList(reportService.getProfitByPeriod(period, groupId));
         return new ModelAndView("mostProfitable", "report", report);
     }
+
+    public static boolean isValidDate(String inDate) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setLenient(false);
+        try {
+            dateFormat.parse(inDate.trim());
+        } catch (ParseException pe) {
+            return false;
+        }
+        return true;
+    }
+
 
 }
