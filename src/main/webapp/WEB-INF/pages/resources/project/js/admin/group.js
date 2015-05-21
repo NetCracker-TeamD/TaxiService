@@ -16,6 +16,10 @@ var groupUsersList = $('#group_users_list');
 var freeUsersList = $('#all_users_list');
 
 var successModal = $('#successModal');
+
+var alertSuccess = $('#alert_success');
+var alertError = $('#alert_error');
+
 var createGroupModal = $('#create_group');
 var updateGroupModal = $('#update_group');
 var removeGroupModal = $('#remove_group');
@@ -30,6 +34,22 @@ function showModalError(modalId, message) {
     var errorAlert = modalId.find('.modal-error').eq(0);
     errorAlert.find('p').html("<strong>Error!</strong> " + message);
     errorAlert.slideDown();
+}
+
+function showAlertError(message) {
+    alertError.find('p').html('<strong>Error!</strong> ' + message);
+    alertError.slideDown(400);
+    setTimeout(function() {
+        alertError.slideUp(600);
+    }, 5000);
+}
+
+function showAlertSuccess(message) {
+    alertSuccess.find('p').html('<strong>Success.</strong> ' + message);
+    alertSuccess.slideDown(400);
+    setTimeout(function() {
+        alertSuccess.slideUp(600);
+    }, 5000);
 }
 
 removeGroupModal.on('show.bs.modal', function (event) {
@@ -298,5 +318,5 @@ function addSelectedUsers() {
 
 getGroups(11);
 makeUsersList();
-
+showAlertSuccess("Page loaded");
 
