@@ -1,5 +1,8 @@
 package com.teamd.taxi.models.admin;
 
+import com.teamd.taxi.entity.Car;
+import com.teamd.taxi.entity.CarClass;
+import com.teamd.taxi.entity.Driver;
 import com.teamd.taxi.entity.Feature;
 import com.teamd.taxi.validation.*;
 import org.hibernate.validator.constraints.NotBlank;
@@ -36,7 +39,6 @@ public class UpdateCarModel {
 
     private Boolean enable;
 
-    @NotNull(message = "All feature's checkbox is empty")
     @CarFeatures
     private List<Feature> features;
 
@@ -97,5 +99,34 @@ public class UpdateCarModel {
 
     public void setEnable(Boolean enable) {
         this.enable = enable;
+    }
+
+    public Car updateCar(Car car){
+        if(this.modelName != null) car.setModel(this.modelName);
+        if(this.enable != null) car.setEnabled(enable);
+        if(this.classId != null) car.setCarClass(new CarClass(Integer.parseInt(this.classId)));
+        if(this.category != null) car.setCategory(this.category);
+        if(this.features != null) car.setFeatures(this.features);
+        if(this.driverId !=null) {
+            if(this.driverId.toString().equals("-1")){
+                car.setDriver(null);
+            }else {
+                car.setDriver(new Driver(this.driverId));
+            }
+        }
+        return car;
+    }
+
+    @Override
+    public String toString() {
+        return "UpdateCarModel{" +
+                "id=" + id +
+                ", classId='" + classId + '\'' +
+                ", category='" + category + '\'' +
+                ", driverId=" + driverId +
+                ", modelName='" + modelName + '\'' +
+                ", enable=" + enable +
+                ", features=" + features +
+                '}';
     }
 }

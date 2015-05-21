@@ -179,7 +179,7 @@ public class CarAdminController {
 
     @RequestMapping(value = "/update_car", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public AdminResponseModel<Map<String, String>> updateCar(@RequestBody UpdateCarModel updateCarModel, BindingResult result){
+    public AdminResponseModel<Map<String, String>> updateCar(@RequestBody @Valid UpdateCarModel updateCarModel, BindingResult result){
 
         AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
 
@@ -190,14 +190,17 @@ public class CarAdminController {
             Map<String, String> mapError = new HashMap<>();
 
             for (FieldError fieldError : result.getFieldErrors()) {
-                mapError.put(fieldError.getField(), fieldError.getCode());
+                mapError.put(fieldError.getField(), fieldError.getDefaultMessage());
             }
             response.setContent(mapError);
             return response;
         }else {
+
+            carService.updateCar(updateCarModel);
+
             response.setResultSuccess();
             response.setContent(new HashMap<String, String>() {{
-                put("message", "Update norm");
+                put("message", "Car was updated successfully");
             }});
             return response;
         }

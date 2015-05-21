@@ -5,7 +5,7 @@ var checkedInput = '<input type="checkbox" checked="checked" value="true"/>';
 var uncheckedInput = '<input type="checkbox"  value="false"/>';
 var textInput = '<input class="form-control-auto-size" type="text" value="Hello"/>';
 var selectInput = '<select class="form-control-auto-size"></select>';
-var selectClassInput = '<select class="form-control-auto-size"><option>Business</option><option>Standard</option><option>Economy</option></select>';
+var selectClassInput = '<select class="form-control-auto-size"><option value="3">Business</option><option value="2">Standard</option><option value="1">Economy</option></select>';
 var selectCategoryInput = '<select class="form-control-auto-size"><option>A</option><option>B</option><option>C</option><option>D</option></select>';
 var saveButton = '<button title="Save changes" type="button"  data-toggle="modal" data-target="#" data-car-id="" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>';
 var cancelButton = '<button title="Cancel" type="button"  data-toggle="modal" data-target="#" data-car-id="" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span></button>';
@@ -57,19 +57,36 @@ function startEditCar(node) {
     carCategory.eq(0).html(selectCategoryInput);
     carCategory.find('option:contains("' + carCategoryVal + '")').attr('selected', 'selected');
 
-    var carClassVal = carClass.text();
+
+    var carClassVal = carClass.find("p.hidden").text();
     carClass.eq(0).text('');
     carClass.eq(0).html(selectClassInput);
-    carClass.find('option:contains("' + carClassVal + '")').attr('selected', 'selected');
+    carClass.find('option[value="' + carClassVal + '"]').attr('selected', 'selected');
+
 
     var featureElem = carClass.next().eq(0);
     while (featureElem.find(':first-child').hasClass('glyphicon')) {
 
+        if (featureElem.find(':first-child').hasClass('enable')) {
+            if (featureElem.find(':first-child').hasClass('glyphicon-yes')) {
+                featureElem.append(checkedInput);
+            } else {
+                featureElem.append(uncheckedInput);
+            }
+            featureElem.find(":checkbox").attr({"id": "enable", "onclick": "switcherFeatures(this)"});
+
+            featureElem.find(':first-child').eq(0).remove();
+
+            featureElem = featureElem.next();
+            continue;
+        }
+        var featureId = featureElem.find(':first-child').attr("id");
         if (featureElem.find(':first-child').hasClass('glyphicon-yes')) {
             featureElem.append(checkedInput);
         } else {
             featureElem.append(uncheckedInput);
         }
+        featureElem.find(":checkbox").attr({"id": featureId, "onclick": "switcherFeatures(this)"});
         featureElem.find(':first-child').eq(0).remove();
 
         featureElem = featureElem.next();
@@ -86,31 +103,30 @@ function startEditCar(node) {
     //driver.find('select').append($("<option></option>").attr("value", '-1').text('No driver'));
     //driver.find('option:contains("' + driverName + '")').attr('selected', 'selected');
 
-
     driver.find("select").attr("id", "car_driver_edit_" + countButtonStartEditCar);
     driver.find("select").attr("load", "true");
     driver.find("select").attr("loadByChange", "true");
-    driver.find("select").attr("onclick", "generationDrivers(this, 'No driver')");
     driver.find("select").attr("onchange", "changeDriver(this)");
 
-    generationDrivers(driver.find("select"), "No driver");
+    if (driverId.trim().length == 0 || (driverName.trim().length == 0)) {
+        driver.find("select").attr("onclick", "generationDrivers(this, 'No driver','')");
+        generationDrivers(driver.find("select"), "No driver", "");
+    }
+    else {
+        var selectedDriver = "'<option value=\"" + driverId + "\">" + driverName + "</option>'";
+        driver.find("select").attr("onclick", "generationDrivers(this, 'No driver'," + selectedDriver + ")");
+        generationDrivers(driver.find("select"), "No driver", selectedDriver);
+    }
+
     driver.find("select").attr("load", "true");
     driver.find("select").attr("loadByChange", "true");
 
-    var options = document.getElementById("car_driver_edit_" + countButtonStartEditCar).options;
-    $.each(options, function (key, selectOption) {
-        if (selectOption["value"] === driverId) {
-            $("#" + "car_driver_edit_" + countButtonStartEditCar + " option[value=" + driverId + "]").attr('selected', 'selected');
-            return;
-        }
-    });
-
     manage.children().remove();
     manage.append(saveButton);
-    manage.find(':first-child').attr('onclick', 'updateCar("event");');
+    manage.find(':first-child').eq(0).attr('onclick', 'updateCar(event)');
     manage.append(' ');
     manage.append(cancelButton);
-    manage.find(':nth-child(2)').attr('onclick', 'cancelEdit(event);');
+    manage.find(':nth-child(2)').attr('onclick', 'cancelEdit(event)');
 
 }
 
@@ -140,39 +156,245 @@ function removeCar(id) {
     });
 }
 
+function newDataWithUpdateCar(tr) {
+
+    var model = tr.find(':nth-child(2)').eq(0);
+    var carCategory = tr.find(':nth-child(3)').eq(0);
+    var carClass = tr.find(':nth-child(4)').eq(1);
+
+    var listFeatureId = [];
+    var enableValue = false;
+    var featureElement = tr.find(':nth-child(5)').eq(0);
+
+    while (featureElement.find(":first-child").is($("input"))) {
+        var checkBox = featureElement.find(":first-child");
+
+        if (checkBox.is("#enable")) {
+            enableValue = checkBox.prop("checked");
+            featureElement = featureElement.next();
+            continue;
+        }
+        if (checkBox.prop("checked")) {
+            listFeatureId.push(checkBox.attr("id"));
+        }
+        featureElement = featureElement.next();
+    }
+
+    var driverElement = featureElement;
+
+    var newData = {};
+    newData['id'] = model.attr("car-id");
+    newData['modelName'] = model.find(":first-child").val();
+    newData['category'] = carCategory.find(":first-child").val();
+    newData['classId'] = carClass.find(":first-child").val();
+    newData['enable'] = enableValue;
+    newData['driverId'] = driverElement.find(":first-child").val();
+    newData['features'] = listFeatureId;
+
+    return newData;
+}
+
+function oldDataWithCarsPage(tr) {
+    var divHiddenElement = tr.find("div.hidden");
+
+    var modelHidden = divHiddenElement.find(':nth-child(2)').eq(0);
+    var oldModelName = modelHidden.text();
+    var oldCarId = modelHidden.attr("car-id");
+
+    var categoryHidden = modelHidden.next();
+    var oldCategory = categoryHidden.text();
+
+    var carClassHidden = categoryHidden.next();
+    var oldClassId = carClassHidden.find("p.hidden").text();
+
+    var oldListFeatureId = [];
+    var oldEnableValue;
+    var featureElementHidden = carClassHidden.next();
+
+    while (featureElementHidden.find(':first-child').hasClass('glyphicon')) {
+
+        if (featureElementHidden.find(':first-child').hasClass('enable')) {
+            if (featureElementHidden.find(':first-child').hasClass('glyphicon-yes')) {
+                oldEnableValue = true;
+            } else {
+                oldEnableValue = false;
+            }
+            featureElementHidden = featureElementHidden.next();
+            continue;
+        }
+
+        var oldFeatureId = featureElementHidden.find(':first-child').attr("id");
+        if (featureElementHidden.find(':first-child').hasClass('glyphicon-yes')) {
+            oldListFeatureId.push(oldFeatureId);
+        }
+        featureElementHidden = featureElementHidden.next();
+    }
+
+    var driverElementHidden = featureElementHidden;
+    var oldDriverId = driverElementHidden.attr("driver-id");
+
+    var oldData = {};
+    oldData['id'] = oldCarId;
+    oldData['modelName'] = oldModelName;
+    oldData['category'] = oldCategory;
+    oldData['classId'] = oldClassId;
+    oldData['enable'] = oldEnableValue;
+    oldData['driverId'] = oldDriverId;
+    oldData['features'] = oldListFeatureId;
+
+    return oldData;
+}
+
+function setUpdateDataInHiddenBlock(newData, tr) {
+    var divHiddenElement = tr.find("div.hidden");
+
+    var modelHidden = divHiddenElement.find(':nth-child(2)').eq(0);
+    modelHidden.text(newData['modelName']);
+
+    var categoryHidden = modelHidden.next();
+    categoryHidden.text(newData['category']);
+
+    var carClassHidden = categoryHidden.next();
+    var carClass = tr.find(':nth-child(4)').eq(1);
+    carClassHiddenText = carClass.find("option[value='" + newData['classId'] + "']").text();
+    carClassHiddenHTML = carClassHiddenText + "<p class=\"hidden\">" + newData['classId'] + "</p>" + carClass.val();
+    carClassHidden.empty();
+    carClassHidden.append(carClassHiddenHTML);
+
+    var featureElem = carClassHidden.next();
+    while (featureElem.find(':first-child').hasClass('glyphicon')) {
+
+        if (featureElem.find(':first-child').hasClass('enable')) {
+            if (featureElem.find(':first-child').hasClass('glyphicon-yes')) {
+                if (!newData['enable']) {
+                    featureElem.find(':first-child').removeClass("glyphicon-yes glyphicon-ok");
+                    featureElem.find(':first-child').addClass("glyphicon-no glyphicon-remove");
+                }
+            } else {
+                if (newData['enable']) {
+                    featureElem.find(':first-child').removeClass("glyphicon-no glyphicon-remove");
+                    featureElem.find(':first-child').addClass("glyphicon-yes glyphicon-ok");
+                }
+            }
+            featureElem = featureElem.next();
+            continue;
+        }
+
+
+        var featureId = featureElem.find(':first-child').attr("id");
+        if (featureElem.find(':first-child').hasClass('glyphicon-yes')) {
+            if (!containsObject(newData['features'], featureId)) {
+                featureElem.find(':first-child').removeClass("glyphicon-yes glyphicon-ok");
+                featureElem.find(':first-child').addClass("glyphicon-no glyphicon-remove");
+            }
+        } else {
+            if (containsObject(newData['features'], featureId)) {
+                featureElem.find(':first-child').removeClass("glyphicon-no glyphicon-remove");
+                featureElem.find(':first-child').addClass("glyphicon-yes glyphicon-ok");
+            }
+        }
+
+        featureElem = featureElem.next();
+    }
+
+    var driverHiddenElement = featureElem;
+    driverHiddenElement.attr("driver-id", newData['driverId']);
+    driverHiddenElement.empty();
+
+    var driverElement = tr.find(':nth-child(9)').eq(0);
+    var driverName = "";
+    if(newData['driverId'] !== "-1"){
+        driverName = driverElement.find("option[value='"+newData['driverId']+"']").text();
+    }
+    var driverHTML = "<a href=''>"+driverName+"</a>";
+
+    driverHiddenElement.append(driverHTML);
+}
+
+function containsObject(arrayObject, searchObject) {
+    if(searchObject == null){return false;}
+    if(arrayObject.length == 0) {return false;}
+    for (var i = 0; i < arrayObject.length; i++) {
+        if (arrayObject[i] === searchObject) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function updateCar(value) {
-    alert(updateCar);
 
-    var JSONPostData = new Object();
-    JSONPostData['modelName'] = "BMW 310";
-    JSONPostData['classId'] = "  ";
-    JSONPostData['category'] = "   ";
-    JSONPostData['enable'] = "true";
-    JSONPostData['driverId'] = "1";
-    JSONPostData['features'] = [4,5];
+    var tr = $(value.target).closest('tr');
 
+    var newData = newDataWithUpdateCar(tr);
+    var oldData = oldDataWithCarsPage(tr);
 
+    console.log(newData);
+    console.log("-------------------------------------");
+    console.log(oldData);
 
 
+    var PostData = {};
 
+    if (oldData['modelName'].trim() !== newData['modelName'].trim()) {
+        PostData['modelName'] = newData['modelName'];
+    }
+    if (oldData['category'].trim() !== newData['category'].trim()) {
+        PostData['category'] = newData['category'];
+    }
+    if (oldData['classId'].trim() !== newData['classId'].trim()) {
+        PostData['classId'] = newData['classId'];
+    }
+    if (newData['enable'] !== oldData['enable']) {
+        PostData['enable'] = newData['enable'];
+    }
+    if (oldData['driverId'].trim().length == 0) oldData['driverId'] = "-1";
+    if (oldData['driverId'].trim() !== newData['driverId'].trim()) {
+        PostData['driverId'] = newData['driverId'];
+    }
+    if (JSON.stringify(newData['features']) !== JSON.stringify(oldData['features'])) {
+        PostData['features'] = newData['features'];
+    }
+
+    if (oldData['id'] === newData['id']) {
+        PostData['id'] = newData['id'];
+    }
+
+    if (Object.keys(PostData).length === 1) {
+        tr.prev().hide();
+        cancelEdit(value);
+        return;
+    }
 
     $.ajax({
         type: 'POST',
-        url:  "/admin/update_car",
+        url: "/admin/update_car",
         contentType: 'application/json; charset=utf-8',
-        data: JSON.stringify(JSONPostData),
+        data: JSON.stringify(PostData),
         dataType: 'json',
         async: false,
-        success: function(response) {
+        success: function (response) {
+
+            var trError = tr.prev();
+
             if (response.result == "success") {
-                showSuccess(response.content["message"]);
-                removeCarModal.modal('hide');
+                trError.hide();
+                $(successModal).attr("reloadPage","false");
+                showSuccessUpdateCar(response.content["message"]);
+                setUpdateDataInHiddenBlock(newData, tr);
+                cancelEdit(value);
+
             } else {
                 if (response.result == "failure") {
-                    //hideAllErrors();
-                    //showModalErrors(response);
 
-                    showError(removeCarModal, response.content);
+                    $("#update_errors_" + oldData["id"] + " p").remove();
+                    trError.show(100);
+
+                    var errors = "";
+                    $.each(response.content, function (key, value) {
+                        errors = errors + "<p>" + value + "</p>";
+                    });
+                    $("#update_errors_" + oldData["id"]).append(errors);
 
                 } else {
                     showError(removeCarModal, "Something went wrong... Try again later");
@@ -180,7 +402,7 @@ function updateCar(value) {
             }
 
         },
-        error: function(error) {
+        error: function (error) {
             showError(removeCarModal, "Something went wrong... Try again later");
         }
     });
@@ -269,6 +491,8 @@ function showModalErrors(response) {
 
 function cancelEdit(node) {
     var record = $(node.target).closest('tr');
+    var trError = record.prev();
+    trError.hide();
     var normalState = record.find('div').eq(0).html();
     record.html(normalState);
 }
@@ -285,10 +509,17 @@ removeCarModal.on('show.bs.modal', function (event) {
 });
 
 successModal.on('hidden.bs.modal', function (event) {
-    location.reload(true);
+    if($(successModal).attr("reloadPage") === "true"){
+        location.reload(true);
+    }
 });
 
 function showSuccess(message) {
+    successModal.find('.lead').html(message);
+    successModal.modal('show');
+}
+
+function showSuccessUpdateCar(message) {
     successModal.find('.lead').html(message);
     successModal.modal('show');
 }
@@ -316,7 +547,7 @@ createCarModal.on('show.bs.modal', function () {
 
     $("#car_driver").attr("load", "true");
     $("#car_driver").attr("loadByChange", "true");
-    generationDrivers(document.getElementById('car_driver'), 'No driver');
+    generationDrivers(document.getElementById('car_driver'), 'No driver', '');
     $("#car_driver").attr("load", "true");
     $("#car_driver").attr("loadByChange", "true");
 });
@@ -368,7 +599,7 @@ function switcherFeatures(checkbox) {
     }
 }
 
-function generationDrivers(selectElement, defaultOptionString) {
+function generationDrivers(selectElement, defaultOptionString, selectedDriver) {
 
     var selectionElementID = '#' + $(selectElement).attr('id');
 
@@ -392,7 +623,12 @@ function generationDrivers(selectElement, defaultOptionString) {
 
     for (var i = 0; i < arrayMaps.length; i++) {
         if (stringBuffer == null) {
-            stringBuffer = '<option value="-1" selected="selected">' + defaultOptionString + endTag + '<option value=' + arrayMaps[0]['id'] + '>';
+            if (selectedDriver.length !== 0) {
+                stringBuffer = selectedDriver;
+                stringBuffer = stringBuffer + '<option value="-1">' + defaultOptionString + endTag + '<option value=' + arrayMaps[0]['id'] + '>';
+            } else {
+                stringBuffer = '<option value="-1">' + defaultOptionString + endTag + '<option value=' + arrayMaps[0]['id'] + '>';
+            }
         } else {
             stringBuffer = stringBuffer + '<option value=' + arrayMaps[i]['id'] + '>';
         }

@@ -1,6 +1,7 @@
 package com.teamd.taxi.service;
 
 import com.teamd.taxi.entity.*;
+import com.teamd.taxi.models.admin.UpdateCarModel;
 import com.teamd.taxi.persistence.repository.CarClassRepository;
 import com.teamd.taxi.persistence.repository.CarRepository;
 import com.teamd.taxi.persistence.repository.DriverRepository;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,6 +96,13 @@ public class CarService {
     }
 
     public void saveCar(Car car) {
+        carRepository.save(car);
+    }
+
+    @Transactional
+    public void updateCar(UpdateCarModel carModel){
+        Car car = carRepository.findOne(carModel.getId());
+        car = carModel.updateCar(car);
         carRepository.save(car);
     }
 }
