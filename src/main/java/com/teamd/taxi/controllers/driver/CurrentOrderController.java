@@ -133,26 +133,26 @@ public class CurrentOrderController {
                     }
                 }
 
-                if(allComplete){
+                if (allComplete) {
                     float totalPrice = 0;
-                    List<Float > listPrice;
+                    List<Float> listPrice;
                     TaxiOrder taxiOrderBuf = taxiOrderService.findOneById(taxiOrderId);
                     List<Route> routesWithPrice = getChainForDriver(taxiOrderBuf, drvId);
-                    if(taxiOrderBuf.getServiceType().isDestinationLocationsChain()!=null &&
+                    if (taxiOrderBuf.getServiceType().isDestinationLocationsChain() != null &&
                             taxiOrderBuf.getServiceType().isDestinationLocationsChain()) {
                         listPrice = priceCountService.countPriceForLastChainOrder(taxiOrderBuf.getId(), driver.getId());
-                        for( int i = routesWithPrice.size()-1; i>0; i--){
+                        for (int i = routesWithPrice.size() - 1; i > 0; i--) {
                             Route r = routesWithPrice.get(i);
                             if (r.getStatus() == RouteStatus.COMPLETED) {
-                                totalPrice += listPrice.get(r.getChainPosition()-1);
-                                r.setTotalPrice(listPrice.get(r.getChainPosition()-1));
+                                totalPrice += listPrice.get(r.getChainPosition() - 1);
+                                r.setTotalPrice(listPrice.get(r.getChainPosition() - 1));
                                 routeService.saveRoute(r);
-                                if(r.getChainPosition()==1)
+                                if (r.getChainPosition() == 1)
                                     break;
                             }
                         }
-                    }else{
-                        long routeId = routesWithPrice.get(routesWithPrice.size()-1).getId();
+                    } else {
+                        long routeId = routesWithPrice.get(routesWithPrice.size() - 1).getId();
                         Route r = routeService.getRouteById(routeId);
                         totalPrice = priceCountService.countPriceForSingleRouteOrder(routeId);
                         r.setTotalPrice(totalPrice);
@@ -201,18 +201,21 @@ public class CurrentOrderController {
         return addresses;
     }
 
-    @RequestMapping(value = "/setNewRoute", produces = MediaType.APPLICATION_JSON_VALUE)
-//            produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/setNewRoute", produces = "application/json;charset=UTF-8")
     public
     @ResponseBody
     String driverCurrentOrder(@RequestParam(value = "source") String source,
                               @RequestParam(value = "destination") String dest) throws Exception {
         JsonObject to = new JsonObject();
-        String[] strings = new String[0];
         Float distance;
         if ((distance = mapService.calculateDistanceInKilometers(source, dest)) != null) {
             Driver driver = driverService.getDriver(driverId);
             TaxiOrder taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
+            AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
+            int newRouteNumber = assembledOrder.getAssembledRoutes().size() + 1;
+            //taxiOrder == null ???????
+            //taxiOrder.serviceType ??????
+            //carsAmount ??????
             Route route = new Route();
             route.setStatus(RouteStatus.ASSIGNED);
             route.setSourceAddress(source);
@@ -220,13 +223,13 @@ public class CurrentOrderController {
             route.setCustomerLate(false);
             route.setDriver(driver);
             route.setOrder(taxiOrder);
-            route.setDistance( distance);
+            route.setDistance(distance);
+            route.setChainPosition(newRouteNumber);
 
             taxiOrder.getRoutes().add(route);
             driver.getRoutes().add(route);
             taxiOrderRepository.save(taxiOrder);
             driverService.save(driver);
-            //        routeService.saveRoute(route);
 
             to.addProperty("source", source);
             to.addProperty("destination", dest);
@@ -252,7 +255,7 @@ public class CurrentOrderController {
 
         JsonObject to = new JsonObject();
         Driver driver = driverService.getDriver(driverId);
-        TaxiOrder taxiOrder ;
+        TaxiOrder taxiOrder;
 
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) {
             long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 1000;
@@ -262,8 +265,8 @@ public class CurrentOrderController {
                 taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
                 AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
                 List<AssembledRoute> assRoutes = assembledOrder.getAssembledRoutes();
-                System.out.println("AssRoutes.get(0).getRoutes().size()  "+assRoutes.get(0).getRoutes().size() );
-                if(assRoutes.get(0).getRoutes().size() == 1)
+                System.out.println("AssRoutes.get(0).getRoutes().size()  " + assRoutes.get(0).getRoutes().size());
+                if (assRoutes.get(0).getRoutes().size() == 1)
                     to.addProperty("newAddress", "enable");
                 if (isChainOrderBegin(assRoutes, driver.getId())) {
                     to.addProperty("currentOrderState", "driverGoesToClient");
@@ -289,14 +292,14 @@ public class CurrentOrderController {
             }
             to.addProperty("idleFreeTime", idleFreeTime);
             to.addProperty("executeOrderDate", executeOrderDate);
-        }else{
+        } else {
             to.addProperty("currentOrderState", "noCurrentOrder");
         }
 
         return new Gson().toJson(to);
     }
 
-    private boolean isChainOrderBegin(List<AssembledRoute> assRoutes , int driverId) {
+    private boolean isChainOrderBegin(List<AssembledRoute> assRoutes, int driverId) {
 
         for (Route r : assRoutes.get(0).getRoutes()) {
             if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.ASSIGNED) {
@@ -308,12 +311,12 @@ public class CurrentOrderController {
 
     private Calendar getTimeOfLastComletionRouteInChain(TaxiOrder taxiOrder, int driverId) {
         List<Route> sortRoutes = getChainForDriver(taxiOrder, driverId);
-        for ( int i = 0; i < sortRoutes.size(); i++){
-            Route r =  sortRoutes.get(i);
-            if(driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.IN_PROGRESS){
+        for (int i = 0; i < sortRoutes.size(); i++) {
+            Route r = sortRoutes.get(i);
+            if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.IN_PROGRESS) {
                 return null;
-            }else if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.ASSIGNED) {
-                return sortRoutes.get(i-1).getCompletionTime();
+            } else if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.ASSIGNED) {
+                return sortRoutes.get(i - 1).getCompletionTime();
             }
         }
         return null;
@@ -326,7 +329,7 @@ public class CurrentOrderController {
         if ((taxiOrder = isOrderExist(requst)) == null) {
             return false;
         }
-        if(taxiOrderService.findCurrentOrderByDriverId(driver.getId())!=null) {
+        if (taxiOrderService.findCurrentOrderByDriverId(driver.getId()) != null) {
             return false;
         }
         if (!checkDriverAndOrderFeature(driver.getId(), taxiOrder.getId())) {
@@ -376,7 +379,7 @@ public class CurrentOrderController {
                     break;
                 }
             }
-            if(bussy == false){
+            if (bussy == false) {
                 return new ArrayList<>();
             }
         }
@@ -384,14 +387,14 @@ public class CurrentOrderController {
     }
 
     private List<Route> getChainForDriver(TaxiOrder taxiOrder, int driverId) {
-        System.out.println("Taxi Order ID = "+taxiOrder.getId()+"  Driever "+driverId);
+        System.out.println("Taxi Order ID = " + taxiOrder.getId() + "  Driever " + driverId);
         AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
         List<AssembledRoute> assRoutes = assembledOrder.getAssembledRoutes();
         List<Route> routes = new ArrayList<>();
 
         for (int j = 0; j < assRoutes.size(); j++) {
             for (Route r : assRoutes.get(j).getRoutes()) {
-                if ((r.getDriver() != null)&& (driverId == r.getDriver().getId())) {
+                if ((r.getDriver() != null) && (driverId == r.getDriver().getId())) {
                     System.out.println("GET CHAIN FOR DIRIVER ID:" + r.getDriver().getId() + " Routes STATUS : " + r.getStatus() +
                             "   ADDRESS : " + r.getSourceAddress() + "  ID: " + r.getId());
                     routes.add(r);
