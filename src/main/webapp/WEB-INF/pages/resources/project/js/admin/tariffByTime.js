@@ -21,12 +21,6 @@ $(document).ready(function(){
         }
     });
 
-
-
-    $('#from_date_create').timepicker({
-        'forceRoundTime': true
-    });
-
     var checkin = $('.from_date').datepicker({
         format: 'dd/mm/yyyy',
         onRender: function (date) {
@@ -124,7 +118,6 @@ $(document).ready(function(){
             });
         });
     });
-
 
 
     $('.pagination li a').each(function () {
