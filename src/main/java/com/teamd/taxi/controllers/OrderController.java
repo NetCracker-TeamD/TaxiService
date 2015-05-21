@@ -3,6 +3,7 @@ package com.teamd.taxi.controllers;
 import com.google.gson.*;
 import com.google.maps.errors.NotFoundException;
 import com.teamd.taxi.authentication.AuthenticatedUser;
+import com.teamd.taxi.authentication.Utils;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
 import com.teamd.taxi.models.AssembledOrder;
@@ -17,6 +18,8 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -321,8 +324,31 @@ public class OrderController {
 
     @RequestMapping(value = "/getOrder", produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public String getOrder(@RequestParam("id") long orderId) {
+    public String getOrder(
+            @RequestParam("id") long orderId,
+            @RequestParam(value = "secretKey", required = false) String secretKey
+    ) throws ItemNotFoundException {
         TaxiOrder order = taxiOrderService.findOneById(orderId);
+        if (order == null) {
+            throw new ItemNotFoundException("order [" + orderId + "] not found");
+        }
+        User orderCustomer = order.getCustomer();
+        /*
+        AccessDeniedException accessDeniedException = new AccessDeniedException("not enough rights on[" + orderId + "]");
+        //проверка ключа для гостя
+        if (orderCustomer.getUserRole() == UserRole.ROLE_ANONYMOUS
+                && (!order.getSecretViewKey().equals(secretKey))
+                || !Utils.isAuthenticated()) {
+            throw accessDeniedException;
+        }
+        AuthenticatedUser authenticatedUser = Utils.getCurrentUser();
+        String userRole = Utils.getCurrentUserRole();
+        if (userRole.equals("ROLE_DRIVER")) {
+            throw accessDeniedException;
+        }
+        if (!userRole.equals("ROLE_ADMINISTRATOR") && order.getCustomer().getId() != authenticatedUser.getId()) {
+            throw accessDeniedException;
+        }*/
         return gson.toJson(convertTaxiOrderToObject(order));
     }
 
@@ -446,7 +472,10 @@ public class OrderController {
         orderObject.addProperty("carClassId", order.getCarClass().getId());
         ServiceType serviceType = order.getServiceType();
         orderObject.addProperty("serviceType", serviceType.getId());
-        orderObject.addProperty("driverSex", order.getDriverSex().name());
+        Sex driverSex = order.getDriverSex();
+        if (driverSex != null) {
+            orderObject.addProperty("driverSex", order.getDriverSex().name());
+        }
         orderObject.addProperty("paymentType", order.getPaymentType().name());
         JsonArray features = new JsonArray();
         for (Feature feature : order.getFeatures()) {

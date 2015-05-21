@@ -18,22 +18,22 @@ public class RouteService {
     @Autowired
     private RouteRepository routeRepository;
 
-    public List<Route> getFreeRoutsByOrderID(long orderId){
+    public List<Route> getFreeRoutsByOrderID(long orderId) {
         List<Route> routes = routeRepository.findFreeRouteByInOrder(orderId);
         return routes;
     }
 
-    public List<Route> getRoutsByOrderAndDriverId(long orderId, int driverId){
+    public List<Route> getRoutsByOrderAndDriverId(long orderId, int driverId) {
         List<Route> routes = routeRepository.findByOrderAndDriver1(orderId, driverId);
         return routes;
     }
 
 
-    public Route saveRoute(Route route){
+    public Route saveRoute(Route route) {
         return routeRepository.save(route);
     }
 
-    public Route getRouteById(long id){
+    public Route getRouteById(long id) {
         return routeRepository.findOne(id);
     }
 }
