@@ -82,15 +82,15 @@ public class QueueController {
         //повертає всі id`s фіч для даного водія і його машини
         List<Integer> featureIds = getIdsAllFeature(driver.getId());
 
-        log.info("Featured = " + featureIds);
+
         //запит на доступні замовлення
-        Specifications<TaxiOrder> spec = where(new OrderSpec(featureIds, driver.getCar().getCarClass()))
+        Specifications<TaxiOrder> spec = where(new OrderSpec(featureIds, driver.getCar().getCarClass(),driver.getSex()))
                 .and(new RouteSpec());
         Specification<TaxiOrder> additional = resolveSpecification(selectedTypes);
         if (additional != null) {
             spec = spec.and(additional);
         }
-
+        log.info("Featured = " + featureIds);
         Page<TaxiOrder> orders = taxiOrderService.findAll(spec, pageable);
         List<TaxiOrder> content = orders.getContent();
 
@@ -217,10 +217,12 @@ public class QueueController {
 
         private List<Integer> featureIds;
         private CarClass carClass;
+        private Sex sex;
 
-        public OrderSpec(List<Integer> featureIds, CarClass carClass) {
+        public OrderSpec(List<Integer> featureIds, CarClass carClass, Sex sex) {
             this.carClass = carClass;
             this.featureIds = featureIds;
+            this.sex = sex;
         }
 
         @Override
@@ -240,7 +242,8 @@ public class QueueController {
             return cb.and(
                     cb.not(root.<Long>get("id").in(taxiOrderIdSubquery)),
                     cb.lessThan(root.<Calendar>get("executionDate"), calendar),
-                    cb.equal(root.<CarClass>get("carClass"), carClass)
+                    cb.or(cb.equal(root.<CarClass>get("carClass"), carClass), cb.isNull(root.<CarClass>get("carClass"))),
+                    cb.or(cb.equal(root.<Sex>get("driverSex"), sex), cb.isNull(root.<Sex>get("driverSex")))
             );
         }
     }

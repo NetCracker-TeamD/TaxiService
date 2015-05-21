@@ -3,6 +3,8 @@ package com.teamd.taxi.controllers.driver;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.teamd.taxi.entity.*;
+import com.teamd.taxi.exception.InfoNotFoundException;
+import com.teamd.taxi.exception.ItemNotFoundException;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
@@ -32,13 +34,19 @@ public class CurrentOrderController {
     private static final Logger log = Logger.getLogger(CurrentOrderController.class);
 
     @Autowired
-    private RouteService routeService;
+    private MapService mapService;
 
     @Autowired
     private InfoService infoService;
 
     @Autowired
-    private MapService mapService;
+    private MailService mailService;
+
+    @Autowired
+    private PriceCountService priceCountService;
+
+    @Autowired
+    private RouteService routeService;
 
     @Autowired
     private DriverService driverService;
@@ -50,45 +58,23 @@ public class CurrentOrderController {
     private TaxiOrderRepository taxiOrderRepository;
 
     //hardcode) must take from session
-//        TO DO
+//      TODO
     private int driverId = 6;
 
     @RequestMapping(value = "/order", method = RequestMethod.GET)
     private String viewQueue(Model model, HttpServletRequest requst) {
-        boolean blockNewRouteBtn = false,
-                isActiveOrder = true;
+        boolean isActiveOrder = true;
 
         Driver driver = driverService.getDriver(driverId);
         int drvId = driver.getId();
         TaxiOrder taxiOrder;
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(drvId)) == null) {
-            System.out.println(" Driver have not any active order!!!!!! ");
-            blockNewRouteBtn = true;
             isActiveOrder = false;
-
             model.addAttribute("isActiveOrder", isActiveOrder);
-            model.addAttribute("newRouteBtn", blockNewRouteBtn);
         } else {
-
-            List<Route> routes = routeService.getRoutsByOrderAndDriverId(taxiOrder.getId(), drvId);
-            boolean inProgress = false;
-            for (Route r : routes) {
-                if (r.getStatus() == RouteStatus.IN_PROGRESS) {
-                    inProgress = true;
-                    break;
-                }
-            }
-            System.out.println("Taxi Order ID = " + taxiOrder.getId() + "  Driever " + driver.getId());
             List<Route> sortRoutes = getChainForDriver(taxiOrder, drvId);
-
-            if (!isRouteChain(taxiOrder)) {
-                blockNewRouteBtn = true;
-            } else blockNewRouteBtn = false;
-            isActiveOrder = true;
-            model.addAttribute("inProgress", inProgress);
             model.addAttribute("isActiveOrder", isActiveOrder);
             model.addAttribute("sortRoutes", sortRoutes);
-            model.addAttribute("blockNewRouteBtn", blockNewRouteBtn);
         }
         return "driver/drv-current-order";
     }
@@ -105,19 +91,17 @@ public class CurrentOrderController {
 
     @RequestMapping(value = "/lifeCircleOrder", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String processOrder(@RequestParam(value = "status") String status) {
+    public String processOrder(@RequestParam(value = "status") String status) throws InfoNotFoundException, ItemNotFoundException {
 
         Driver driver = driverService.getDriver(driverId);
         int drvId = driver.getId();
         TaxiOrder taxiOrder;
         JsonObject to = new JsonObject();
 
-        System.out.println(" PROCESS ORDER ");
-
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(drvId)) != null) {
             List<Route> routes = getChainForDriver(taxiOrder, drvId);
+            long taxiOrderId = taxiOrder.getId();
             if (status.equals("refuse")) {/// wtite for refuse
-                System.out.println("-------------------------------------refuse");
                 for (Route r : routes) {
                     if (r.getStatus() == RouteStatus.ASSIGNED) {
                         to.addProperty("status", "REFUSED");
@@ -126,7 +110,6 @@ public class CurrentOrderController {
                 }
                 to.addProperty("orderStatus", "refused");
             } else if (status.equals("complete")) {/// wtite for complete
-                System.out.println("-------------------------------------complete");
                 for (Route r : routes) {
                     if ((r.getStatus() == RouteStatus.IN_PROGRESS)) {
                         initCompleteStatus(r);
@@ -137,18 +120,48 @@ public class CurrentOrderController {
                 }
                 //перевіряєм чи ланцюжок замовлення виконаниний повністю, всі повиггі бути COMPLETED
                 to.addProperty("orderStatus", "complete");
+                boolean allComplete = true;
                 for (Iterator<Route> it = routes.iterator(); it.hasNext(); ) {
                     // якщо в водій вже виконував роути з замовлення і вони були відхилені, тоді видаляєм списку з перевірки
                     Route route = it.next();
                     if (route.getStatus() == RouteStatus.REFUSED) {
                         it.remove();
                     } else if (route.getStatus() != RouteStatus.COMPLETED) {
+                        allComplete = false;
                         to.addProperty("orderStatus", "continue");
                         break;
                     }
                 }
+
+                if(allComplete){
+                    float totalPrice = 0;
+                    List<Float > listPrice;
+                    TaxiOrder taxiOrderBuf = taxiOrderService.findOneById(taxiOrderId);
+                    List<Route> routesWithPrice = getChainForDriver(taxiOrderBuf, drvId);
+                    if(taxiOrderBuf.getServiceType().isDestinationLocationsChain()!=null &&
+                            taxiOrderBuf.getServiceType().isDestinationLocationsChain()) {
+                        listPrice = priceCountService.countPriceForLastChainOrder(taxiOrderBuf.getId(), driver.getId());
+                        for( int i = routesWithPrice.size()-1; i>0; i--){
+                            Route r = routesWithPrice.get(i);
+                            if (r.getStatus() == RouteStatus.COMPLETED) {
+                                totalPrice += listPrice.get(r.getChainPosition()-1);
+                                r.setTotalPrice(listPrice.get(r.getChainPosition()-1));
+                                routeService.saveRoute(r);
+                                if(r.getChainPosition()==1)
+                                    break;
+                            }
+                        }
+                    }else{
+                        long routeId = routesWithPrice.get(routesWithPrice.size()-1).getId();
+                        Route r = routeService.getRouteById(routeId);
+                        totalPrice = priceCountService.countPriceForSingleRouteOrder(routeId);
+                        r.setTotalPrice(totalPrice);
+                        routeService.saveRoute(r);
+                    }
+                    to.addProperty("totalPrice", totalPrice);
+                }
+
             } else if (status.equals("inProgress")) {
-                System.out.println("-------------------------------------inProgress");
                 for (Route r : routes) {
                     if ((r.getStatus() == RouteStatus.ASSIGNED)) {
                         initInProgressStatus(r);
@@ -188,7 +201,7 @@ public class CurrentOrderController {
         return addresses;
     }
 
-    @RequestMapping(value = "/setNewRoute", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/setNewRoute", produces = "application/json;charset=UTF-8")
     public
     @ResponseBody
     String driverCurrentOrder(@RequestParam(value = "source") String source,
@@ -207,7 +220,7 @@ public class CurrentOrderController {
             route.setCustomerLate(false);
             route.setDriver(driver);
             route.setOrder(taxiOrder);
-            route.setDistance(distance);
+            route.setDistance( distance);
 
             taxiOrder.getRoutes().add(route);
             driver.getRoutes().add(route);
@@ -239,14 +252,11 @@ public class CurrentOrderController {
 
         JsonObject to = new JsonObject();
         Driver driver = driverService.getDriver(driverId);
-        TaxiOrder taxiOrder;
+        TaxiOrder taxiOrder ;
 
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) {
-
             long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 1000;
             long executeOrderDate = taxiOrder.getExecutionDate().getTimeInMillis();
-            System.out.println(" ServiceType " + taxiOrder.getServiceType().isDestinationLocationsChain());
-
             //TODO В БАЗІ ПОМИЛКА isDestinationLocationsChain повинно бути true/false aле не null
             if (taxiOrder.getServiceType().isDestinationLocationsChain() != null
                     && taxiOrder.getServiceType().isDestinationLocationsChain()) {
@@ -257,6 +267,11 @@ public class CurrentOrderController {
                     Calendar completionDate;
                     taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
                     if ((completionDate = getTimeOfLastComletionRouteInChain(taxiOrder, driver.getId())) == null) {
+                        taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
+                        AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
+                        List<AssembledRoute> assRoutes = assembledOrder.getAssembledRoutes();
+                        if(assRoutes.get(0).getRoutes().size() == 1)
+                            to.addProperty("newAddress", "enable");
                         to.addProperty("currentOrderState", "driverInProgress");
                     } else {
                         to.addProperty("lastCompletionRoute", completionDate.getTimeInMillis());
@@ -273,14 +288,11 @@ public class CurrentOrderController {
                     }
                 }
             }
-
-
             to.addProperty("idleFreeTime", idleFreeTime);
             to.addProperty("executeOrderDate", executeOrderDate);
-        } else {
+        }else{
             to.addProperty("currentOrderState", "noCurrentOrder");
         }
-
         return new Gson().toJson(to);
     }
 
@@ -298,17 +310,16 @@ public class CurrentOrderController {
 
     private Calendar getTimeOfLastComletionRouteInChain(TaxiOrder taxiOrder, int driverId) {
         List<Route> sortRoutes = getChainForDriver(taxiOrder, driverId);
-        for (int i = 0; i < sortRoutes.size(); i++) {
-            Route r = sortRoutes.get(i);
-            if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.IN_PROGRESS) {
+        for ( int i = 0; i < sortRoutes.size(); i++){
+            Route r =  sortRoutes.get(i);
+            if(driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.IN_PROGRESS){
                 return null;
-            } else if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.ASSIGNED) {
-                return sortRoutes.get(i - 1).getCompletionTime();
+            }else if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.ASSIGNED) {
+                return sortRoutes.get(i-1).getCompletionTime();
             }
         }
         return null;
     }
-
 
     private boolean checkInputParam(HttpServletRequest requst) {
         System.out.println(requst.getParameter("source") + "    " + requst.getParameter("dest"));
@@ -317,7 +328,6 @@ public class CurrentOrderController {
         if ((taxiOrder = isOrderExist(requst)) == null) {
             return false;
         }
-
         if (!checkDriverAndOrderFeature(driver.getId(), taxiOrder.getId())) {
             return false;
         }
@@ -355,27 +365,32 @@ public class CurrentOrderController {
         List<Route> routes = new ArrayList<>(assRoutes.size());
 
         for (int j = 0; j < assRoutes.size(); j++) {
+            boolean bussy = false;
             for (Route r : assRoutes.get(j).getRoutes()) {
                 if (r.getStatus() == RouteStatus.QUEUED) {
                     routes.add(r);
+                    bussy = true;
                     break;
                 }
+            }
+            if(bussy == false){
+                return new ArrayList<>();
             }
         }
         return routes;
     }
 
     private List<Route> getChainForDriver(TaxiOrder taxiOrder, int driverId) {
-        System.out.println("Taxi Order ID = " + taxiOrder.getId() + "  Driever " + driverId);
+        System.out.println("Taxi Order ID = "+taxiOrder.getId()+"  Driever "+driverId);
         AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
         List<AssembledRoute> assRoutes = assembledOrder.getAssembledRoutes();
         List<Route> routes = new ArrayList<>();
 
         for (int j = 0; j < assRoutes.size(); j++) {
             for (Route r : assRoutes.get(j).getRoutes()) {
-                System.out.println("GET CHAIN FOR DIRIVER ID:" + r.getDriver().getId() + " Routes STATUS : " + r.getStatus() +
-                        "   ADDRESS : " + r.getSourceAddress() + "  ID: " + r.getId());
-                if (driverId == r.getDriver().getId()) {
+                if ((r.getDriver() != null)&& (driverId == r.getDriver().getId())) {
+                    System.out.println("GET CHAIN FOR DIRIVER ID:" + r.getDriver().getId() + " Routes STATUS : " + r.getStatus() +
+                            "   ADDRESS : " + r.getSourceAddress() + "  ID: " + r.getId());
                     routes.add(r);
 
                 }
@@ -399,7 +414,7 @@ public class CurrentOrderController {
 
     private boolean isRouteChain(TaxiOrder taxiOrder) {
         //only TaxiAsap and Taxi In Advance can be chain
-        if (taxiOrder.getServiceType().getId() == 1 || taxiOrder.getServiceType().getId() == 2) {
+        if (taxiOrder.getServiceType().isDestinationLocationsChain() != null) {
             return taxiOrder.getServiceType().isDestinationLocationsChain();
         }
         return false;
@@ -437,12 +452,8 @@ public class CurrentOrderController {
         if ((taxiOrder = taxiOrderService.findOneById(id)) != null) {
             return taxiOrder;
         } else return null;
-
     }
 
-
-    @Autowired
-    MailService mailService;
 
     private void initAssignStatus(Driver driver, List<Route> routes) {
 
@@ -460,7 +471,7 @@ public class CurrentOrderController {
         User user = taxiOrder.getCustomer();
         Object[] obj = {taxiOrder.getExecutionDate(), routes.get(0).getSourceAddress()};
         try {
-            mailService.sendNotification("ivanyv.ivan@yandex.ru", Notification.ASSIGNED, obj);
+            mailService.sendNotification(user.getEmail(), Notification.ASSIGNED, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -477,7 +488,7 @@ public class CurrentOrderController {
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress()};
         try {
-            mailService.sendNotification("ivanyv.ivan@yandex.ru", Notification.IN_PROGRESS, obj);
+            mailService.sendNotification(user.getEmail(), Notification.IN_PROGRESS, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -491,10 +502,11 @@ public class CurrentOrderController {
         routeService.saveRoute(r);
 
         TaxiOrder taxiOrder = r.getOrder();
+
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress(), r.getCompletionTime()};
         try {
-            mailService.sendNotification("ivanyv.ivan@yandex.ru", Notification.COMPLETED, obj);
+            mailService.sendNotification(user.getEmail(), Notification.COMPLETED, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -511,7 +523,7 @@ public class CurrentOrderController {
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress()};
         try {
-            mailService.sendNotification("ivanyv.ivan@yandex.ru", Notification.REFUSED, obj);
+            mailService.sendNotification(user.getEmail(), Notification.REFUSED, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -527,6 +539,4 @@ public class CurrentOrderController {
             return true;
         else return false;
     }
-
-
 }

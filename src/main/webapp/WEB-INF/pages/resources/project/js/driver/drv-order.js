@@ -8,8 +8,7 @@ var
             "latitude": 50.4020355,
             "longitude": 30.5326905
         },
-        "zoom": 9,
-        "mapType": google.maps.MapTypeId.ROADMAP
+        "zoom": 9
     },
     markers = {},
     userLocation = null,
@@ -146,18 +145,12 @@ function modAutocompleteAddressInput(input, callback) {
     })
 };
 
-
 function getLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(codeLatLng);
     } else {
         alert("Geolocation is not supported by this browser.");
     }
-}
-
-function showPosition(position) {
-    alert("Latitude:" + position.coords.latitude +
-    " Longitude: " + position.coords.longitude);
 }
 
 var infowindowGeo = new google.maps.InfoWindow();
@@ -173,7 +166,6 @@ function codeLatLng(location) {
                 map.setZoom(12);
                 map.setCenter(latlng);
                 console.log(latlng);
-                alert(latlng);
                 markerGeo = new google.maps.Marker({
                     position: latlng,
                     map: map
@@ -198,7 +190,6 @@ function calcRoute(routesArray) {
     var end = routesArray[routesArray.length - 1];
 
     for (var i = 0; i < routesArray.length; i++) {
-        alert("Route point : "+routesArray[i]);
         wayp.push({location: routesArray[i], stopover: true});
     }
     var request = {
@@ -229,22 +220,38 @@ $(document).ready(function () {
         success: function (response) {
             switch (response.currentOrderState){
                 case "driverGoesToClient":
+                    $('#orderPanel').removeClass("hidden");
                     isDriverGoesToClient = true;
                     isPaused = false;
-                    console.log("driverGoesToClient");
+                    $('.start').removeClass("disabled");
+                    $('.completeBtn').addClass("disabled");
                     break;
                 case "driverInProgress":
+                    $('#orderPanel').removeClass("hidden");
                     isDriverGoesToClient = false;
                     isPaused = true;
+                    $('.start').addClass("disabled");
+                    $('.completeBtn').removeClass("disabled");
                     console.log("driverInProgress");
                     break;
                 case "driverWaytForClient":
+                    $('#orderPanel').removeClass("hidden");
                     isDriverGoesToClient = false;
                     isPaused = false;
                     lastCompletionRoute = new Date(response.lastCompletionRoute);
+                    $('.start').removeClass("disabled");
+                    $('.completeBtn').addClass("disabled");
                     //alert(lastCompletionRoute.toLocaleTimeString());
                     console.log("driverWaytForClient");
                     break;
+                case "noCurrentOrder":
+                    $('#orderPanel').removeClass("hidden");
+                    $('#paintWay').addClass("disabled");
+                    $('#orderPanel').addClass("hidden");
+                    break;
+            }
+            if( response.blockNewAddress == 'enable'){
+                $('#newRoute').removeClass("hidden");
             }
             execTime = new Date(response.executeOrderDate);
             idleFreeTime = new Date(response.idleFreeTime);
@@ -262,15 +269,13 @@ $(document).ready(function () {
             console.log("execTime = "+lastCompletionRoute.toLocaleDateString());
             if ((currentTime.getTime() - execTime.getTime()) > idleFreeTime.getTime()) {
                 $("#refusePanel").removeClass("hidden");
+                $("#customerIsLate").removeClass("hidden");
             }
         }
         if (!isPaused) {
-            //alert(idleFreeTime.toLocaleTimeString());
-            console.log(currentTime.toLocaleDateString());
-            console.log("last completion route  date = "+lastCompletionRoute.toLocaleDateString());
-            console.log(idleFreeTime.toLocaleDateString());
             if ((currentTime.getTime() - lastCompletionRoute.getTime()) > idleFreeTime.getTime()) {
                 $("#refusePanel").removeClass("hidden");
+                $("#customerIsLate").removeClass("hidden");
             }
         }
     }
@@ -295,6 +300,7 @@ $(document).ready(function () {
         isDriverGoesToClient = false;
         isPaused = true;
         $("#refusePanel").addClass("hidden");
+        $("#customerIsLate").addClass("hidden");
 
         var status = 'inProgress';
         changeStatus(status);
@@ -335,7 +341,7 @@ $(document).ready(function () {
                     },
                     url: "/driver/setNewRoute",
                     success: function (response) {
-                        if (response.status = 'ok') {
+                        if (response.status == 'ok') {
                             $('#newRoute').before($('<div ><input type="text" style ="margin-top: 5px" ' +
                             'class="form-control"  value="' + response.source + '" name="source" readonly>' +
                             '<input type="text" style ="margin-top: 5px" class="form-control" ' +
@@ -380,24 +386,6 @@ function loadAddress(callback) {
     });
 }
 
-function loadTime(){
-    $.ajax({
-        method: "get",
-        data:{},
-        url: "/driver/loadExecuteDate",
-        success: function (response) {
-            var execTime = new Date(response.executeDate);
-            //execTime = response.executeDate;
-            alert(parseInt(response.executeDate));
-            document.getElementById("currentTime").innerHTML = execTime.toLocaleTimeString();
-            //$('#executionTime').val();
-        },
-        error: function (e) {
-            alert('Error: NewRoute ' + e);
-        }
-    });
-}
-
 function changeStatus(status) {
     $.ajax({
         method: "get",
@@ -431,15 +419,19 @@ function changeStatus(status) {
             if (response.orderStatus != 'continue') {
                 $(".completeBtn").addClass('disabled');
                 $("#refuseBtn").addClass("hidden");
+                $("#customerIsLate").addClass("hidden");
                 $(".start").addClass("disabled");
                 $("#newAddress").prop('disabled', true);
                 $('#newRouteBtn').addClass("disabled");
                 $('#paintWay').addClass("disabled");
                 if (response.orderStatus == 'complete') {
-                    alert('Total price : 25 $ (заглушка на 382 строчці drv-order.js)');
-
+                    $('.resultMessage').text("Total services price : "+response.totalPrice);
+                    //$('.responseWindow').append('<a class="btn btn-success" href="queue" id="finish" >' +
+                    //                            '<i class="glyphicon glyphicon-usd"> Paid</i></a>');
+                    $('#resultWindow').modal('show');
                 } else if (response.orderStatus == 'refused') {
-                    alert('Order refused ');
+                    $('.resultMessage').text("Order was refuse ");
+                    $('#resultWindow').modal('show');
                 }
             }
         },

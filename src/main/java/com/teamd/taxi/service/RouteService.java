@@ -32,4 +32,8 @@ public class RouteService {
     public Route saveRoute(Route route){
         return routeRepository.save(route);
     }
+
+    public Route getRouteById(long id){
+        return routeRepository.findOne(id);
+    }
 }

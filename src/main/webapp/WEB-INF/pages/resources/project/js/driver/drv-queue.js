@@ -3,7 +3,6 @@
  */
 $(document).ready(function () {
     $('.order-details').css('cursor', 'pointer');
-
     $('#orders-container').on('click', '.order-details', function (event) {
         $(this).parent()
             .children('.free-route')
@@ -28,11 +27,12 @@ $(document).ready(function () {
             var container = $("#orders-container");
             if (status === 'ok') {
                 container.html(
-                    $('#orderItemTemplate').render(data,{ encodeLocation: function(locationAddress) {
-                                                            var res = encodeURIComponent(locationAddress);
-                                                            return res;
-                                                            }
-                                                        })
+                    $('#orderItemTemplate').render(data,{ encodeLocation:
+                        function(locationAddress) {
+                            var res = encodeURIComponent(locationAddress);
+                            return res;
+                        }
+                    })
                 );
             } else if (status == 'notFound') {
                 container.html('<h2>Items not found</h2>')

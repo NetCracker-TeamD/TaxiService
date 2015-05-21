@@ -13,25 +13,24 @@
     <meta name="description" content="authorisation form">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/pages/resources/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="/pages/resources/project/css/welcomeDriver.css">
-    <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
-    <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../pages/resources/project/css/welcomeDriver.css">
+    <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
+    <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
 
 
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=places"></script>
     <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+    <script src="../../pages/resources/project/js/driver/drv-order.js" type="text/javascript"></script>
 
-    <script src="/pages/resources/project/js/driver/drv-order.js" type="text/javascript"></script>
     <style>
         .row {
             margin-right: 0px;
             margin-left: 0px;
         }
-
         .btn-circle {
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             line-height: 40px; /* adjust line height to align vertically*/
             padding: 0;
             border-radius: 50%;
@@ -41,35 +40,11 @@
 
 <body>
 <!--common navigation bar for this service -->
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">Smart Taxi</a>
-        </div>
-
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li><a href="queue">Queue</a></li>
-                <li><a href="history">History</a></li>
-                <li class="active"><a href="order">Current order</a></li>
-            </ul>
-            <div class="navbar-form navbar-right">
-                <button type="button" class="btn btn-warning">Sign out</button>
-            </div>
-        </div>
-    </div>
-</nav>
+<%@ include file="../../pages/driver/drv-header.html"%>
 
 <div class="jumbotron welcome">
     <div class="container">
-        <h2>Current order</h2>
+        <h2 style="color: rgb(19, 23, 95);">Current order</h2>
     </div>
 </div>
 <div class="container">
@@ -86,8 +61,7 @@
                                                placeholder="Current location" readonly>
                                     </div>
                                     <div class="form-group pull-right" style="padding-right:5px;padding-left:5px;">
-                                        <button type="button" id="paintWay"
-                                                class="btn btn-primary"  ${!isActiveOrder ? "disabled=\"on\"" : ""}>
+                                        <button type="button" id="paintWay" class="btn btn-primary" >
                                             <span class="glyphicon glyphicon-road" aria-hidden="true"></span>
                                         </button>
                                     </div>
@@ -98,7 +72,6 @@
                                     </div>
                                     <div class="form-group pull-left col-sm-6" style="padding:0px">
                                         <h5>
-                                            <%--<span class="label label-info glyphicon glyphicon-time"> Time </span>--%>
                                             <span class="label label-info glyphicon glyphicon-time"
                                                   id="currentTime"></span>
                                         </h5>
@@ -106,69 +79,44 @@
                                 </div>
                             </div>
                         </div>
-                        <c:if test="${isActiveOrder}">
-                            <div class="panel panel-primary">
-                                <div class="panel-body" id="innerBoard2">
-                                    <div class="form-group row" style="padding-bottom: 5px; padding-top: 5px">
-                                        <div class="execTime row">
-                                            <div class="col-md-8" style="padding:0px">
-                                                <h5 style="margin-top: 0px;">
-                                                    <span class="label label-info glyphicon glyphicon-time"
-                                                          id="executionTime"></span>
-                                                </h5>
-                                            </div>
-                                            <div class="row">
-
-                                                <label for="customLate" class="label label-info control-label"
-                                                       style="padding-bottom: 0px; margin-bottom: 0px;padding: 0px;">Customer is late</label>
-                                                <input type="checkbox" name="customerIsLate" id="customLate">
-
-                                            </div>
+                        <div class="panel panel-primary hidden" id = "orderPanel">
+                            <div class="panel-body" id="innerBoard2">
+                                <div class="form-group row" style="margin: 0px;padding-bottom: 5px; padding-top: 5px">
+                                    <div class="execTime row">
+                                        <div class="col-md-8" style="padding:0px">
+                                            <h5 style="margin-top: 0px;">
+                                                <span class="label label-info glyphicon glyphicon-time"
+                                                      id="executionTime"></span>
+                                            </h5>
                                         </div>
-
-
-                                        <div id="controlPanel" class="row">
-                                            <c:choose>
-                                                <c:when test="${inProgress}">
-                                                    <div class="pull-left">
-                                                        <button type="submit" class="start disabled btn btn-primary">
-                                                            <span> Start</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="pull-right">
-                                                        <button type="submit" class="completeBtn btn btn-success">
-                                                            <span> Complete </span>
-                                                        </button>
-                                                    </div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <div class="pull-left">
-                                                        <button type="submit" class="start btn btn-primary">
-                                                            <span> Start</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="pull-right">
-                                                        <button type="submit"
-                                                                class="completeBtn disabled btn btn-success">
-                                                            <span> Complete </span>
-                                                        </button>
-                                                    </div>
-                                                </c:otherwise>
-                                            </c:choose>
+                                        <div class="row pull-right hidden" id="customerIsLate">
+                                            <label for="customLate" class="label label-info control-label"
+                                                   style="padding-bottom: 0px; margin-bottom: 0px;padding: 0px;">Customer is late</label>
+                                            <input type="checkbox" name="customerLate" id="customLate">
                                         </div>
-
-                                        <div class="hidden" id="refusePanel" style="margin-top: 10px;">
-                                            <div class="pull-left">
-                                                <button id="refuseBtn" type="submit" class="btn btn-danger">
-                                                    <span> Refuse</span>
-                                                </button>
-                                            </div>
-
+                                    </div>
+                                    <div id="controlPanel" class="row">
+                                        <div class="pull-left">
+                                            <button type="submit" class="start btn btn-primary" style="width: 90px">
+                                                <span>Start</span>
+                                            </button>
+                                        </div>
+                                        <div class="pull-right">
+                                            <button type="submit" class="completeBtn btn btn-success"  style="width: 90px">
+                                                <span>Complete</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="hidden" id="refusePanel" style="padding-left: 40%;padding-right: 40%;margin-top: 10px;">
+                                        <div class="pull-left">
+                                            <button id="refuseBtn" type="submit" class="btn-circle btn btn-danger">
+                                                <span>Refuse</span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </c:if>
+                        </div>
                     </div>
                 </div>
                 <c:if test="${isActiveOrder}">
@@ -207,14 +155,11 @@
                                         </div>
                                     </c:forEach>
                                 </div>
-                                <div class="input-group" id="newRoute" style="padding-left: 0px;">
-                                <span class="input-group-btn">
-                                    <button id="newRouteBtn" class="btn btn-default"
-                                            type="button" ${blockNewRouteBtn ? "disabled=\"on\"" : ""}>Add
-                                    </button>
-                                </span>
-                                    <input type="text" class="form-control" id="newAddress" name="dest"
-                                           placeholder="Enter route..." ${blockNewRouteBtn ? "disabled=\"on\"" : ""}>
+                                <div class="input-group hidden" id="newRoute" style="padding-left: 0px;">
+                                    <span class="input-group-btn">
+                                        <button id="newRouteBtn" class="btn btn-default" type="button" >Add</button>
+                                    </span>
+                                        <input type="text" class="form-control" id="newAddress" name="dest" placeholder="Enter route...">
                                 </div>
                             </div>
                         </div>
@@ -233,6 +178,31 @@
         <hr>
     </div>
     <hr>
+    <!-- Modal -->
+    <div class="modal fade" id="resultWindow" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="width: 500px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                    <h2 class="modal-title" id="myModalLabel">Taxi order</h2>
+                </div>
+                <div class="modal-body">
+                    <p class="resultMessage">Order is finished<p>
+                </div>
+                <div class="modal-footer">
+                    <div id="responseWindow">
+                        <%--data-dismiss="modal"--%>
+                        <a class="btn btn-warning" href="queue" id="finish">
+                            <i class="glyphicon glyphicon-list"> To queue</i></a>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- Modal -->
     <footer>
         <p>&#169 TeamD 2015</p>
     </footer>
