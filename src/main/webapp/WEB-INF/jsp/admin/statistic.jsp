@@ -112,7 +112,7 @@
 </div>
 <div id="report_5" class="container">
     <h2>New orders per period</h2>
-
+    <div class="alert alert-danger inform hide"></div>
     <table class="table">
         <thead>
         <td>
@@ -123,7 +123,7 @@
             Pick end date<input type="text" id="datepicker" name="endDate">
         </td>
         <td>
-            <input type="submit" value="Export to Excel" class="btn btn-primary">
+            <input type="submit" value="Export to Excel" class="btn btn-primary" id="btn_export">
             </form>
         </td>
 

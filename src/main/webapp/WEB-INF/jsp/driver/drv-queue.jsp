@@ -9,14 +9,14 @@
     <title>Driver queue</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="authorisation form">
-    <link rel="stylesheet" href="/pages/resources/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="/pages/resources/project/css/welcomeDriver.css">
-    <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
-    <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../pages/resources/project/css/welcomeDriver.css">
+    <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
+    <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
 
-    <script src="/pages/resources/jsrenderer/jsrender.min.js/"></script>
-    <script src="/pages/resources/project/js/driver/drv-queue.js" type="text/javascript"></script>
-    <script src="/pages/resources/project/js/paging.js" type="text/javascript"></script>
+    <script src="../../pages/resources/jsrenderer/jsrender.min.js/"></script>
+    <script src="../../pages/resources/project/js/driver/drv-queue.js" type="text/javascript"></script>
+    <script src="../../pages/resources/project/js/paging.js" type="text/javascript"></script>
 
     <script>
         var initState = {
@@ -40,8 +40,8 @@
 
     </script>
     <script id="orderItemTemplate" type="text/x-jsrender">
-    <div class="order-container panel-info panel-group" style="margin: 0px">
-        <div class="order-details panel-heading">
+    <div class="panel-info panel-group order-container" style="margin: 0px">
+        <div class="panel-heading order-details">
             <div class="row">
                 <strong>
                     <div class="col-sm-4">{{:order.executionDate}}</div>
@@ -97,34 +97,11 @@
 
 </head>
 <body>
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">Smart Taxi</a>
-        </div>
 
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Queue</a></li>
-                <li><a href="history">History</a></li>
-                <li><a href="order">Current order</a></li>
-            </ul>
-            <div class="navbar-form navbar-right">
-                <button type="button" class="btn btn-warning">Sign out</button>
-            </div>
-        </div>
-    </div>
-</nav>
+<%@ include file="../../pages/driver/drv-header.html"%>
 <div class="jumbotron welcome">
     <div class="container">
-        <h2>Queue</h2>
+        <h2 style="color: rgb(19, 23, 95);">Queue</h2>
     </div>
 </div>
 <div class="container">
@@ -173,7 +150,6 @@
         </div>
     </div>
     <hr>
-    <!-- Modal -->
     <footer>
         <p>&#169 TeamD 20157</p>
     </footer>

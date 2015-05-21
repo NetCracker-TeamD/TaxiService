@@ -1,13 +1,14 @@
 package com.teamd.taxi.controllers;
 
 import com.google.gson.*;
-import com.google.gson.annotations.JsonAdapter;
 import com.google.maps.errors.NotFoundException;
 import com.teamd.taxi.authentication.AuthenticatedUser;
+import com.teamd.taxi.authentication.Utils;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
+import com.teamd.taxi.models.MapResponse;
 import com.teamd.taxi.models.TaxiOrderForm;
 
 import static com.teamd.taxi.entity.RouteStatus.*;
@@ -17,6 +18,8 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,7 +28,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -221,7 +223,11 @@ public class OrderController {
         if (now && nowPrimitive != null) {
             form.setExecDate(Calendar.getInstance());
         } else if (specified && specifiedPrimitive != null) {
-            form.setExecDate(parseDate(specifiedPrimitive.getAsString()));
+            Calendar calendar = parseDate(specifiedPrimitive.getAsString());
+            if (calendar.compareTo(Calendar.getInstance()) < 0) {
+                throw new IllegalArgumentException("date from the past received: " + calendar.getTime());
+            }
+            form.setExecDate(calendar);
         } else {
             throw new PropertyNotFoundException("timing");
         }
@@ -262,10 +268,10 @@ public class OrderController {
                 .getAuthentication();
         User user;
         if (authentication instanceof AnonymousAuthenticationToken) {
-            JsonElement name = getAndCheck(orderObject, "name");
+            JsonElement name = getAndCheck(orderObject, "firstName");
             JsonElement lastName = getAndCheck(orderObject, "lastName");
             JsonElement email = getAndCheck(orderObject, "email");
-            JsonElement phoneNumber = getAndCheck(orderObject, "phone_number");
+            JsonElement phoneNumber = getAndCheck(orderObject, "phoneNumber");
 
             user = new User(null, name.getAsString(), lastName.getAsString(), UserRole.ROLE_ANONYMOUS, phoneNumber.getAsString());
             user.setEmail(email.getAsString());
@@ -285,10 +291,64 @@ public class OrderController {
         return new GsonBuilder().disableHtmlEscaping().create().toJson(jsonObject);
     }
 
+    @RequestMapping(value = "/setUpdating", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public Map<String, Object> setUpdating(@RequestParam("id") TaxiOrder order) throws OrderUpdatingException {
+        if (order == null) {
+            return new MapResponse().put("status", "notFound");
+        }
+        taxiOrderService.setUpdating(order.getId());
+        return new MapResponse().put("status", "OK");
+    }
+
+    @RequestMapping(value = "/cancelUpdating", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public Map<String, Object> cancelUpdating(@RequestParam("id") TaxiOrder order) throws OrderUpdatingException {
+        if (order == null) {
+            return new MapResponse().put("status", "notFound");
+        }
+        taxiOrderService.cancelUpdating(order.getId());
+        return new MapResponse().put("status", "OK");
+    }
+
+    @RequestMapping(value = "/updateOrder", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public Map<String, Object> updateOrder(@RequestParam("id") long orderId, Reader reader)
+            throws ParseException, PropertyNotFoundException, ItemNotFoundException,
+            MapServiceNotAvailableException, NotFoundException, NotCompatibleException, OrderUpdatingException {
+        JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
+        TaxiOrderForm form = fillForm(orderObject);
+        taxiOrderService.updateTaxiOrder(orderId, form);
+        return new MapResponse().put("status", "OK");
+    }
+
     @RequestMapping(value = "/getOrder", produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public String getOrder(@RequestParam("id") long orderId) {
+    public String getOrder(
+            @RequestParam("id") long orderId,
+            @RequestParam(value = "secretKey", required = false) String secretKey
+    ) throws ItemNotFoundException {
         TaxiOrder order = taxiOrderService.findOneById(orderId);
+        if (order == null) {
+            throw new ItemNotFoundException("order [" + orderId + "] not found");
+        }
+        User orderCustomer = order.getCustomer();
+        /*
+        AccessDeniedException accessDeniedException = new AccessDeniedException("not enough rights on[" + orderId + "]");
+        //проверка ключа для гостя
+        if (orderCustomer.getUserRole() == UserRole.ROLE_ANONYMOUS
+                && (!order.getSecretViewKey().equals(secretKey))
+                || !Utils.isAuthenticated()) {
+            throw accessDeniedException;
+        }
+        AuthenticatedUser authenticatedUser = Utils.getCurrentUser();
+        String userRole = Utils.getCurrentUserRole();
+        if (userRole.equals("ROLE_DRIVER")) {
+            throw accessDeniedException;
+        }
+        if (!userRole.equals("ROLE_ADMINISTRATOR") && order.getCustomer().getId() != authenticatedUser.getId()) {
+            throw accessDeniedException;
+        }*/
         return gson.toJson(convertTaxiOrderToObject(order));
     }
 
@@ -310,7 +370,9 @@ public class OrderController {
             NotFoundException.class,
             MapServiceNotAvailableException.class,
             JsonSyntaxException.class,
-            JsonParseException.class
+            JsonParseException.class,
+            IllegalArgumentException.class,
+            OrderUpdatingException.class
     })
     public void handleException(Exception e, HttpServletResponse response) throws IOException {
         logger.error(e);
@@ -410,7 +472,10 @@ public class OrderController {
         orderObject.addProperty("carClassId", order.getCarClass().getId());
         ServiceType serviceType = order.getServiceType();
         orderObject.addProperty("serviceType", serviceType.getId());
-        orderObject.addProperty("driverSex", order.getDriverSex().name());
+        Sex driverSex = order.getDriverSex();
+        if (driverSex != null) {
+            orderObject.addProperty("driverSex", order.getDriverSex().name());
+        }
         orderObject.addProperty("paymentType", order.getPaymentType().name());
         JsonArray features = new JsonArray();
         for (Feature feature : order.getFeatures()) {

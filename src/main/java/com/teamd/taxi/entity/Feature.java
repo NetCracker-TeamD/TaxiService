@@ -33,10 +33,6 @@ public class Feature implements Serializable {
     @Enumerated(EnumType.STRING)
     private FeatureType featureType;
 
-    /* @JoinTable(name = "order_features",
-             joinColumns = {@JoinColumn(name = "feature_id", referencedColumnName = "id")},
-             inverseJoinColumns = {@JoinColumn(name = "order_id", referencedColumnName = "id")})
-     @ManyToMany*/
     @ManyToMany(mappedBy = "features")
     private List<TaxiOrder> comprisingOrders;
 
