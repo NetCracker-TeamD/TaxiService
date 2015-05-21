@@ -32,9 +32,9 @@
                 logout-success-url="/index"/>
     </http>
 
-    <beans:bean id="myAccessDeniedHandler" class="com.teamd.taxi.authentication.MyAccessDeniedHandler">
+    <!--<beans:bean id="myAccessDeniedHandler" class="com.teamd.taxi.authentication.MyAccessDeniedHandler">
         <beans:property name="errorPage" value="/denied"/>
-    </beans:bean>
+    </beans:bean>-->
 
     <beans:bean id="loginUrlAuthenticationEntryPoint"
                 class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">

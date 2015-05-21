@@ -218,7 +218,7 @@ $(document).ready(function () {
         method: "get",
         url: "/driver/loadCurrentState",
         success: function (response) {
-            switch (response.currentOrderState){
+            switch (response.currentOrderState) {
                 case "driverGoesToClient":
                     $('#orderPanel').removeClass("hidden");
                     isDriverGoesToClient = true;
@@ -250,12 +250,12 @@ $(document).ready(function () {
                     $('#orderPanel').addClass("hidden");
                     break;
             }
-            if( response.blockNewAddress == 'enable'){
+            if (response.blockNewAddress == 'enable') {
                 $('#newRoute').removeClass("hidden");
             }
             execTime = new Date(response.executeOrderDate);
             idleFreeTime = new Date(response.idleFreeTime);
-            $('#executionTime').html(" "+execTime.toLocaleDateString()+", "+ execTime.toLocaleTimeString());
+            $('#executionTime').html(" " + execTime.toLocaleDateString() + ", " + execTime.toLocaleTimeString());
         },
         error: function (e) {
             alert('Error: Load Current State ' + e);
@@ -264,9 +264,9 @@ $(document).ready(function () {
 
     function CurrentTime() {
         var currentTime = new Date();
-        document.getElementById("currentTime").innerHTML = " "+currentTime.toLocaleTimeString();//.toLocaleTimeString();
-        if(isDriverGoesToClient){
-            console.log("execTime = "+lastCompletionRoute.toLocaleDateString());
+        document.getElementById("currentTime").innerHTML = " " + currentTime.toLocaleTimeString();//.toLocaleTimeString();
+        if (isDriverGoesToClient) {
+            console.log("execTime = " + lastCompletionRoute.toLocaleDateString());
             if ((currentTime.getTime() - execTime.getTime()) > idleFreeTime.getTime()) {
                 $("#refusePanel").removeClass("hidden");
                 $("#customerIsLate").removeClass("hidden");
@@ -279,20 +279,24 @@ $(document).ready(function () {
             }
         }
     }
-    var myVar = setInterval(function () {CurrentTime()}, 1000);
+
+    var myVar = setInterval(function () {
+        CurrentTime()
+    }, 1000);
 
 
     initialize(document.getElementById("map-canvas"));
-    modAutocompleteAddressInput(document.getElementById("newAddress"), function () {});
+    modAutocompleteAddressInput(document.getElementById("newAddress"), function () {
+    });
 
     $("#curLoc").click(function () {
         getLocation();
     });
-    $('#paintWay').click(function(){
-        routesArray =[];
-        loadAddress(function(routesArray){
+    $('#paintWay').click(function () {
+        routesArray = [];
+        loadAddress(function (routesArray) {
             calcRoute(routesArray);
-            });
+        });
     });
 
     $(".start").click(function () {
@@ -350,8 +354,8 @@ $(document).ready(function () {
                             '<div style="padding-top: 5px; padding-bottom: 10px;">' +
                             '<span id="' + response.id + '" class="label label-info glyphicon glyphicon-ok findForRefuse">' +
                             response.routeStatus + '</span></div>'));
-                        }else{
-                            alert("Set New Route : "+response.status);
+                        } else {
+                            alert("Set New Route : " + response.status);
                         }
                     },
                     error: function (e) {
@@ -425,7 +429,7 @@ function changeStatus(status) {
                 $('#newRouteBtn').addClass("disabled");
                 $('#paintWay').addClass("disabled");
                 if (response.orderStatus == 'complete') {
-                    $('.resultMessage').text("Total services price : "+response.totalPrice);
+                    $('.resultMessage').text("Total services price : " + response.totalPrice);
                     //$('.responseWindow').append('<a class="btn btn-success" href="queue" id="finish" >' +
                     //                            '<i class="glyphicon glyphicon-usd"> Paid</i></a>');
                     $('#resultWindow').modal('show');

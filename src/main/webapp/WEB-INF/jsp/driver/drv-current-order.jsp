@@ -28,6 +28,7 @@
             margin-right: 0px;
             margin-left: 0px;
         }
+
         .btn-circle {
             width: 60px;
             height: 60px;
@@ -40,7 +41,7 @@
 
 <body>
 <!--common navigation bar for this service -->
-<%@ include file="../../pages/driver/drv-header.html"%>
+<%@ include file="../../pages/driver/drv-header.html" %>
 
 <div class="jumbotron welcome">
     <div class="container">
@@ -61,7 +62,7 @@
                                                placeholder="Current location" readonly>
                                     </div>
                                     <div class="form-group pull-right" style="padding-right:5px;padding-left:5px;">
-                                        <button type="button" id="paintWay" class="btn btn-primary" >
+                                        <button type="button" id="paintWay" class="btn btn-primary">
                                             <span class="glyphicon glyphicon-road" aria-hidden="true"></span>
                                         </button>
                                     </div>
@@ -79,7 +80,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="panel panel-primary hidden" id = "orderPanel">
+                        <div class="panel panel-primary hidden" id="orderPanel">
                             <div class="panel-body" id="innerBoard2">
                                 <div class="form-group row" style="margin: 0px;padding-bottom: 5px; padding-top: 5px">
                                     <div class="execTime row">
@@ -91,7 +92,8 @@
                                         </div>
                                         <div class="row pull-right hidden" id="customerIsLate">
                                             <label for="customLate" class="label label-info control-label"
-                                                   style="padding-bottom: 0px; margin-bottom: 0px;padding: 0px;">Customer is late</label>
+                                                   style="padding-bottom: 0px; margin-bottom: 0px;padding: 0px;">Customer
+                                                is late</label>
                                             <input type="checkbox" name="customerLate" id="customLate">
                                         </div>
                                     </div>
@@ -102,12 +104,14 @@
                                             </button>
                                         </div>
                                         <div class="pull-right">
-                                            <button type="submit" class="completeBtn btn btn-success"  style="width: 90px">
+                                            <button type="submit" class="completeBtn btn btn-success"
+                                                    style="width: 90px">
                                                 <span>Complete</span>
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="hidden" id="refusePanel" style="padding-left: 40%;padding-right: 40%;margin-top: 10px;">
+                                    <div class="hidden" id="refusePanel"
+                                         style="padding-left: 40%;padding-right: 40%;margin-top: 10px;">
                                         <div class="pull-left">
                                             <button id="refuseBtn" type="submit" class="btn-circle btn btn-danger">
                                                 <span>Refuse</span>
@@ -157,9 +161,10 @@
                                 </div>
                                 <div class="input-group hidden" id="newRoute" style="padding-left: 0px;">
                                     <span class="input-group-btn">
-                                        <button id="newRouteBtn" class="btn btn-default" type="button" >Add</button>
+                                        <button id="newRouteBtn" class="btn btn-default" type="button">Add</button>
                                     </span>
-                                        <input type="text" class="form-control" id="newAddress" name="dest" placeholder="Enter route...">
+                                    <input type="text" class="form-control" id="newAddress" name="dest"
+                                           placeholder="Enter route...">
                                 </div>
                             </div>
                         </div>
@@ -179,7 +184,8 @@
     </div>
     <hr>
     <!-- Modal -->
-    <div class="modal fade" id="resultWindow" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="resultWindow" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
         <div class="modal-dialog modal-lg" style="width: 500px;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -187,7 +193,9 @@
                     <h2 class="modal-title" id="myModalLabel">Taxi order</h2>
                 </div>
                 <div class="modal-body">
-                    <p class="resultMessage">Order is finished<p>
+                    <p class="resultMessage">Order is finished
+
+                    <p>
                 </div>
                 <div class="modal-footer">
                     <div id="responseWindow">
