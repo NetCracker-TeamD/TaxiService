@@ -11,6 +11,6 @@ import java.util.List;
  * Created by Олег on 14.05.2015.
  */
 public interface UserAddressRepository extends JpaRepository<UserAddress, Integer>, CrudRepository<UserAddress, Integer> {
-    @Query("SELECT a FROM UserAddress a WHERE a.user.id = ?1")
+    @Query("SELECT a FROM UserAddress a WHERE a.user.id = ?1 ORDER BY a.id")
     List<UserAddress> findByUserId(long userId);
 }

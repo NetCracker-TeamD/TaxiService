@@ -1,4 +1,4 @@
-$.fn.onAvailable = function(fn){
+$.fn.onAvailable = function (fn) {
     var sel = this.selector;
     var timer
     var self = this
@@ -6,20 +6,19 @@ $.fn.onAvailable = function(fn){
         fn.call(this)
     }
     else {
-        timer = setInterval(function(){
+        timer = setInterval(function () {
             if ($(sel).length > 0) {
                 fn.call($(sel))
                 clearInterval(timer)
             }
-        },50)
+        }, 50)
     }
 }
 
-$.fn.serializeObject = function()
-{
+$.fn.serializeObject = function () {
     var o = {};
     var a = this.serializeArray();
-    $.each(a, function() {
+    $.each(a, function () {
         if (o[this.name] !== undefined) {
             if (!o[this.name].push) {
                 o[this.name] = [o[this.name]];
@@ -32,10 +31,17 @@ $.fn.serializeObject = function()
     return o;
 };
 
-$.isSet = function(obj){
+$.isSet = function (obj) {
     return (typeof obj !== "undefined" && obj !== null)
 }
 
-$.isFunc = function(obj){
+$.isFunc = function (obj) {
     return (typeof obj === "function")
+}
+
+$.getURLParam = function(url, name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(url);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }

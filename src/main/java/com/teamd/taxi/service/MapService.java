@@ -22,6 +22,7 @@ public class MapService {
     }
 
     public Float calculateDistanceInKilometers(String from, String to) throws NotFoundException, MapServiceNotAvailableException {
+        System.out.println("count from[" + from + "] to [" + to + "]");
         try {
             GeoApiContext ctx = new GeoApiContext();
             ctx.setApiKey(apiKey);
@@ -31,7 +32,6 @@ public class MapService {
                     .destination(to);
 
             DirectionsRoute[] routes = req.await();
-            System.out.println("Google response: " + Arrays.toString(routes));
             if (routes.length > 0) {
                 DirectionsRoute route = routes[0];
                 long distance = 0L;

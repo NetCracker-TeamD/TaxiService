@@ -1,8 +1,3 @@
-/**
- * Created by Vika on 4/29/15.
- */
-
-
 var period;
 
 //время from to
@@ -18,6 +13,66 @@ $(function () {
 
 
 $(document).ready(function () {
+
+    function isValidDate(dateString)
+    {
+        // First check for the pattern
+        if(!/^\d{4}\-\d{1,2}\-\d{1,2}$/.test(dateString))
+            return false;
+
+        // Parse the date parts to integers
+        var parts = dateString.split("-");
+        var day = parseInt(parts[2], 10);
+        var month = parseInt(parts[1], 10);
+        var year = parseInt(parts[0], 10);
+
+        // Check the ranges of month and year
+        if(year < 1000 || year > 3000 || month == 0 || month > 12)
+            return false;
+
+        var monthLength = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
+
+        // Adjust for leap years
+        if(year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
+            monthLength[1] = 29;
+
+        // Check the range of the day
+        return day > 0 && day <= monthLength[month - 1];
+    };
+
+    $('#btn_export').on('click',function(){
+        if(!isValidDate($('#datepicker1').val())){
+            $(".inform").removeClass("hide").html("Error Date!");
+            return false;
+        }else{
+            $('.inform').addClass('hide').html(" ");
+        }
+        if(!isValidDate($('#datepicker').val())){
+            $(".inform").removeClass("hide").html("Error Date!");
+            return false;
+        }else{
+            $('.inform').addClass('hide').html(" ");
+        }
+    });
+
+    $('#datepicker').change(function(){
+        if(!isValidDate($('#datepicker').val())){
+            $(".inform").removeClass("hide").html("Error Date!");
+            return false;
+        }else{
+            $('.inform').addClass('hide').html(" ");
+        }
+    });
+
+    $('#datepicker1').change(function(){
+        if(!isValidDate($('#datepicker1').val())){
+            $(".inform").removeClass("hide").html("Error Date!");
+            return false;
+        }else{
+            $('.inform').addClass('hide').html(" ");
+        }
+    });
+
     //выпадающий спикок все типов отчетов
     $('ul#my-menu ul').each(function (index) {
         $(this).prev().addClass('collapsible').click(function () {
@@ -70,10 +125,23 @@ $(document).ready(function () {
         var recursiveDecoded = decodeURIComponent($.param(parameterName));
         var mapping = "statistic/" + "mostProfitableService?" + recursiveDecoded;
         $.get(mapping, function (data) {
-            drawTable(data);
+            if (data.length != 0) {
+                drawTable(data);
+            } else {
+                drawAttention();
+            }
         });
     }
 
+    function drawAttention() {
+        $('#main_table_content').empty();
+        $("#main_table_content").append("<h2 align='center'>No records found</h2>");
+    }
+
+    function drawError() {
+        $('#main_table_content').empty();
+        $("#main_table_content").append("<h2 align='center'>Wrong date</h2>");
+    }
 
     function drawTable(data) {
         $('#main_table_content').empty();
@@ -108,7 +176,11 @@ $(document).ready(function () {
         $("#report_6").hide();
         $("#report_5").hide();
         $.get("statistic/mostPopularCar", function (data) {
-            drawTable(data);
+            if (data.length != 0) {
+                drawTable(data);
+            } else {
+                drawAttention();
+            }
         });
     });
 
@@ -123,7 +195,11 @@ $(document).ready(function () {
         $("#report_5").hide();
         $('ul#my-menu li ul').hide("normal");
         $.get("statistic/mostPopularAdditionalCarOptionsForEachCustomerUser", function (data) {
-            drawTable(data);
+            if (data.length != 0) {
+                drawTable(data);
+            } else {
+                drawAttention();
+            }
         });
 
     });
@@ -138,12 +214,18 @@ $(document).ready(function () {
         $("#report_4").show();
         $("#report_6").hide();
         $.get("statistic/mostPopularAdditionalCarOptionsOverall", function (data) {
-            drawTable(data);
+            if (data.length != 0) {
+                drawTable(data);
+            } else {
+                drawAttention();
+            }
         });
     });
 
     //New orders per period show table
     $(".new_order").click(function () {
+        $("#datepicker1").datepicker('setDate', 'today');
+        $("#datepicker").datepicker('setDate', 'today');
         $('#main_table_content').empty();
         $('ul#my-menu li ul').hide("normal");
         $("#report_5").show();
@@ -164,8 +246,20 @@ $(document).ready(function () {
             };
             var recursiveDecoded = decodeURIComponent($.param(parameterName));
             var mapping = "statistic/" + "newOrdersPerPeriod" + "?" + recursiveDecoded;
-            $.get(mapping, function (data) {
-                drawTable(data);
+            $.ajax({
+                url: mapping,
+                type: 'GET',
+                success: function (data) {
+                    if (data.length != 0) {
+                        drawTable(data);
+                    }
+                    else {
+                        drawAttention();
+                    }
+                },
+                error: function (data) {
+                    drawError();
+                }
             });
         } else {
             alert("Please pick period of time");
@@ -183,7 +277,11 @@ $(document).ready(function () {
         $("#report_4").hide();
         $("#report_6").show();
         $.get("statistic/serviceProfitabilityByMonth", function (data) {
-            drawTable(data);
+            if (data.length != 0) {
+                drawTable(data);
+            } else {
+                drawAttention();
+            }
         });
 
     });

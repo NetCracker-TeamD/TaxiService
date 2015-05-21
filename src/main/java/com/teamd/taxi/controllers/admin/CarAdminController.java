@@ -69,7 +69,7 @@ public class CarAdminController {
         Sort sort = new Sort(new Sort.Order(DEFAULT_SORT_DIRECTION, pageModel.getOrder()));
         Page<Car> cars = carService.getCars(new PageRequest(pageModel.getPage(), DEFAULT_NUM_OF_RECORDS_ON_PAGE, sort));
         model.addAttribute("page", cars);
-        model.addAttribute("order", pageModel.getCleanOrder());
+        model.addAttribute("order", pageModel.getCleanOrder().toString().toLowerCase());
 
         ArrayList<Integer> pagination = pagesUtil.getPagination(pageModel.getPage(), cars.getTotalPages());
         model.addAttribute("pagination", pagination);

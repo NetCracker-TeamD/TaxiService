@@ -28,6 +28,9 @@
                 <c:forEach var="entry" items="${additionalParams}">
                 "${entry.key}": ${entry.value},
                 </c:forEach>
+            },
+            hidden: {
+                userId: ${userId}
             }
         };
     </script>
@@ -131,6 +134,9 @@
                 </div>
             </div>
         </div>
+
+
+
 
 
 

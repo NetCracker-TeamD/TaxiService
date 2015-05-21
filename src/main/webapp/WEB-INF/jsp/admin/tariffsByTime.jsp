@@ -9,134 +9,83 @@
   <title>Tariffs by time</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="authorisation form">
-  <!-- Latest compiled and minified CSS -->
-  <link rel="stylesheet" href="/pages/resources/bootstrap/css/bootstrap.css">
-  <link rel="stylesheet" href="/pages/resources/project/css/admin.css">
-  <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
-  <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
+  <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap.css">
+  <link rel="stylesheet" href="../../pages/resources/project/css/admin.css">
+  <link rel="stylesheet" href="../../pages/resources/bootstrap/css/datepicker.css">
+  <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
 
-  <!--<script src="../resources/project/js/admin/tariffByTime.js"></script>-->
 
+    <%--<script type="text/javascript" src="../../pages/resources/jquery/bootstrap-datepicker.js"></script>--%>
+    <%--<link rel="stylesheet" type="text/css" href="../../pages/resources/jquery/bootstrap-datepicker.css" />--%>
+    <script src="../../pages/resources/jquery/jquery.timepicker.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../pages/resources/jquery.timepicker.css" />
+
+  <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
+  <script src="../../pages/resources/bootstrap/js/bootstrap-datepicker.js"></script>
+
+  <script src="../../pages/resources/project/js/admin/tariffByTime.js"></script>
+    <style>
+    .datepicker{z-index:1151 !important;}
+    .timepicker{z-index:1154 !important;}
+    </style>
 </head>
 
 <body>
-<!--common navigation bar for this service -->
-<nav class="navbar navbar-inverse navbar-fixed-top">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-              aria-expanded="false" aria-controls="navbar">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="#">Smart Taxi</a>
-    </div>
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-        <li><a href="#">Users</a></li>
-        <li><a href="#">Groups</a></li>
-        <li><a href="#">Drivers</a></li>
-        <li><a href="#">Cars</a></li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Tariffs
-            <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu">
-            <li class="active"><a href="#">Tariffs by time</a></li>
-            <li><a href="#">Service tariffs</a></li>
-            <li><a href="#">Feature tariffs</a></li>
-            <li><a href="#">Class car tariffs</a></li>
-          </ul>
-        </li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Reports
-            <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="#">Report type 1</a></li>
-            <li><a href="#">Report type 2</a></li>
-            <li><a href="#">Report type 3</a></li>
-          </ul>
-        </li>
-      </ul>
-      <div class="navbar-form navbar-right">
-        <button type="button" class="btn btn-primary">Sign out</button>
-      </div>
-    </div>
-  </div>
-</nav>
 
-<div class="modal fade centered-modal" id="create_tariff" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">New Tariff</h4>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button type="button"
-                onclick="createTariff()" class="btn btn-success">Create Tariff
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade centered-modal" id="remove_tariff" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Remove tariff</h4>
-      </div>
-      <div class="modal-body">
-        <div class="alert alert-danger alert-dismissible modal-error">
-          <p>Error-Message</p>
-        </div>
-        <form>
-          <input type="hidden" name="tariff_id"/>
-        </form>
-        <p class="lead">Are you really want to remove this tariff?</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger"
-                onclick="removeTariff($('#remove_tariff').find('[name=\'tariff_id\']').val())">Remove Tariff
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade centered-modal" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Success</h4>
-      </div>
-      <div class="modal-body">
-        <p class="lead">Successful operation</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-dismiss="modal">Ok</button>
-      </div>
-    </div>
-  </div>
-</div>
+<%@include file="../../pages/admin/admin-header.html"%>
 
 <div class="container" id="main_container">
   <h2 class="sm-hr">Tariffs by time</h2>
 
   <div class="sm-hr">
-    <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#create_tariff">
+    <button type="button" class="btn btn-success btn-sm btn_create" data-toggle="createModel">
       <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New Tariff
     </button>
+    <div class="modal fade createModel" itabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button class="close" type="button" data-dismiss="modal">x</button>
+            <h4 class="modal-title">${tariff.tariffType}</h4>
+          </div>
+          <div class="modal-body">
+
+              <form>
+                  <div class="well carousel-search hidden-sm">
+                      <div class="btn-group" id="tariffType"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select tariff type<span class="caret"></span></a>
+                          <ul class="dropdown-menu">
+                              <li><a href="#">Daily tariff</a></li>
+                              <li><a href="#">Weekly tariff</a></li>
+                              <li><a href="#">The tariff by time</a></li>
+                          </ul>
+                      </div>
+                      <div class="btn-group input-daterange form-group">
+                          <div class="col-lg-5" style="padding-left: 0px">
+                              <%--<label for="from_date_create" class="control-label">Date </label>--%>
+                              <%--<input id="from_date_create" type="datetime-local" name="bday" min="2015-05-21" ><br>--%>
+
+                              <label for="from_date_create" class="control-label">Date </label>
+                              <input class="from_date form-control" type="text" id="from_date_create" name="startDate" placeholder="Select start date"  >
+
+                          </div>
+                          <div class="col-lg-5">
+                              <label for="to_date_create" class="control-label"> to </label>
+                              <input class="to_date form-control" type="text" id="to_date_create" name="endDate" placeholder="Select end date">
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="price_coef_create" class="control-label">Price coefficient</label>
+                          <input placeholder="price" id="price_coef_create" class="price form-control" name="price_coefitient" type="text">
+                      </div>
+                  </div>
+              </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default" type="button" data-dismiss="modal">Close</button>
+            <button class="btn btn-primary create_rec" data-dismiss="modal" type="button">Create</button></div>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="table-responsive">
     <table class="table table-striped table-hover">
@@ -145,35 +94,138 @@
         <th>#</th>
         <th>From</th>
         <th>To</th>
-        <th>Price</th>
         <th>Tariff type</th>
+        <th>Price(UAH)</th>
         <th>Manage</th>
       </tr>
       </thead>
       <tbody>
-      <%int num = ((Page) request.getAttribute("page")).getSize() * ((Page) request.getAttribute("page")).getNumber();%>
-      <c:forEach var="tariff" items="${page.content}">
+      <c:forEach var="tariff" items="${tariffs}">
         <tr>
-          <td><%=++num%>
-          </td>
-          <td tariff-id="${tariff.id}">
-            <fmt:formatDate value="${tariff.from.time}" pattern="yyyy.MM.dd HH:mm" />
-          </td>
           <td>
-            <fmt:formatDate value="${tariff.to.time}" pattern="yyyy.MM.dd HH:mm" />
+            ${tariff.id}
           </td>
+            <c:choose>
+              <c:when test="${tariff.tariffType=='DAY_OF_YEAR'}">
+                <td>
+                  <fmt:formatDate value="${tariff.from.time}" pattern="MM-dd HH:mm" />
+                </td>
+                <td>
+                  <fmt:formatDate value="${tariff.to.time}" pattern="MM-dd HH:mm" />
+                </td>
+                <td>
+                  Daily tariff
+                </td>
+              </c:when>
+              <c:when test="${tariff.tariffType=='TIME_OF_DAY'}">
+                <td>
+                  <fmt:formatDate value="${tariff.from.time}" pattern="HH:mm" />
+                </td>
+                <td>
+                  <fmt:formatDate value="${tariff.to.time}" pattern="HH:mm" />
+                </td>
+                <td>
+                  The tariff by time
+                </td>
+              </c:when>
+              <c:when test="${tariff.tariffType=='DAY_OF_WEEK'}">
+                <td>
+                  <fmt:formatDate value="${tariff.from.time}" pattern="MM-dd HH:mm" />
+                </td>
+                <td>
+                  <fmt:formatDate value="${tariff.to.time}" pattern="MM-dd HH:mm" />
+                </td>
+                <td>
+                  Weekly tariff
+                </td>
+              </c:when>
+            </c:choose>
           <td>${tariff.price}</td>
-          <td>${tariff.tariffType}</td>
           <td>
-            <button title="Edit" type="button" onclick="startEditTariff(event)" data-toggle="modal"
-                    data-target="#"
-                    data-tariff-id="${tariff.id}" class="btn btn-default btn-xs" aria-label="Left Align">
-              <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-            </button>
-            <button title="Remove" type="button" data-toggle="modal" data-target="#remove_tariff"
-                    data-tariff-id="${tariff.id}" class="btn btn-default btn-xs" aria-label="Left Align">
-              <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-            </button>
+            <a href="#editModal" role="button"
+               class="btn btn-default btn_edit" data-toggle="editModal">Edit</a>
+            <div class="modal fade editModal" itabindex="-1" role="dialog">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button class="close" type="button" data-dismiss="modal">x</button>
+                    <h4 class="modal-title">${tariff.tariffType}</h4>
+                  </div>
+                  <div class="modal-body">
+                      <form>
+                          <div class="well carousel-search hidden-sm">
+                              <div class="btn-group" id="tariffTypeEdit"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">${tariff.tariffType}<span class="caret"></span></a>
+                                  <ul class="dropdown-menu">
+                                      <li><a href="#">Daily tariff</a></li>
+                                      <li><a href="#">Weekly tariff</a></li>
+                                      <li><a href="#">The tariff by time</a></li>
+                                  </ul>
+                              </div>
+                              <div class="btn-group input-daterange form-group">
+                                  <div class="col-lg-5" style="padding-left: 0px">
+                                      <label for="from_date_edit" class="control-label">Date </label>
+                                      <input value="${tariff.from.time}" id="from_date_edit" class="from_date form-control" type="text" id="from_date_edit" name="startDate" placeholder="Select start date"  >
+                                  </div>
+                                  <div class="col-lg-5">
+                                      <label for="to_date_edit" class="control-label"> to </label>
+                                      <input value="${tariff.to.time}" id="to_date_edit" class="to_date form-control" type="text" id="to_date_edit" name="endDate" placeholder="Select end date">
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="price_coef_edit" class="control-label">Price coefficient</label>
+                                      <input value="${tariff.price}" id="price_coef_edit" class="form-control" name="price_coefficient" type="text">
+                                  </div>
+                              </div>
+                          </div>
+                      </form>
+                  </div>
+                  <div class="modal-footer">
+                    <input type="hidden" name="tariff_id" value="${tariff.id}">
+                    <button class="btn btn-default" type="button" data-dismiss="modal">Close</button>
+                    <button class="btn btn-primary save_edit" data-dismiss="modal" type="button">Save</button></div>
+                  </div>
+              </div>
+            </div>
+            <a role="button"
+               class="btn btn-default btn_remove" data-toggle="removeModal">Remove</a>
+            <div class="modal fade removeModal" itabindex="-1" role="dialog">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button class="close" type="button" data-dismiss="modal">x</button>
+                    <h4 class="modal-title">${tariff.tariffType}</h4>
+                  </div>
+                  <div class="modal-body">
+                      <form>
+                          <div class="well carousel-search hidden-sm">
+                              <div class="btn-group" id="tariffTypeRemove">
+                                  <label for="tariff_type_remove" class="control-label">Tariff type </label>
+                                  <input value="${tariff.tariffType}" class="form-control" type="text" id="tariff_type_remove" name="tariffType" readonly >
+                              </div>
+                              <div class="btn-group input-daterange form-group">
+                                  <div class="col-lg-5" style="padding-left: 0px">
+                                      <label for="from_date_remove" class="control-label">Date </label>
+                                      <input value="${tariff.to.time}" id="from_date_remove" class="form-control" type="text"  name="startDate" readonly>
+                                  </div>
+                                  <div class="col-lg-5">
+                                      <label for="to_date_remove" class="control-label"> to </label>
+                                      <input value="${tariff.to.time}" id="to_date_remove" class="form-control" type="text"  name="endDate" readonly>
+
+                                  </div>
+                              </div>
+                              <div class="form-group">
+                                  <label for="price_coef_remove" class="control-label">Price coefficient</label>
+                                  <input value="${tariff.price}" id="price_coef_remove" class="form-control" name="price_coefitient" type="text" readonly >
+                              </div>
+                          </div>
+                      </form>
+                  </div>
+                  <div class="modal-footer">
+                    <input type="hidden" name="tariff_id" value="${tariff.id}">
+                    <button class="btn btn-default" type="button" data-dismiss="modal">Close</button>
+                    <button class="btn btn-primary remove_rec" data-dismiss="modal" type="button">Remove</button></div>
+                </div>
+              </div>
+            </div>
           </td>
         </tr>
       </c:forEach>
@@ -182,21 +234,19 @@
     <!--Pagination start-->
     <nav align="center">
       <ul class="pagination">
-        <li <c:if test="${page.isFirst()}">class="disabled" onclick="return false"</c:if>>
-          <a href="/admin/tariffs_by_time?page=${page.number-1}" title="Previous">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-        </li>
-        <c:forEach var="elem" items="${pagination}">
-          <li <c:if test="${page.number == elem}">class="active"</c:if>>
-            <a href="/admin/tariffs_by_time?page=${elem}">${elem+1}</a>
-          </li>
+        <c:forEach begin="1" end="${pages}" var="i">
+          <c:choose>
+            <c:when test="${(param.page==null)&&(i==1)}">
+              <li class="active"><a href="?page=${i}">${i}</a></li>
+            </c:when>
+            <c:when test="${param.page==i}">
+              <li class="active"><a href="?page=${i}">${i}</a></li>
+            </c:when>
+            <c:when test="${param.page!=i}">
+              <li><a href="?page=${i}">${i}</a></li>
+            </c:when>
+          </c:choose>
         </c:forEach>
-        <li <c:if test="${page.isLast()}">class="disabled" onclick="return false"</c:if>>
-          <a href="/admin/tariffs_by_time?page=${page.number+1}" title="Next">
-            <span aria-hidden="true">&raquo;</span>
-          </a>
-        </li>
       </ul>
     </nav>
     <!--Pagination end-->

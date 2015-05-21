@@ -64,13 +64,6 @@ public class DriverService {
 
     @Transactional
     public void removeDriver(int id) {
-//        Driver driver = driverRepository.findOne(id);
-//        System.out.println(Arrays.toString(driver.getFeatures().toArray()));
-//        driver.setFeatures(new ArrayList<Feature>());
-//        System.out.println(Arrays.toString(driver.getFeatures().toArray()));
-//        driverRepository.saveAndFlush(driver);
-//        driver = driverRepository.findOne(id);
-//        System.out.println(Arrays.toString(driver.getFeatures().toArray()));
         driverRepository.delete(id);
     }
 
@@ -91,7 +84,18 @@ public class DriverService {
     @Transactional
     public void updateDriverAccount(UpdateDriverModel newDriver) {
         Driver driver = driverRepository.findOne(newDriver.getId());
+        if (newDriver.isCarChange() && driver.getCar() != null) {
+            Car oldCar = driver.getCar();
+            oldCar.setDriver(null);
+            carRepository.save(oldCar);
+        }
         driver = newDriver.mergeWith(driver);
+        if (newDriver.isCarChange() && driver.getCar() != null) {
+            Car newCar = carRepository.findOne(driver.getCar().getCarId());
+            newCar.setDriver(new Driver(driver.getId()));
+            carRepository.save(newCar);
+        }
+        System.out.println(driver.getCar());
         driverRepository.save(driver);
     }
 

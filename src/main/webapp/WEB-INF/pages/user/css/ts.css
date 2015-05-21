@@ -69,6 +69,12 @@ a {
      margin-right: auto;
 }
 
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}
+
 .input-group.fav-address input:nth-child(1){
 	
 }

@@ -1,32 +1,27 @@
-package com.teamd.taxi.controllers;
+package com.teamd.taxi.service;
 
 import com.teamd.taxi.persistence.repository.ReportsRepository;
-import com.teamd.taxi.service.ReportResolver;
+import com.teamd.taxi.view.Report;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
-@Controller
-@RequestMapping("/statistic")
-public class ReportsController {
+
+@Service
+public class AdminReportService {
 
     @Autowired
     private ReportsRepository reportsRepository;
 
-    @RequestMapping(value = "/serviceProfitabilityByMonth")
-    @ResponseBody
-    public List<Map<String, Object>> generateServiceProfitabilityReport() {
-
+    public List<Map<String, Object>> getServiceProfitability() {
         return reportsRepository.getReport(new ReportResolver() {
             @Override
             public String getQuery() {
@@ -36,7 +31,7 @@ public class ReportsController {
                         "FROM route " +
                         "WHERE route.start_time IS NOT NULL " +
                         "GROUP BY cur_month,cur_year  " +
-                        "ORDER BY cur_month desc";
+                        "ORDER BY cur_month ";
             }
 
 
@@ -50,10 +45,13 @@ public class ReportsController {
                         String year = resultSet.getString("cur_year");
                         int month = resultSet.getInt("cur_month");
                         String monthName = NAMES[month - 1];
-                        String total = resultSet.getString("total");
+                        double total = resultSet.getDouble("total");
+                        DecimalFormatSymbols s = new DecimalFormatSymbols();
+                        s.setDecimalSeparator('.');
+                        DecimalFormat f = new DecimalFormat("#,##0.00", s);
                         Map<String, Object> result = new TreeMap<String, Object>();
                         result.put("Period of time", monthName + ", " + year);
-                        result.put("Profit", total);
+                        result.put("Profit", f.format(total));
                         return result;
                     }
                 };
@@ -67,12 +65,9 @@ public class ReportsController {
         });
     }
 
-    @RequestMapping(value = "/newOrdersPerPeriod")
-    @ResponseBody
-    public List<Map<String, Object>> generateNewOrdersPerPeriodReport(@RequestParam("startDate") final String startDate,
-                                                                      @RequestParam("endDate") final String endDate) {
-        final String from = startDate + " 00:00:00";
-        final String to = endDate + " 00:00:00";
+    public List<Map<String, Object>> getNewOrders(String startDate, String endDate) {
+        final String fromPeriod = startDate + " 00:00:00";
+        final String endPeriod = endDate + " 23:59:59";
         return reportsRepository.getReport(new ReportResolver() {
             @Override
             public String getQuery() {
@@ -97,12 +92,15 @@ public class ReportsController {
                         String driverLastName = resultSet.getString("driver_last_name");
                         String driverFirstName = resultSet.getString("driver_first_name");
                         String serviceTypeName = resultSet.getString("service_name");
-                        String totalPrice = resultSet.getString("profit");
+                        double totalPrice = resultSet.getDouble("profit");
+                        DecimalFormatSymbols s = new DecimalFormatSymbols();
+                        s.setDecimalSeparator('.');
+                        DecimalFormat f = new DecimalFormat("#,##0.00", s);
                         Map<String, Object> result = new TreeMap<String, Object>();
                         result.put("User name", userFirstName + " " + userLastName);
                         result.put("Driver name", driverFirstName + " " + driverLastName);
                         result.put("Service name", serviceTypeName);
-                        result.put("Profit", totalPrice);
+                        result.put("Profit", f.format(totalPrice));
                         return result;
                     }
                 };
@@ -110,15 +108,13 @@ public class ReportsController {
 
             @Override
             public Object[] getParams() {
-                return new Object[]{Timestamp.valueOf(from), Timestamp.valueOf(to)};
+                return new Object[]{Timestamp.valueOf(fromPeriod), Timestamp.valueOf(endPeriod)};
 
             }
         });
     }
 
-    @RequestMapping(value = "/mostPopularAdditionalCarOptionsOverall")
-    @ResponseBody
-    public List<Map<String, Object>> generateMostPopularAdditionalCarOptionsOverallReport() {
+    public List<Map<String, Object>> getAdditionalOptions() {
         return reportsRepository.getReport(new ReportResolver() {
             @Override
             public String getQuery() {
@@ -152,9 +148,7 @@ public class ReportsController {
         });
     }
 
-    @RequestMapping(value = "/mostPopularAdditionalCarOptionsForEachCustomerUser")
-    @ResponseBody
-    public List<Map<String, Object>> generateMostPopularAdditionalCarOptionsForEachCustomerUserReport() {
+    public List<Map<String, Object>> getAdditionalOptionsForUser() {
         return reportsRepository.getReport(new ReportResolver() {
             @Override
             public String getQuery() {
@@ -198,10 +192,7 @@ public class ReportsController {
         });
     }
 
-    @RequestMapping(value = "/mostPopularCar")
-    @ResponseBody
-    public List<Map<String, Object>> generateMostPopularCarReport() {
-
+    public List<Map<String, Object>> getPopularCar() {
         return reportsRepository.getReport(new ReportResolver() {
             @Override
             public String getQuery() {
@@ -240,62 +231,117 @@ public class ReportsController {
         });
     }
 
-    /*
-        @RequestMapping(value = "/mostProfitableService")
-        @ResponseBody
-        public List<Map<String, Object>> generateMostProfitableServiceReport(@RequestParam("period") final String period) {
-            return reportsRepository.getReport(new ReportResolver() {
-                @Override
-                public String getQuery() {
-                    return "SELECT  service_type.name as service_name ,SUM(route.total_price) as profit " +
-                            "FROM service_type " +
-                            "JOIN taxi_order ON service_type.id=taxi_order.service_type " +
-                            "JOIN route ON taxi_order.id=route.order_id " +
-                            "WHERE taxi_order.execution_date BETWEEN ? AND ?  " +
-                            "GROUP BY service_type.name " +
-                            "ORDER BY profit desc";
-                }
-                @Override
-                public RowMapper getRowMapper() {
-                    RowMapper<Map<String, Object>> mapper = new RowMapper<Map<String, Object>>() {
-                        @Override
-                        public Map<String, Object> mapRow(ResultSet resultSet, int i) throws SQLException {
-                            String serviceType = resultSet.getString("service_name");
-                            String profit = resultSet.getString("profit");
-                            Map<String, Object> result = new TreeMap<String, Object>();
-                            result.put("Service name", serviceType);
-                            result.put("Profit", profit);
-                            LocalDateTime endDate = LocalDateTime.now();
-                            LocalDateTime startDate=findEndDate(period);
-                            result.put("Period of time", startDate.toLocalDate().toString()+" - "+endDate.toLocalDate().toString());
-                            return result;
-                        }
-                    };
-                    return mapper;
-                }
-                @Override
-                public Object[] getParams() {
-                    LocalDateTime endDate = LocalDateTime.now();
-                    LocalDateTime startDate=findEndDate(period);
-                    return new Object[]{Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)};
-                }
-            });
-        }
-        private LocalDateTime findEndDate(final String  period){
-            LocalDateTime startDate;
-            if (period.equals("MONTH")) {
-                startDate = LocalDateTime.now().minusMonths(1);
-            } else if (period.equals("DECADE")) {
-                LocalDateTime half = LocalDateTime.now().minusMonths(2);
-                startDate = half.minusWeeks(2);
-            } else {
-                startDate = LocalDateTime.now().minusWeeks(1);
+    public List<Map<String, Object>> getProfitByPeriod(final String period) {
+        return reportsRepository.getReport(new ReportResolver() {
+            @Override
+            public String getQuery() {
+                return "SELECT  service_type.name as service_name ,SUM(route.total_price) as profit " +
+                        "FROM service_type " +
+                        "JOIN taxi_order ON service_type.id=taxi_order.service_type " +
+                        "JOIN route ON taxi_order.id=route.order_id " +
+                        "WHERE taxi_order.execution_date BETWEEN ? AND ?  " +
+                        "GROUP BY service_type.name " +
+                        "ORDER BY profit desc";
             }
-            return startDate;
-        }
-    */
-    @RequestMapping
-    public ModelAndView viewStatistic(Model model, HttpServletRequest request) {
-        return new ModelAndView("statistic");
+
+            @Override
+            public RowMapper getRowMapper() {
+                RowMapper<Map<String, Object>> mapper = new RowMapper<Map<String, Object>>() {
+                    @Override
+                    public Map<String, Object> mapRow(ResultSet resultSet, int i) throws SQLException {
+                        String serviceType = resultSet.getString("service_name");
+                        double profit = resultSet.getDouble("profit");
+                        DecimalFormatSymbols s = new DecimalFormatSymbols();
+                        s.setDecimalSeparator('.');
+                        DecimalFormat f = new DecimalFormat("#,##0.00", s);
+                        Map<String, Object> result = new TreeMap<String, Object>();
+                        result.put("Service name", serviceType);
+                        result.put("Profit", f.format(profit));
+                        Calendar endDate = new GregorianCalendar();
+                        Calendar startDate = findEndDate(period);
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                        result.put("Period of time", sdf.format(startDate.getTime()) + " - "
+                                + sdf.format(endDate.getTime()).toString());
+                        return result;
+                    }
+                };
+                return mapper;
+            }
+
+            @Override
+            public Object[] getParams() {
+                Calendar endDate = new GregorianCalendar();
+                Calendar startDate = findEndDate(period);
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                return new Object[]{Timestamp.valueOf(sdf.format(startDate.getTime()) + " 00:00:00"),
+                        Timestamp.valueOf(sdf.format(endDate.getTime()) + " 00:00:00")};
+            }
+        });
     }
+
+    private Calendar findEndDate(final String period) {
+        Calendar startDate = new GregorianCalendar();
+        if (period.equals("MONTH")) {
+            startDate.add(Calendar.MONTH, -1);
+        } else if (period.equals("DECADE")) {
+            startDate.add(Calendar.MONTH, -2);
+            startDate.add(Calendar.DAY_OF_MONTH, -14);
+        } else {
+            startDate.add(Calendar.DAY_OF_MONTH, -7);
+        }
+        return startDate;
+    }
+
+    public List getProfitByPeriodList(List<Map<String, Object>> entry) {
+        List reportList = new ArrayList();
+        for (Map<String, Object> map : entry) {
+            reportList.add(new Report((String) map.get("Service name"), (String) map.get("Period of time"),
+                    (String) map.get("Profit")));
+        }
+        return reportList;
+    }
+
+    public List getPopularCarList(List<Map<String, Object>> entry) {
+        List reportList = new ArrayList();
+        for (Map<String, Object> map : entry) {
+            reportList.add(new Report((String) map.get("Car model"), (String) map.get("Car class"),
+                    (String) map.get("Count of usage")));
+        }
+        return reportList;
+    }
+
+    public List getAdditionalOptionsList(List<Map<String, Object>> entry) {
+        List reportList = new ArrayList();
+        for (Map<String, Object> map : entry) {
+            reportList.add(new Report((String) map.get("Feature name"), (String) map.get("Count of usage")));
+        }
+        return reportList;
+    }
+
+    public List getAdditionalOptionsForUserList(List<Map<String, Object>> entry) {
+        List reportList = new ArrayList();
+        for (Map<String, Object> map : entry) {
+            reportList.add(new Report((String) map.get("User name"), (String) map.get("Feature name"),
+                    (String) map.get("Count of usage")));
+        }
+        return reportList;
+    }
+
+    public List getNewOrderList(List<Map<String, Object>> entry) {
+        List reportList = new ArrayList();
+        for (Map<String, Object> map : entry) {
+            reportList.add(new Report((String) map.get("User name"), (String) map.get("Driver name"),
+                    (String) map.get("Service name"),(String)map.get("Profit")));
+        }
+        return reportList;
+    }
+
+    public List getServiceProfitabilityList(List<Map<String, Object>> entry) {
+        List reportList = new ArrayList();
+        for (Map<String, Object> map : entry) {
+            reportList.add(new Report((String) map.get("Period of time"), (String) map.get("Profit")));
+        }
+        return reportList;
+    }
+
 }

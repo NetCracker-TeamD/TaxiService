@@ -1,0 +1,28 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+
+
+    <bean id="serviceProfitability"
+        class="com.teamd.taxi.view.ServiceProfitabilityExcelView" >
+    </bean>
+
+    <bean id="newOrders"
+          class="com.teamd.taxi.view.NewOrdersExcelView">
+    </bean>
+    <bean id="popularCars"
+            class="com.teamd.taxi.view.MostPopularCarExcelView">
+    </bean>
+    <bean id="options"
+          class="com.teamd.taxi.view.AdditionalOptionsExcelView">
+    </bean>
+    <bean id="optionsForUser"
+
+          class="com.teamd.taxi.view.AdditionalOptionsForUserExcelView">
+    </bean>
+    <bean id="mostProfitable"
+          class="com.teamd.taxi.view.MostProfitableExcelView">
+    </bean>
+</beans>
