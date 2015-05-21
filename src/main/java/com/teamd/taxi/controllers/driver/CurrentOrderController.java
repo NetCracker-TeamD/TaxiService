@@ -201,8 +201,7 @@ public class CurrentOrderController {
         return addresses;
     }
 
-    @RequestMapping(value = "/setNewRoute", produces = MediaType.APPLICATION_JSON_VALUE)
-//            produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/setNewRoute", produces = "application/json;charset=UTF-8")
     public
     @ResponseBody
     String driverCurrentOrder(@RequestParam(value = "source") String source,
