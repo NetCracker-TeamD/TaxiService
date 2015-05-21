@@ -28,7 +28,6 @@
             margin-right: 0px;
             margin-left: 0px;
         }
-
         .btn-circle {
             width: 60px;
             height: 60px;

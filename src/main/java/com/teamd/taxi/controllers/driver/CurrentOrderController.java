@@ -64,7 +64,6 @@ public class CurrentOrderController {
     @RequestMapping(value = "/order", method = RequestMethod.GET)
     private String viewQueue(Model model, HttpServletRequest requst) {
         boolean isActiveOrder = true;
-
         Driver driver = driverService.getDriver(driverId);
         int drvId = driver.getId();
         TaxiOrder taxiOrder;
@@ -82,7 +81,6 @@ public class CurrentOrderController {
 
     @RequestMapping(value = "/assign", method = RequestMethod.GET)
     private String assignOrder(Model model, HttpServletRequest requst) {
-
         if (!checkInputParam(requst)) {
             return "redirect:error";
         } else
@@ -132,7 +130,6 @@ public class CurrentOrderController {
                         break;
                     }
                 }
-
                 if (allComplete) {
                     float totalPrice = 0;
                     List<Float> listPrice;
@@ -192,10 +189,7 @@ public class CurrentOrderController {
         }
         String[] addresses = new String[routes.size() + 1];
         addresses[0] = routes.get(0).getSourceAddress();
-
-        System.out.println("Address = " + routes.get(0).getSourceAddress() + "  status = " + routes.get(0).getStatus());
         for (int i = 0; i < routes.size(); i++) {
-            System.out.println("Address = " + routes.get(i).getDestinationAddress() + "  status = " + routes.get(0).getStatus());
             addresses[i + 1] = routes.get(i).getDestinationAddress();
         }
         return addresses;
@@ -477,7 +471,7 @@ public class CurrentOrderController {
         User user = taxiOrder.getCustomer();
         Object[] obj = {taxiOrder.getExecutionDate(), routes.get(0).getSourceAddress()};
         try {
-            mailService.sendNotification(user.getEmail(), Notification.ASSIGNED, obj);
+            mailService.sendNotification("ivanyv.ivan@yandex.ua", Notification.ASSIGNED, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -494,7 +488,7 @@ public class CurrentOrderController {
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress()};
         try {
-            mailService.sendNotification(user.getEmail(), Notification.IN_PROGRESS, obj);
+            mailService.sendNotification("ivanyv.ivan@yandex.ua", Notification.IN_PROGRESS, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -508,11 +502,10 @@ public class CurrentOrderController {
         routeService.saveRoute(r);
 
         TaxiOrder taxiOrder = r.getOrder();
-
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress(), r.getCompletionTime()};
         try {
-            mailService.sendNotification(user.getEmail(), Notification.COMPLETED, obj);
+            mailService.sendNotification("ivanyv.ivan@yandex.ua", Notification.COMPLETED, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -529,7 +522,7 @@ public class CurrentOrderController {
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress()};
         try {
-            mailService.sendNotification(user.getEmail(), Notification.REFUSED, obj);
+            mailService.sendNotification("ivanyv.ivan@yandex.ua", Notification.REFUSED, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
