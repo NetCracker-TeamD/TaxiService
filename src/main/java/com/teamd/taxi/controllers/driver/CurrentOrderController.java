@@ -201,7 +201,8 @@ public class CurrentOrderController {
         return addresses;
     }
 
-    @RequestMapping(value = "/setNewRoute", produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/setNewRoute", produces = MediaType.APPLICATION_JSON_VALUE)
+//            produces = "application/json;charset=UTF-8")
     public
     @ResponseBody
     String driverCurrentOrder(@RequestParam(value = "source") String source,
@@ -210,7 +211,6 @@ public class CurrentOrderController {
         String[] strings = new String[0];
         Float distance;
         if ((distance = mapService.calculateDistanceInKilometers(source, dest)) != null) {
-
             Driver driver = driverService.getDriver(driverId);
             TaxiOrder taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
             Route route = new Route();
@@ -258,20 +258,19 @@ public class CurrentOrderController {
             long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 1000;
             long executeOrderDate = taxiOrder.getExecutionDate().getTimeInMillis();
             //TODO В БАЗІ ПОМИЛКА isDestinationLocationsChain повинно бути true/false aле не null
-            if (taxiOrder.getServiceType().isDestinationLocationsChain() != null
-                    && taxiOrder.getServiceType().isDestinationLocationsChain()) {
-
-                if (isChainOrderBegin(taxiOrder, driver.getId())) {
+            if (taxiOrder.getServiceType().isDestinationLocationsChain() != null && taxiOrder.getServiceType().isDestinationLocationsChain()) {
+                taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
+                AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
+                List<AssembledRoute> assRoutes = assembledOrder.getAssembledRoutes();
+                System.out.println("AssRoutes.get(0).getRoutes().size()  "+assRoutes.get(0).getRoutes().size() );
+                if(assRoutes.get(0).getRoutes().size() == 1)
+                    to.addProperty("newAddress", "enable");
+                if (isChainOrderBegin(assRoutes, driver.getId())) {
                     to.addProperty("currentOrderState", "driverGoesToClient");
                 } else {
                     Calendar completionDate;
                     taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
                     if ((completionDate = getTimeOfLastComletionRouteInChain(taxiOrder, driver.getId())) == null) {
-                        taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
-                        AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
-                        List<AssembledRoute> assRoutes = assembledOrder.getAssembledRoutes();
-                        if(assRoutes.get(0).getRoutes().size() == 1)
-                            to.addProperty("newAddress", "enable");
                         to.addProperty("currentOrderState", "driverInProgress");
                     } else {
                         to.addProperty("lastCompletionRoute", completionDate.getTimeInMillis());
@@ -293,12 +292,11 @@ public class CurrentOrderController {
         }else{
             to.addProperty("currentOrderState", "noCurrentOrder");
         }
+
         return new Gson().toJson(to);
     }
 
-    private boolean isChainOrderBegin(TaxiOrder taxiOrder, int driverId) {
-        AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
-        List<AssembledRoute> assRoutes = assembledOrder.getAssembledRoutes();
+    private boolean isChainOrderBegin(List<AssembledRoute> assRoutes , int driverId) {
 
         for (Route r : assRoutes.get(0).getRoutes()) {
             if (driverId == r.getDriver().getId() && r.getStatus() == RouteStatus.ASSIGNED) {
@@ -328,9 +326,14 @@ public class CurrentOrderController {
         if ((taxiOrder = isOrderExist(requst)) == null) {
             return false;
         }
+        if(taxiOrderService.findCurrentOrderByDriverId(driver.getId())!=null) {
+            return false;
+        }
         if (!checkDriverAndOrderFeature(driver.getId(), taxiOrder.getId())) {
             return false;
         }
+
+
         Route route;
         // потрібно перевірити для ланцюжка і кількох машин!!!!
         List<Route> routes = getChain(taxiOrder);

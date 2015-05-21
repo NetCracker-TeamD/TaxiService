@@ -1,4 +1,56 @@
 $(document).ready(function(){
+
+    var selText;
+    var nowTemp = new Date();
+    var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
+    $(".dropdown-menu li a").click(function(){
+        selText = $(this).text();
+        $(this).parents('.btn-group').find('.dropdown-toggle').html(selText+' <span class="caret"></span>');
+        console.log("Tariff type "+selText);
+        switch(selText){
+            case "Daily tariff":
+                now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
+
+                break;
+            case "Weekly tariff":
+                now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0);
+                break;
+            case "The tariff by time":
+                now = new Date(0,0,0, nowTemp.getHours(), nowTemp.getMinutes(), 0);
+                break;
+        }
+    });
+
+
+
+    $('#from_date_create').timepicker({
+        'forceRoundTime': true
+    });
+
+    var checkin = $('.from_date').datepicker({
+        format: 'dd/mm/yyyy',
+        onRender: function (date) {
+            return date.valueOf() > now.valueOf() ? 'disabled' : '';
+        }
+    }).on('changeDate', function (ev) {
+        if (ev.date.valueOf() > checkout.date.valueOf()) {
+            var newDate = new Date(ev.date)
+            newDate.setDate(newDate.getDate() + 1);
+            checkout.setValue(newDate);
+        }
+        checkin.hide();
+        $('#to_date')[0].focus();
+    }).data('datepicker');
+    var checkout = $('.to_date').datepicker({
+        format: 'dd/mm/yyyy',
+        onRender: function (date) {
+            return date.valueOf() > now.valueOf() ? 'disabled' : '';
+        }
+    }).on('changeDate', function (ev) {
+        checkout.hide();
+    }).data('datepicker');
+
+
     $('.btn_edit').click(function(){
         $(this).parent().find(".editModal").modal();
         $(this).parent().find(".save_edit").click(function(){
@@ -51,6 +103,11 @@ $(document).ready(function(){
         $(this).parent().find(".createModel").modal();
         $(this).parent().find(".create_rec").click(function(){
             //TODO receive data and send to server
+             var price_coef_create=$("#price_coef_create").val();
+            var tariff_type = selText;
+            //var from_datetime = new Date($('#from_date_create').val());
+            //alert(from_datetime);
+             var data={"tariffType":selText,"priceCoefficient":price_coef_create};
             var url=window.location.pathname+"/create";
             $.ajax({
                 url: url,
@@ -67,6 +124,9 @@ $(document).ready(function(){
             });
         });
     });
+
+
+
     $('.pagination li a').each(function () {
         var _href = $(this).attr("href");
         $(this).attr("href", _href + attr);

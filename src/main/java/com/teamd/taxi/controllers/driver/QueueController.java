@@ -27,9 +27,6 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.persistence.criteria.*;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.Writer;
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -71,7 +68,7 @@ public class QueueController {
     private static final Logger log = Logger.getLogger(QueueController.class);
 
 
-    @RequestMapping(value = "/loadQueue", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/loadQueue", produces = "application/json;charset=UTF-8" )
     @ResponseBody
     public String loadQueue(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
         log.info("Received params: " + params);

@@ -13,8 +13,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import sun.util.resources.CalendarData;
+import sun.util.resources.CalendarData_en;
 
-import java.util.List;
+import java.text.DateFormat;
+import java.util.*;
 
 /**
  * Created by Anton on 20.05.2015.
@@ -104,7 +107,6 @@ public class TariffsAdminController {
     @ResponseBody
     String updateTariffsByTime(@RequestBody TariffByTime tbt) {
         //TODO receive and save
-
         return "{\"status\" : \"success\"}";
     }
 
@@ -113,6 +115,8 @@ public class TariffsAdminController {
     @ResponseBody
     String removeTariffsByTime(@RequestBody TariffByTime tbt) {
         //TODO receive and remove
+
+
         return "{\"status\" : \"success\"}";
     }
 

@@ -13,17 +13,26 @@
   <link rel="stylesheet" href="../../pages/resources/project/css/admin.css">
   <link rel="stylesheet" href="../../pages/resources/bootstrap/css/datepicker.css">
   <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
+
+
+    <%--<script type="text/javascript" src="../../pages/resources/jquery/bootstrap-datepicker.js"></script>--%>
+    <%--<link rel="stylesheet" type="text/css" href="../../pages/resources/jquery/bootstrap-datepicker.css" />--%>
+    <script src="../../pages/resources/jquery/jquery.timepicker.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../pages/resources/jquery.timepicker.css" />
+
   <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
   <script src="../../pages/resources/bootstrap/js/bootstrap-datepicker.js"></script>
+
   <script src="../../pages/resources/project/js/admin/tariffByTime.js"></script>
+    <style>
+    .datepicker{z-index:1151 !important;}
+    .timepicker{z-index:1154 !important;}
+    </style>
 </head>
 
 <body>
 
 <%@include file="../../pages/admin/admin-header.html"%>
-
-
-
 
 <div class="container" id="main_container">
   <h2 class="sm-hr">Tariffs by time</h2>
@@ -39,17 +48,37 @@
             <button class="close" type="button" data-dismiss="modal">x</button>
             <h4 class="modal-title">${tariff.tariffType}</h4>
           </div>
-          <div class=modal-body">
-              <!--TODO calendar to-->
-              <!--TODO calendar from-->
-            <div class="form-group">
-              <label>Tariff Type</label>
-              <!--TODO dropdown list-->
-            </div>
-            <div class="form-group">
-              <label>Price</label>
-              <input placeholder="price" class="form-control" name="price" type="text">
-            </div>
+          <div class="modal-body">
+
+              <form>
+                  <div class="well carousel-search hidden-sm">
+                      <div class="btn-group" id="tariffType"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select tariff type<span class="caret"></span></a>
+                          <ul class="dropdown-menu">
+                              <li><a href="#">Daily tariff</a></li>
+                              <li><a href="#">Weekly tariff</a></li>
+                              <li><a href="#">The tariff by time</a></li>
+                          </ul>
+                      </div>
+                      <div class="btn-group input-daterange form-group">
+                          <div class="col-lg-5" style="padding-left: 0px">
+                              <%--<label for="from_date_create" class="control-label">Date </label>--%>
+                              <%--<input id="from_date_create" type="datetime-local" name="bday" min="2015-05-21" ><br>--%>
+
+                              <label for="from_date_create" class="control-label">Date </label>
+                              <input class="from_date form-control" type="text" id="from_date_create" name="startDate" placeholder="Select start date"  >
+
+                          </div>
+                          <div class="col-lg-5">
+                              <label for="to_date_create" class="control-label"> to </label>
+                              <input class="to_date form-control" type="text" id="to_date_create" name="endDate" placeholder="Select end date">
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="price_coef_create" class="control-label">Price coefficient</label>
+                          <input placeholder="price" id="price_coef_create" class="price form-control" name="price_coefitient" type="text">
+                      </div>
+                  </div>
+              </form>
           </div>
           <div class="modal-footer">
             <button class="btn btn-default" type="button" data-dismiss="modal">Close</button>
@@ -123,12 +152,31 @@
                     <h4 class="modal-title">${tariff.tariffType}</h4>
                   </div>
                   <div class="modal-body">
-                    <!--TODO calendar to-->
-                    <!--TODO calendar from-->
-                    <div class="form-group">
-                      <label>Price coef</label>
-                      <input value="${tariff.price}" class="form-control" name="price" type="text">
-                    </div>
+                      <form>
+                          <div class="well carousel-search hidden-sm">
+                              <div class="btn-group" id="tariffTypeEdit"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">${tariff.tariffType}<span class="caret"></span></a>
+                                  <ul class="dropdown-menu">
+                                      <li><a href="#">Daily tariff</a></li>
+                                      <li><a href="#">Weekly tariff</a></li>
+                                      <li><a href="#">The tariff by time</a></li>
+                                  </ul>
+                              </div>
+                              <div class="btn-group input-daterange form-group">
+                                  <div class="col-lg-5" style="padding-left: 0px">
+                                      <label for="from_date_edit" class="control-label">Date </label>
+                                      <input value="${tariff.from.time}" id="from_date_edit" class="from_date form-control" type="text" id="from_date_edit" name="startDate" placeholder="Select start date"  >
+                                  </div>
+                                  <div class="col-lg-5">
+                                      <label for="to_date_edit" class="control-label"> to </label>
+                                      <input value="${tariff.to.time}" id="to_date_edit" class="to_date form-control" type="text" id="to_date_edit" name="endDate" placeholder="Select end date">
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="price_coef_edit" class="control-label">Price coefficient</label>
+                                      <input value="${tariff.price}" id="price_coef_edit" class="form-control" name="price_coefficient" type="text">
+                                  </div>
+                              </div>
+                          </div>
+                      </form>
                   </div>
                   <div class="modal-footer">
                     <input type="hidden" name="tariff_id" value="${tariff.id}">
@@ -138,7 +186,7 @@
               </div>
             </div>
             <a role="button"
-               class="btn btn-default btn_remove" data-toggle="btn_remove">Remove</a>
+               class="btn btn-default btn_remove" data-toggle="removeModal">Remove</a>
             <div class="modal fade removeModal" itabindex="-1" role="dialog">
               <div class="modal-dialog">
                 <div class="modal-content">
@@ -147,12 +195,29 @@
                     <h4 class="modal-title">${tariff.tariffType}</h4>
                   </div>
                   <div class="modal-body">
-                    <!--TODO calendar to-->
-                    <!--TODO calendar from-->
-                    <div class="form-group">
-                      <label>Price coef</label>
-                      <input value="${tariff.price}" class="form-control" name="price" type="text">
-                    </div>
+                      <form>
+                          <div class="well carousel-search hidden-sm">
+                              <div class="btn-group" id="tariffTypeRemove">
+                                  <label for="tariff_type_remove" class="control-label">Tariff type </label>
+                                  <input value="${tariff.tariffType}" class="form-control" type="text" id="tariff_type_remove" name="tariffType" readonly >
+                              </div>
+                              <div class="btn-group input-daterange form-group">
+                                  <div class="col-lg-5" style="padding-left: 0px">
+                                      <label for="from_date_remove" class="control-label">Date </label>
+                                      <input value="${tariff.to.time}" id="from_date_remove" class="form-control" type="text"  name="startDate" readonly>
+                                  </div>
+                                  <div class="col-lg-5">
+                                      <label for="to_date_remove" class="control-label"> to </label>
+                                      <input value="${tariff.to.time}" id="to_date_remove" class="form-control" type="text"  name="endDate" readonly>
+
+                                  </div>
+                              </div>
+                              <div class="form-group">
+                                  <label for="price_coef_remove" class="control-label">Price coefficient</label>
+                                  <input value="${tariff.price}" id="price_coef_remove" class="form-control" name="price_coefitient" type="text" readonly >
+                              </div>
+                          </div>
+                      </form>
                   </div>
                   <div class="modal-footer">
                     <input type="hidden" name="tariff_id" value="${tariff.id}">
