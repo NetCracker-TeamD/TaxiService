@@ -144,7 +144,7 @@
                 <h4 class="modal-title">Remove driver account</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger alert-dismissible modal-error hidden">
+                <div class="alert alert-danger alert-dismissible modal-error">
                     <p>Error-Message</p>
                 </div>
                 <form>

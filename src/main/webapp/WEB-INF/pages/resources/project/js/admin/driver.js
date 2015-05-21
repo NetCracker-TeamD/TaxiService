@@ -488,9 +488,9 @@ function updateDriver(node) {
     if (license !== oldData.eq(7).contents().eq(1).text().substr(1).toUpperCase()) {
         changedData.license = license;
     }
-    if (license !== oldData.eq(7).contents().eq(1).text().substr(1).toUpperCase()) {
-        changedData.license = license;
-    }
+    //if (license !== oldData.eq(7).contents().eq(1).text().substr(1).toUpperCase()) {
+    //    changedData.license = license;
+    //}
     if (carId !== $(node.target).closest('tr').prev().find('td[car-id]').attr('car-id')) {
         changedData.carId = carId;
         changedData.carChange = true;
@@ -504,14 +504,14 @@ function updateDriver(node) {
         feature = feature.next();
     }
     if (JSON.stringify(features) !== JSON.stringify(oldFeatures)) {
-        changedData.features = JSON.stringify(features);
+        changedData.features = features.toString();
     }
     var errorMessage = $(node.target).closest('tr');
     sendUpdateDriver(changedData, errorMessage);
 }
 
 function sendUpdateDriver(changedData, errorMessage, modal) {
-    alert(JSON.stringify(changedData));
+    //alert(JSON.stringify(changedData));
     if (Object.keys(changedData).length === 1) {
         showError(errorMessage, "You didn't make any changes");
         return;
