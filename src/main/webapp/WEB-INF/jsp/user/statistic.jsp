@@ -12,6 +12,7 @@
     <script src="/pages/resources/jquery/jquery-ui.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
     <script src="/pages/resources/project/js/user/statistic.js"></script>
+    <script src="/pages/resources/jquery/jquery-ui.js"></script>
     <link rel="stylesheet" href="/pages/resources/jquery/css/jquery-ui.css">
 </head>
 <body>
@@ -80,15 +81,7 @@
     </form>
 </div>
 
-<style>
-    #excel {
-        display: inline-block;
-        float: right;
-        margin: 0;
-        position: relative;
-    }
 
-</style>
 <div id="report_2" class="container">
     <h2>Most popular car</h2>
 
@@ -112,7 +105,7 @@
 </div>
 <div id="report_5" class="container">
     <h2>New orders per period</h2>
-
+    <div class="alert alert-danger inform hide"></div>
     <table class="table">
         <thead>
         <td>
@@ -123,7 +116,7 @@
             Pick end date<input type="text" id="datepicker" name="endDate">
         </td>
         <td>
-            <input type="submit" value="Export to Excel" class="btn btn-primary">
+            <input type="submit" value="Export to Excel" class="btn btn-primary" id="btn_export">
             </form>
         </td>
 
@@ -152,6 +145,7 @@
         </table>
     </div>
 </div>
+
 
 <hr>
 <p>&#169 TeamD 201</p>
