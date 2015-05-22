@@ -29,48 +29,48 @@ public class GroupsService {
 
 
     @Transactional
-    public List<UserGroup> getGroupsList(){
+    public List<UserGroup> getGroupsList() {
         return groupsRepository.findAll();
     }
 
     @Transactional
-    public List<GroupList> getGroupForUser(User authorizedUser){
-        return  authorizedUser.getGroups();
+    public List<GroupList> getGroupForUser(User authorizedUser) {
+        return authorizedUser.getGroups();
     }
 
     @Transactional
-    public boolean isManager(long userId,int groupId){
-        GroupList list=groupListRepository.findOne(new GroupListPK(userId,groupId));
-        if (list==null)
+    public boolean isManager(long userId, int groupId) {
+        GroupList list = groupListRepository.findOne(new GroupListPK(userId, groupId));
+        if (list == null)
             return false;
         return list.isManager();
     }
 
-    public List<GroupList> getGroupsListByUserGroupId(Integer id){
+    public List<GroupList> getGroupsListByUserGroupId(Integer id) {
         return groupListRepository.findByUserGroupGroupId(id);
     }
 
-    public boolean isExistUserGroup(Integer id){
+    public boolean isExistUserGroup(Integer id) {
         return groupsRepository.findOne(id) != null;
     }
 
-    public List<GroupList> getGroupsListWhichNotContainsUserGroupId(Integer id){
+    public List<GroupList> getGroupsListWhichNotContainsUserGroupId(Integer id) {
         return groupListRepository.findByNotContainsUserGroupGroupId(id);
     }
 
-    public void removeGroup(Integer id){
+    public void removeGroup(Integer id) {
         groupsRepository.delete(id);
     }
 
     @Transactional
-    public void updateGroupWithUpdateGroupModel(UpdateGroupModel updateGroupModel){
+    public void updateGroupWithUpdateGroupModel(UpdateGroupModel updateGroupModel) {
         UserGroup userGroup = groupsRepository.findOne(updateGroupModel.getId());
         userGroup = updateGroupModel.changeGroup(userGroup);
         groupsRepository.save(userGroup);
     }
 
     @Transactional
-    public  void createGroupWithCreateGroupModel(CreateGroupModel createGroupModel){
+    public void createGroupWithCreateGroupModel(CreateGroupModel createGroupModel) {
         UserGroup userGroup = new UserGroup();
         userGroup.setName(createGroupModel.getName());
         userGroup.setDiscount(Float.parseFloat(createGroupModel.getDiscount()));
@@ -79,26 +79,24 @@ public class GroupsService {
     }
 
     @Transactional
-    public void addUsersToGroupWithAddUsersGroupModel(AddUsersGroupModel addUsersGroupModel){
+    public void addUsersToGroupWithAddUsersGroupModel(AddUsersGroupModel addUsersGroupModel) {
         UserGroup userGroup = groupsRepository.findOne(addUsersGroupModel.getGroupId());
         List<GroupList> groupLists = userGroup.getGroups();
 
-        for(Integer userId : addUsersGroupModel.getUsers()){
+        for (Integer userId : addUsersGroupModel.getUsers()) {
             groupLists.add(new GroupList(userId, addUsersGroupModel.getGroupId()));
         }
-
         userGroup.setGroups(groupLists);
     }
 
     @Transactional
-    public void deleteUsersFromGroupWithDeleteUsersFromGroupModel(DeleteUsersFromGroupModel deleteUsersFromGroupModel){
+    public void deleteUsersFromGroupWithDeleteUsersFromGroupModel(DeleteUsersFromGroupModel deleteUsersFromGroupModel) {
         UserGroup userGroup = groupsRepository.findOne(deleteUsersFromGroupModel.getGroupId());
         List<GroupList> groupLists = userGroup.getGroups();
 
-        for(Integer userId : deleteUsersFromGroupModel.getUsers()){
-            groupLists.remove(new GroupList(userId, deleteUsersFromGroupModel.getGroupId()));
+        for (Integer userId : deleteUsersFromGroupModel.getUsers()) {
+            groupListRepository.delete(new GroupListPK(userId, deleteUsersFromGroupModel.getGroupId()));
         }
 
-        userGroup.setGroups(groupLists);
     }
 }
