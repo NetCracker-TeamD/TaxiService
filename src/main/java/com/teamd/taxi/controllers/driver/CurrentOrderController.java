@@ -7,6 +7,7 @@ import com.teamd.taxi.exception.InfoNotFoundException;
 import com.teamd.taxi.exception.ItemNotFoundException;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
+import com.teamd.taxi.persistence.repository.RouteRepository;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import com.teamd.taxi.service.*;
 import com.teamd.taxi.service.email.MailService;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -41,6 +44,9 @@ public class CurrentOrderController {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private RouteRepository routeRepository;
 
     @Autowired
     private PriceCountService priceCountService;
@@ -64,7 +70,6 @@ public class CurrentOrderController {
     @RequestMapping(value = "/order", method = RequestMethod.GET)
     private String viewQueue(Model model, HttpServletRequest requst) {
         boolean isActiveOrder = true;
-
         Driver driver = driverService.getDriver(driverId);
         int drvId = driver.getId();
         TaxiOrder taxiOrder;
@@ -82,7 +87,6 @@ public class CurrentOrderController {
 
     @RequestMapping(value = "/assign", method = RequestMethod.GET)
     private String assignOrder(Model model, HttpServletRequest requst) {
-
         if (!checkInputParam(requst)) {
             return "redirect:error";
         } else
@@ -132,7 +136,6 @@ public class CurrentOrderController {
                         break;
                     }
                 }
-
                 if (allComplete) {
                     float totalPrice = 0;
                     List<Float> listPrice;
@@ -192,10 +195,7 @@ public class CurrentOrderController {
         }
         String[] addresses = new String[routes.size() + 1];
         addresses[0] = routes.get(0).getSourceAddress();
-
-        System.out.println("Address = " + routes.get(0).getSourceAddress() + "  status = " + routes.get(0).getStatus());
         for (int i = 0; i < routes.size(); i++) {
-            System.out.println("Address = " + routes.get(i).getDestinationAddress() + "  status = " + routes.get(0).getStatus());
             addresses[i + 1] = routes.get(i).getDestinationAddress();
         }
         return addresses;
@@ -228,8 +228,9 @@ public class CurrentOrderController {
 
             taxiOrder.getRoutes().add(route);
             driver.getRoutes().add(route);
-            taxiOrderRepository.save(taxiOrder);
-            driverService.save(driver);
+            routeService.saveRoute(route);
+//            taxiOrderRepository.save(taxiOrder);
+            //driverService.save(driver);
 
             to.addProperty("source", source);
             to.addProperty("destination", dest);
@@ -258,7 +259,7 @@ public class CurrentOrderController {
         TaxiOrder taxiOrder;
 
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) {
-            long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 1000;
+            long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 3000;
             long executeOrderDate = taxiOrder.getExecutionDate().getTimeInMillis();
             //TODO В БАЗІ ПОМИЛКА isDestinationLocationsChain повинно бути true/false aле не null
             if (taxiOrder.getServiceType().isDestinationLocationsChain() != null && taxiOrder.getServiceType().isDestinationLocationsChain()) {
@@ -335,7 +336,6 @@ public class CurrentOrderController {
         if (!checkDriverAndOrderFeature(driver.getId(), taxiOrder.getId())) {
             return false;
         }
-
 
         Route route;
         // потрібно перевірити для ланцюжка і кількох машин!!!!
@@ -488,9 +488,11 @@ public class CurrentOrderController {
         Calendar calendar = Calendar.getInstance();
         r.setStatus(RouteStatus.IN_PROGRESS);
         r.setStartTime(calendar);
-        routeService.saveRoute(r);
+        Route r1 = r;
+        routeService.saveRoute(r1);
 
         TaxiOrder taxiOrder = r.getOrder();
+
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress()};
         try {
@@ -508,7 +510,6 @@ public class CurrentOrderController {
         routeService.saveRoute(r);
 
         TaxiOrder taxiOrder = r.getOrder();
-
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress(), r.getCompletionTime()};
         try {
@@ -544,5 +545,10 @@ public class CurrentOrderController {
         if (drFeatures.containsAll(toFeature))
             return true;
         else return false;
+    }
+
+    @RequestMapping("/findOrder")
+    public void findOrder(@RequestParam("id") long id, HttpServletResponse response) throws IOException {
+        response.getWriter().append("" + taxiOrderRepository.findOne(id));
     }
 }

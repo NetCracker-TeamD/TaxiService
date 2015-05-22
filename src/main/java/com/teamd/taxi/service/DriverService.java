@@ -98,6 +98,4 @@ public class DriverService {
         System.out.println(driver.getCar());
         driverRepository.save(driver);
     }
-
-
 }

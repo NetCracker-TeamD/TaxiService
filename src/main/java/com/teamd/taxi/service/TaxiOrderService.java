@@ -2,7 +2,10 @@ package com.teamd.taxi.service;
 
 import com.google.maps.errors.NotFoundException;
 import com.teamd.taxi.entity.*;
-import com.teamd.taxi.exception.*;
+import com.teamd.taxi.exception.MapServiceNotAvailableException;
+import com.teamd.taxi.exception.NotCompatibleException;
+import com.teamd.taxi.exception.OrderUpdatingException;
+import com.teamd.taxi.exception.PropertyNotFoundException;
 import com.teamd.taxi.models.TaxiOrderForm;
 import com.teamd.taxi.persistence.repository.RouteRepository;
 import com.teamd.taxi.persistence.repository.ServiceTypeRepository;
@@ -93,10 +96,15 @@ public class TaxiOrderService {
 
     @Transactional
     public TaxiOrder findOneById(long id) {
+        System.out.println("ID : " + id);
         TaxiOrder order = orderRepository.findOne(id);
-        Hibernate.initialize(order.getFeatures());
-        Hibernate.initialize(order.getRoutes());
-        Hibernate.initialize(order.getServiceType());
+        if (order != null) {
+            Hibernate.initialize(order.getFeatures());
+            Hibernate.initialize(order.getRoutes());
+            Hibernate.initialize(order.getServiceType());
+        } else {
+            System.out.println(" ORDER IS NULL =  0 " + order);
+        }
         return order;
     }
 
@@ -326,10 +334,13 @@ public class TaxiOrderService {
             return null;
         }
         TaxiOrder order = orders.get(0);
+        System.out.println("READ FEATURES  ");
         Hibernate.initialize(order.getFeatures());
+        System.out.println("READ ROUTES  ");
         Hibernate.initialize(order.getRoutes());
+        System.out.println("READ TYPE  ");
         Hibernate.initialize(order.getServiceType());
-
+        System.out.println("READ COMPLETE  ");
         return order;
     }
 
