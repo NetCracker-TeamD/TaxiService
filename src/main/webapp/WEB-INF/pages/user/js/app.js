@@ -226,6 +226,7 @@ var App = (function(){
 		   					if (secretKey == "null") {
 		   						secretKey = null
 		   					}
+		   					trackLink = "/index?view-order&trackNumber="+trackNumber+($.isSet(secretKey)? "&secret="+secretKey : "")
 		   					//console.log(trackNumber, secretKey)
 							var watchIt = function(){
 								console.log("go to track link")
@@ -236,7 +237,7 @@ var App = (function(){
 								title: "Order successfully created",
 								message: function(dialog){
 									return $("<div>Your order successfully created<br>You can track it via this link </div>")
-										.append( $("<a href='/somelink''>some link with tracknumber</a>")
+										.append( $("<a href='"+trackLink+"'>"+trackLink+"</a>")
 											.bind("click", function(e){
 												e.preventDefault()
 												dialog.close()
@@ -503,9 +504,15 @@ var App = (function(){
 			}
 			//init loader and bind callback when all necessary datas will be loaded
 			var loader = new Loader()
-			loader.addCallBack(function(){ createDOM() })
+			var ids = loader.getArrayUniqId(2)
+			loader.addCallBack(function(){ 
+				createDOM() 
+			})
 			//binding data loaders
-			DataTools.getFavLocations(loader, "fav_locations", function(status, response, favouriteLocations){
+			DataTools.getUser(loader, ids[0], function(status, response, userInfo){
+				tmpStorage.user = userInfo
+			})
+			DataTools.getFavLocations(loader, ids[1], function(status, response, favouriteLocations){
 				tmpStorage.favouriteLocations = favouriteLocations
 			})
 		},
@@ -800,10 +807,10 @@ var App = (function(){
 									pages["make-order"].show()
 									break;
 								case "ROLE_DRIVER" : 
-									window.location = "/driver";
+									window.location = "/driver/queue";
 									break;
 								case "ROLE_ADMINISTRATOR" : 
-									window.location = "/admin";
+									window.location = "/admin/statistic";
 									break;
 								default:
 									console.log("UNKNOW ROLE NAME");
@@ -1124,7 +1131,8 @@ var App = (function(){
 				console.log("hi")
 				initBasePage()
 				console.log("show default page")
-				pages["default"].show()
+				//pages["default"].show()
+				resolveURL()
 			})
 			loader.addThreadNames("user")
 			DataTools.getUser(loader, "user", function(status, response, userInfo){
@@ -1132,6 +1140,28 @@ var App = (function(){
 				console.log(tmpStorage.user)
 			})
 		},
+		resolveURL = function(){
+			var url = window.location.href
+			if ($.isSet($.getURLParam(url, "login"))) {
+				showLoginPage()
+			} else if ($.isSet($.getURLParam(url, "register"))) {
+				showRegisterPage()
+			} else if ($.isSet($.getURLParam(url, "about"))) {
+				showAboutPage()
+			} else if ($.isSet($.getURLParam(url, "make-order"))) {
+				showOrderPage()
+			} else if ($.isSet($.getURLParam(url, "account"))) {
+				showEditAccountPage()
+			} else if ($.isSet($.getURLParam(url, "history"))) {
+				showHistoryPage()
+			} else if ($.isSet($.getURLParam(url, "view-order"))) {
+				var trackNumber = $.getURLParam(url, "trackNumber"),
+					trackKey = $.getURLParam(url, "secret")
+				showOrderPage(trackNumber, trackKey)
+			} else {
+				pages["default"].show()
+			}
+		}
 		pages = {
 			"default" : {
 				show : showOrderPage

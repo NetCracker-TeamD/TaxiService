@@ -76,6 +76,12 @@
                                                   id="currentTime"></span>
                                         </h5>
                                     </div>
+                                    <%--<div class="row pull-right hidden" id="customerIsLate">--%>
+                                        <%--<label for="customLate" class="label label-info control-label"--%>
+                                               <%--style="padding-bottom: 0px; margin-bottom: 0px;padding: 0px;">Customer--%>
+                                            <%--is late</label>--%>
+                                        <%--<input type="checkbox" name="customerLate" id="customLate">--%>
+                                    <%--</div>--%>
                                 </div>
                             </div>
                         </div>
@@ -89,12 +95,7 @@
                                                       id="executionTime"></span>
                                             </h5>
                                         </div>
-                                        <div class="row pull-right hidden" id="customerIsLate">
-                                            <label for="customLate" class="label label-info control-label"
-                                                   style="padding-bottom: 0px; margin-bottom: 0px;padding: 0px;">Customer
-                                                is late</label>
-                                            <input type="checkbox" name="customerLate" id="customLate">
-                                        </div>
+
                                     </div>
                                     <div id="controlPanel" class="row">
                                         <div class="pull-left">

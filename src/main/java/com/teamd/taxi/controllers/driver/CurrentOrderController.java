@@ -259,7 +259,7 @@ public class CurrentOrderController {
         TaxiOrder taxiOrder;
 
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) {
-            long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 2000;
+            long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 3000;
             long executeOrderDate = taxiOrder.getExecutionDate().getTimeInMillis();
             //TODO В БАЗІ ПОМИЛКА isDestinationLocationsChain повинно бути true/false aле не null
             if (taxiOrder.getServiceType().isDestinationLocationsChain() != null && taxiOrder.getServiceType().isDestinationLocationsChain()) {
@@ -336,7 +336,6 @@ public class CurrentOrderController {
         if (!checkDriverAndOrderFeature(driver.getId(), taxiOrder.getId())) {
             return false;
         }
-
 
         Route route;
         // потрібно перевірити для ланцюжка і кількох машин!!!!

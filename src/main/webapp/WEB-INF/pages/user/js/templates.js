@@ -12,6 +12,38 @@ var Templates = (function () {
             }
             holder.find(":input").prop({'readonly': false, 'disabled': false})
         },
+        unMark = function(input){
+            var group = $(input)
+            if (group.is('.input-group')) {
+                var group = input.closes('.input-group')    
+            }
+            group.removeClass('has-success').removeClass('has-error').removeClass('has-warning')
+            group.find('.glyphicon.form-control-feedback').remove()
+        }
+        markCorrect = function(input){
+            var group = $(input)
+            if (group.is('.input-group')) {
+                var group = input.closes('.input-group')    
+            }
+            group.addClass("has-success")
+            group.append('<span class="glyphicon glyphicon-ok form-control-feedback" aria-hidden="true"></span>')
+        },
+        markWarning = function(input){
+            var group = $(input)
+            if (group.is('.input-group')) {
+                var group = input.closes('.input-group')    
+            }
+            group.addClass("has-success")
+            group.append('<span class="glyphicon glyphicon-warning-sign form-control-feedback" aria-hidden="true"></span>')
+        },
+        markInCorrect = function(input){
+            var group = $(input)
+            if (group.is('.input-group')) {
+                var group = input.closes('.input-group')    
+            }
+            group.addClass("has-error")
+            group.append('<span class="glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>')
+        },
         getHeaderContainer = function () {
             var container = $('<nav class="navbar navbar-inverse navbar-fixed-top">\
 				<div class="container">\
@@ -841,7 +873,10 @@ var Templates = (function () {
         "getHistoryOrders": getHistoryOrders,
         "getHistoryContainer" : getHistoryContainer,
         "getPager" : getPager,
-        "getHistoryFilters" : getHistoryFilters
+        "getHistoryFilters" : getHistoryFilters,
+        "unMark" : unMark,
+        "markCorrect" : markCorrect,
+        "markInCorrect" : markInCorrect,
 
     }
 })()

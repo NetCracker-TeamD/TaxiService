@@ -43,7 +43,7 @@ $.isFunc = function (obj) {
 
 $.getURLParam = function(url, name) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+    var regex = new RegExp("[\\?&]" + name + "={0,1}([^&#]*)"),
         results = regex.exec(url);
-    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
