@@ -16,6 +16,7 @@ $.fn.onAvailable = function (fn) {
 }
 
 $.fn.serializeObject = function () {
+    var disabled = this.find(':input:disabled').removeAttr('disabled');
     var o = {};
     var a = this.serializeArray();
     $.each(a, function () {
@@ -28,6 +29,7 @@ $.fn.serializeObject = function () {
             o[this.name] = this.value || '';
         }
     });
+    disabled.attr('disabled','disabled');
     return o;
 };
 

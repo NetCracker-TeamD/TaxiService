@@ -45,6 +45,7 @@ public class CarAdminController {
     private static final String MESSAGE_CAR_ID_NOT_EXIST = "admin.car.delete.nonexistent";
     private static final String MESSAGE_SUCCESS_DELETE = "admin.car.delete.success";
     private static final String MESSAGE_SUCCESS_CAR_CREATED = "admin.car.create.success";
+    private static final String MESSAGE_SUCCESS_CAR_UPDATE = "admin.car.update.success";
 
     @Resource
     private Environment env;
@@ -200,7 +201,7 @@ public class CarAdminController {
 
             response.setResultSuccess();
             response.setContent(new HashMap<String, String>() {{
-                put("message", "Car was updated successfully");
+                put("message", env.getRequiredProperty(MESSAGE_SUCCESS_CAR_UPDATE));
             }});
             return response;
         }

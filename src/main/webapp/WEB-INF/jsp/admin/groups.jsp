@@ -1,3 +1,11 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: Dub
+  Date: 22-May-15
+  Time: 08:58
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,10 +13,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="authorisation form">
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="../resources/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="../resources/project/css/admin.css">
-    <script src="../resources/jquery/jquery-2.1.3.js"></script>
-    <script src="../resources/bootstrap/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="/pages/resources/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="/pages/resources/project/css/admin.css">
+    <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
+    <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
 </head>
 
 <body>
@@ -209,24 +217,6 @@
         <p><strong>Success.</strong> Success messages.</p>
     </div>
 
-    <!--<div class="input-group">-->
-    <!--<input type="text" class="form-control" placeholder="Search...">-->
-    <!--<span class="input-group-btn">-->
-    <!--<button class="btn btn-default btn-sm" type="button">-->
-    <!--<span class="glyphicon glyphicon-search" aria-hidden="true"></span>-->
-    <!--</button>-->
-    <!--</span>-->
-    <!--</div>-->
-
-    <!--<div class="col-lg-6">-->
-    <!--<div class="input-group">-->
-    <!--<input type="text" class="form-control" placeholder="Search for...">-->
-    <!--<span class="input-group-btn">-->
-    <!--<button class="btn btn-default" type="button">Go!</button>-->
-    <!--</span>-->
-    <!--</div>-->
-    <!--</div>-->
-
     <div class="row sm-hr">
         <div class="col-md-4" style="padding-right: 0">
             <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#create_group">
@@ -242,24 +232,24 @@
         <div class="col-md-4" style="padding-left: 5px">
         </div>
         <div class="col-md-4">
-            <form class="form-inline pull-right ">
-                <div class="form-group">
-                    <form method="get">
-                        <label for="sort-input">Sort</label>
-                        <select class="form-control input-sm" id="sort-input" name="order" onchange="form.submit()">
-                            <option value="last_name">by Last Name</option>
-                            <option value="first_name">by First Name</option>
-                        </select>
-                    </form>
-                </div>
-            </form>
+            <%--<form class="form-inline pull-right ">--%>
+            <%--<div class="form-group">--%>
+            <%--<form method="get">--%>
+            <%--<label for="sort-input">Sort</label>--%>
+            <%--<select class="form-control input-sm" id="sort-input" name="order" onchange="form.submit()">--%>
+            <%--<option value="last_name">by Last Name</option>--%>
+            <%--<option value="first_name">by First Name</option>--%>
+            <%--</select>--%>
+            <%--</form>--%>
+            <%--</div>--%>
+            <%--</form>--%>
         </div>
     </div>
     <div class="row">
         <br/>
 
         <div id="group_list" class="col-md-4">
-            <div class="panel panel-default" >
+            <div class="panel panel-default" style="border: none;-webkit-box-shadow: none;box-shadow: none;">
                 <div class="panel-heading">Groups</div>
                 <div style="height: 600px; overflow-y: auto;">
                     <ul class="list-group" onclick="changeActiveGroup(event)"></ul>
@@ -267,7 +257,7 @@
             </div>
         </div>
 
-        <div class="col-md-4" style="height: 600px; overflow-y: auto;">
+        <div class="col-md-4">
             <div class="panel panel-info">
                 <div class="panel-heading">Users of Group
                     <button title="Change users manage status" type="button" class="btn btn-info btn-sm"
@@ -280,14 +270,16 @@
                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                     </button>
                 </div>
-                <ul class="list-group" id="group_users_list" style="display: none;"></ul>
+                <ul class="list-group" id="group_users_list"
+                    style="height: 600px; overflow-y: auto;display: none;"></ul>
             </div>
         </div>
 
-        <div class="col-md-4" style="height: 600px; overflow-y: auto;">
+        <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading" onclick="makeUsersToAdd(undefined,event)">Add new users</div>
-                <ul class="list-group" id="all_users_list" opened="false" style="display: none;"></ul>
+                <ul class="list-group" id="all_users_list" opened="false"
+                    style="height: 600px; overflow-y: auto;display: none;"></ul>
             </div>
         </div>
 
@@ -298,7 +290,8 @@
         <p>&#169 TeamD 2015</p>
     </footer>
 </div>
-<script type="application/javascript" src="../resources/project/js/admin/group-old.js"></script>
+<script type="application/javascript" src="/pages/resources/project/js/admin/group.js"></script>
 </body>
 
 </html>
+

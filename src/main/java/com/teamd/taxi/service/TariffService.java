@@ -7,6 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 @Service
 public class TariffService {
 
@@ -17,10 +20,13 @@ public class TariffService {
         return tariffByTimeRepository.findAll(pageable);
     }
 
-    public void save(TariffByTime tariffByTime){
+    public void save(TariffByTime tariffByTime) {
         tariffByTimeRepository.save(tariffByTime);
     }
 
+    public TariffByTime findOne(int id){
+        return tariffByTimeRepository.findOne(id);
+    }
 
     public void removeTariff(int id) {
         tariffByTimeRepository.delete(id);

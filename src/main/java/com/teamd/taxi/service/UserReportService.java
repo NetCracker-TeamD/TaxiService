@@ -111,7 +111,7 @@ public class UserReportService {
 
             @Override
             public Object[] getParams() {
-                return new Object[]{Timestamp.valueOf(fromPeriod), Timestamp.valueOf(endPeriod),groupId};
+                return new Object[]{Timestamp.valueOf(fromPeriod), Timestamp.valueOf(endPeriod), groupId};
 
             }
         });
@@ -243,7 +243,7 @@ public class UserReportService {
         });
     }
 
-    public List<Map<String, Object>> getProfitByPeriod(final String period,final long groupId) {
+    public List<Map<String, Object>> getProfitByPeriod(final String period, final long groupId) {
         return reportsRepository.getReport(new ReportResolver() {
             @Override
             public String getQuery() {
@@ -288,7 +288,7 @@ public class UserReportService {
                 Calendar startDate = findEndDate(period);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 return new Object[]{Timestamp.valueOf(sdf.format(startDate.getTime()) + " 00:00:00"),
-                        Timestamp.valueOf(sdf.format(endDate.getTime()) + " 00:00:00"),groupId};
+                        Timestamp.valueOf(sdf.format(endDate.getTime()) + " 00:00:00"), groupId};
             }
         });
     }
@@ -345,7 +345,7 @@ public class UserReportService {
         List reportList = new ArrayList();
         for (Map<String, Object> map : entry) {
             reportList.add(new Report((String) map.get("User name"), (String) map.get("Driver name"),
-                    (String) map.get("Service name"),(String)map.get("Profit")));
+                    (String) map.get("Service name"), (String) map.get("Profit")));
         }
         return reportList;
     }

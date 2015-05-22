@@ -104,6 +104,11 @@ public class TariffsAdminController {
     @ResponseBody
     String updateTariffsByTime(@RequestBody TariffByTime tbt) {
         //TODO receive and save
+        TariffByTime tariffByTime=tariffByService.findOne(tbt.getId());
+        tariffByTime.setFrom(tbt.getFrom());
+        tariffByTime.setTo(tbt.getTo());
+        tariffByTime.setPrice(tbt.getPrice());
+        tariffByService.save(tariffByTime);
         return "{\"status\" : \"success\"}";
     }
 
@@ -112,8 +117,8 @@ public class TariffsAdminController {
     @ResponseBody
     String removeTariffsByTime(@RequestBody TariffByTime tbt) {
         //TODO receive and remove
-
-
+        TariffByTime tariffByTime=tariffByService.findOne(tbt.getId());
+        tariffByService.removeTariff(tariffByTime.getId());
         return "{\"status\" : \"success\"}";
     }
 
@@ -122,6 +127,11 @@ public class TariffsAdminController {
     @ResponseBody
     String createTariffsByTime(@RequestBody TariffByTime tbt) {
         //TODO receive and create
+        TariffByTime newTariff=new TariffByTime();
+        newTariff.setFrom(tbt.getFrom());
+        newTariff.setTo(tbt.getTo());
+        newTariff.setPrice(tbt.getPrice());
+        tariffByService.save(newTariff);
         return "{\"status\" : \"success\"}";
     }
 }
