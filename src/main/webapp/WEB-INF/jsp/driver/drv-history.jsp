@@ -17,12 +17,14 @@
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="../../pages/resources/bootstrap/css/datepicker.css">
     <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap-select.css">
     <link rel="stylesheet" href="../../pages/resources/project/css/welcome.css">
-    <link rel="stylesheet" href="/pages/resources/project/css/history.css">
+    <link rel="stylesheet" href="../../pages/resources/project/css/history.css">
     <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
     <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
+    <script src="../../pages/resources/bootstrap/js/bootstrap-select.js"></script>
     <script src="../../pages/resources/bootstrap/js/bootstrap-datepicker.js"></script>
     <script src="../../pages/resources/project/js/driver/drv-history.js" type="text/javascript"></script></head>
 <body>
@@ -46,14 +48,12 @@
                             <div class="form-group">
                                     <label>ID</label>
                                     <input  placeholder="ID Order" value="${param.id_order}" class="form-control" name="id_order" type="text">
-                            </div>
-                            <div class="form-group">
+
                                     <label>Address</label>
                                     <input placeholder="Address" value="${param.address}" class="form-control" name="address" type="text">
-                            </div>
-                            <div class="form-group">
-                                    <label>Service Type</label>
-                                    <select placeholder="Service type" name="service_type" class="form-control" style="cursor:pointer;">
+
+                                    <label>Service type</label>
+                                    <select name="service_type" class="selectpicker">
                                         <option></option>
                                         <c:forEach items="${serviceTypes}" var="service">
                                             <c:if test="${param.service_type==service.name}">
@@ -69,58 +69,45 @@
                     </div>
                     <br>
                     <div class="row">
-                        <div class="col-sm-12">
+                        <div class="col-sm-8">
                             <div class="input-daterange form-group">
-
-
-
                                 <label id="datee">Date </label>
-
-
-
                                 <input value="${param.startDate}" class="form-control" type="text" id="from_date" name="startDate"
                                        placeholder="Select start date"  >
                                 <label>to</label>
                                 <input value="${param.endDate}" class="form-control" type="text" id="to_date" name="endDate"
                                        placeholder="Select end date">
                             </div>
+                        </div>
+                        <div class="col-sm-4 text-right">
                             <input type="submit" class="btn btn-primary" value="Search"/>
                             <input type="button" class="btn btn-default clear_param" value="Clear"/>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="row">
-                <div class="col-sm-1">
-                    <div class="dropdown" style="margin-left:15px;">
-                        <button class="btn btn-info dropdown-toggle" type="button" data-toggle="dropdown">Sort by
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu" id="type_sort" >
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label for="type_sort">Sort by:</label>
+                        <select  id="type_sort" class="selectpicker" onChange="window.location.href=this.value" >
                             <c:choose>
-                                <c:when test="${param.sort=='id'}">
-                                    <li><a href="${page}sort=date" >Date</a></li>
-                                    <li class="selected-property">
-                                        <a href="${page}sort=id" >ID Order
-                                            <span class="ok-glyph glyphicon glyphicon-ok"></span></a>
-                                    </li>
+                                <c:when test="${param.sort=='oldest'}">
+                                    <option value="${page}sort=newest">newest</option>
+                                    <option selected="true" value="${page}sort=oldest">oldest</option>
                                 </c:when>
                                 <c:otherwise>
-                                    <li class="selected-property">
-                                        <a href="${page}sort=date">Date
-                                            <span class=" ok-glyph glyphicon glyphicon-ok"></span></a>
-                                    </li>
-                                    <li><a href="${page}sort=id">ID Order</a></li>
+                                    <option selected="true" value="${page}sort=newest">newest</option>
+                                    <option value="${page}sort=oldest">oldest</option>
                                 </c:otherwise>
                             </c:choose>
-                        </ul>
+                        </select>
                     </div>
-                </div>
-                <div class="col-sm-9"></div>
-                <div class="col-sm-2">
-                    <div class="btn-group" id="viewType" style="margin-left:10px;">
-                        <button type="button" class="btn btn-info" value="detailed">detailed</button>
-                        <button type="button" class="btn btn-info active" value="list">list</button>
+                    <div class="col-sm-6 text-right">
+                        <div class="btn-group" id="viewType">
+                            <button type="button" class="btn btn-info" value="detailed">detailed</button>
+                            <button type="button" class="btn btn-info active" value="list">list</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -134,8 +121,8 @@
                                         <b>№ ${order.id}</b></a>
                                 </div>
                                 <div class="col-sm-6"></div>
-                                <div class="col-sm-2"><fmt:formatDate pattern="dd/MM/yyyy kk:mm"
-                                                                      value="${order.executionDate.time}"/></div>
+                                <div class="col-sm-2"><fmt:formatDate pattern="dd/MM/yyyy HH:mm"
+                                                                      value="${order.executionDate.time}" /></div>
                             </div>
                         </div>
                         <div style="display:none;" class="panel-body history_details">
@@ -164,7 +151,7 @@
                                         <div class="panel-heading"><span class="glyphicon glyphicon-chevron-down"></span>
                                             Map</div>
                                         <div class="panel-body map" style="display:none;">
-                                            <div id="map-canvas" style="width: 430px;height: 300px"></div>
+                                            <div id="map-canvas" style="min-width: 200px;height: 300px"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -172,7 +159,7 @@
                                     <div class="panel panel-info">
                                         <div class="panel-heading">Routes</div>
                                         <div class="panel-body">
-                                            <table class="table_route table table-bordered">
+                                            <table class="table table_route table-bordered">
                                                 <thead>
                                                 <tr>
                                                     <th>Pick-up time</th>
@@ -187,14 +174,14 @@
                                                 <tbody>
                                                 <c:forEach var="route" items="${order.routes}">
                                                     <tr>
-                                                        <td><fmt:formatDate pattern="dd/MM/yyyy kk:mm"
+                                                        <td><fmt:formatDate pattern="dd/MM/yyyy HH:mm"
                                                                             value="${route.startTime.time}"/></td>
                                                         <td class="source_add">${route.sourceAddress}</td>
                                                         <td class="dest_add">${route.destinationAddress}</td>
                                                         <td><fmt:formatNumber type="number"
                                                                               maxFractionDigits="2" value="${route.distance}" /> km</td>
                                                         <td>
-                                                            <fmt:formatDate pattern="dd/MM/yyyy kk:mm"
+                                                            <fmt:formatDate pattern="dd/MM/yyyy HH:mm"
                                                                             value="${route.completionTime.time}"/>
 
                                                         </td>

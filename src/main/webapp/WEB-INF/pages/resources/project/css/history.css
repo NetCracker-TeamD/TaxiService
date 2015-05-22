@@ -9,3 +9,10 @@
     cursor: pointer;
 }
 #viewType button:focus { outline: none; }
+
+.panel-body table{
+    width: 100% !important;
+}
+.history_node{
+    cursor:pointer;
+}
