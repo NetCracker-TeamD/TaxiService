@@ -2,12 +2,32 @@
  * Created by Nazar Dub
  */
 var addUsersButton =
-    '<button title="Add selected users" onclick="addSelectedUsers()" type="button" class="btn btn-primary btn-sm">' +
-    '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Add selected' +
+    '<button title="Add selected users" onclick="addSelectedUsers()" style="margin-right: 15px" type="button" class="btn btn-primary btn-sm">' +
+    '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Add' +
     '</button>';
 
 var hideFreeUsersList =
-    '<button title="Hide" type="button" class="btn btn-primary btn-sm" onclick="hideUsersToAdd()" style="margin-left: 180px">' +
+    '<button title="Hide" type="button" class="btn btn-primary btn-sm" style="margin-left: 15px" onclick="hideUsersToAdd()">' +
+    '<span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>' +
+    '</button>';
+
+var searchInFreeUsers =
+    '<input type="text" class="search-user-input" placeholder="Search...">' +
+    '<button class="btn btn-default btn-sm left-collapse-border" onclick="searchFreeUsers($(\'.search-user-input\').val())" type="button">' +
+    '<span class="glyphicon glyphicon-search" aria-hidden="true"></span>' +
+    '</button>';
+
+var userAddHead =
+    '<button title="Add selected users" onclick="addSelectedUsers()" style="margin-right: 15px" type="button" class="btn btn-primary btn-sm">' +
+    '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Add' +
+    '</button>' +
+
+    '<input type="text" class="search-user-input" placeholder="Search...">' +
+    '<button class="btn btn-default btn-sm left-collapse-border" onclick="searchFreeUsers($(\'.search-user-input\').val())" type="button">' +
+    '<span class="glyphicon glyphicon-search" aria-hidden="true"></span>' +
+    '</button>' +
+
+    '<button title="Hide" type="button" class="btn btn-primary btn-sm" style="margin-left: 15px" onclick="hideUsersToAdd()">' +
     '<span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>' +
     '</button>';
 
@@ -39,7 +59,7 @@ function showModalError(modalId, message) {
 function showAlertError(message) {
     alertError.find('p').html('<strong>Error!</strong> ' + message);
     alertError.slideDown(400);
-    setTimeout(function() {
+    setTimeout(function () {
         alertError.slideUp(600);
     }, 5000);
 }
@@ -47,7 +67,7 @@ function showAlertError(message) {
 function showAlertSuccess(message) {
     alertSuccess.find('p').html('<strong>Success.</strong> ' + message);
     alertSuccess.slideDown(400);
-    setTimeout(function() {
+    setTimeout(function () {
         alertSuccess.slideUp(600);
     }, 5000);
 }
@@ -146,16 +166,32 @@ var usersToAddMock1 =
         {id: 16, lastName: "Kojus6", firstName: "firs428"}
     ];
 
-function getGroups(activeGroupId) {
+function getGroups(callback, activeGroupId) {
     var list = groupList.find('ul');
     list.html('');
-    $.each(groupListMock, function (key, value) {
-        list.append($('<li group_id="' + value.id + '" class="list-group-item"></li>')
-            .append('<span class="badge">' + value.discount + '</span>' + value.name));
+    $.ajax('/admin/groups/get/all', {
+        type: 'post',
+        dataType: 'json',
+        success: function (response) {
+            if (response.result == "success") {
+                $.each(response.content, function (key, value) {
+                    list.append($('<li group_id="' + value.id + '" class="list-group-item"></li>')
+                        .append('<span class="badge">' + value.discount + '</span>' + value.name));
+                });
+                if (activeGroupId !== undefined) {
+                    list.find("li[group_id='" + activeGroupId + "']").addClass('active');
+                } else list.find('li').eq(0).addClass('active');
+                if (callback !== undefined) {
+                    callback(getCurrentGroupId());
+                }
+            } else {
+                showAlertError("Some problem on server");
+            }
+        },
+        error: function () {
+            showAlertError("Some problem on server");
+        }
     });
-    if (activeGroupId !== undefined) {
-        list.find("li[group_id='" + activeGroupId + "']").addClass('active');
-    } else list.find('li').eq(0).addClass('active');
 }
 
 function changeActiveGroup(node) {
@@ -169,7 +205,6 @@ function changeActiveGroup(node) {
     group.addClass('active');
     hideUsersList();
     makeUsersList(group.attr('group_id'));
-    showUsersList();
     if (freeUsersList.attr('opened') === 'true') {
         hideUsersToAdd();
         makeUsersToAdd();
@@ -203,12 +238,14 @@ function showUsersList() {
 }
 
 function showUsersToAdd() {
+    freeUsersList.prev().removeAttr('onclick');
     freeUsersList.attr('opened', true);
-    freeUsersList.prev().html(addUsersButton + ' ' + hideFreeUsersList);
+    freeUsersList.prev().html(addUsersButton + searchInFreeUsers + hideFreeUsersList);
     freeUsersList.slideDown(400);
 }
 
 function hideUsersToAdd() {
+    freeUsersList.prev().attr('onclick', 'makeUsersToAdd(undefined,event)');
     freeUsersList.attr('opened', false);
     freeUsersList.slideUp(400);
     freeUsersList.prev().html('Add new users');
@@ -233,22 +270,32 @@ function makeUsersList(groupId) {
         groupId = groupList.find('.active').attr('group_id');
         if (groupId === undefined) return;
     }
-    var users = usersOfGroup1Mock;
-    if (groupId == 11) {
-        users = usersOfGroup2Mock;
-    }
-    groupUsersList.html('');
-    for (var key in users) {
-        var value = users[key];
-        var userRow = $('<li user_id="' + value.id + '" class="list-group-item">' + value.lastName + ' ' + value.firstName + '</li>');
-        userRow.attr('onclick', 'selectUser(event)');
-        if (value.isMgr) {
-            //userRow.addClass('list-group-item-success');
-            userRow.prepend('<span title="Manager" class="glyphicon glyphicon-user" aria-hidden="true"></span> ');
+    $.ajax('/admin/groups/get/users', {
+        type: 'post',
+        dataType: 'json',
+        data: {groupId: getCurrentGroupId()},
+        success: function (response) {
+            if (response.result == "success") {
+                var users = response.content;
+                groupUsersList.html('');
+                for (var key in users) {
+                    var value = users[key];
+                    var userRow = $('<li user_id="' + value.id + '" class="list-group-item">' + value.lastName + ' ' + value.firstName + '</li>');
+                    userRow.attr('onclick', 'selectUser(event)');
+                    if (value.isMgr === 'true') {
+                        userRow.prepend('<span title="Manager" class="glyphicon glyphicon-user" aria-hidden="true"></span> ');
+                    }
+                    groupUsersList.append(userRow);
+                }
+                showUsersList();
+            } else {
+                showAlertError("Some problem on server");
+            }
+        },
+        error: function () {
+            showAlertError("Some problem on server");
         }
-        groupUsersList.append(userRow);
-    }
-    showUsersList();
+    });
 }
 
 function makeUsersToAdd(groupId, node) {
@@ -257,14 +304,28 @@ function makeUsersToAdd(groupId, node) {
         groupId = groupList.find('.active').attr('group_id');
         if (groupId === undefined) return;
     }
-    var users = usersToAddMock1;
-    freeUsersList.html('');
-    $.each(users, function (key, value) {
-        var userRow = $('<li user_id="' + value.id + '" class="list-group-item">' + value.lastName + ' ' + value.firstName + '</li>');
-        userRow.attr('onclick', 'selectUser(event)');
-        freeUsersList.append(userRow);
+    $.ajax('/admin/groups/get/freeUsers', {
+        type: 'post',
+        dataType: 'json',
+        data: {groupId: getCurrentGroupId()},
+        success: function (response) {
+            if (response.result == "success") {
+                var users = response.content;
+                freeUsersList.html('');
+                $.each(users, function (key, value) {
+                    var userRow = $('<li user_id="' + value.id + '" class="list-group-item">' + value.lastName + ' ' + value.firstName + '</li>');
+                    userRow.attr('onclick', 'selectUser(event)');
+                    freeUsersList.append(userRow);
+                });
+                showUsersToAdd();
+            } else {
+                showAlertError("Some problem on server");
+            }
+        },
+        error: function () {
+            showAlertError("Some problem on server");
+        }
     });
-    showUsersToAdd();
 }
 
 function getCurrentGroupId() {
@@ -316,7 +377,18 @@ function addSelectedUsers() {
     //TODO: ajax
 }
 
-getGroups(11);
-makeUsersList();
-showAlertSuccess("Page loaded");
+function searchFreeUsers(text) {
+    text = text.toLowerCase();
+    freeUsersList.find('li').each(function (key, value) {
+        var record = $(value);
+        if (record.text().toLowerCase().indexOf(text) > -1) {
+            record.slideDown();
+        } else {
+            $(value).slideUp();
+        }
+    });
+}
+
+getGroups(makeUsersList);
+
 

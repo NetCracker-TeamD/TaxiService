@@ -37,9 +37,14 @@ public class GroupAdminController {
     @Autowired
     private GroupsService groupsService;
 
-    @RequestMapping(value = "/get/all", method = RequestMethod.GET)
+    @RequestMapping("/")
+    public String getGroupsPage() {
+        return "admin/groups";
+    }
+
+    @RequestMapping(value = "/get/all", method = RequestMethod.POST)
     @ResponseBody
-    public Object getAllGroups(){
+    public Object getAllGroups() {
         AdminResponseModel<List<Map<String, String>>> adminResponseModel = new AdminResponseModel<>();
         adminResponseModel.setResultSuccess();
 
@@ -47,11 +52,11 @@ public class GroupAdminController {
         List<Map<String, String>> listResponse = new ArrayList<>();
         Map<String, String> group = null;
 
-        for (UserGroup userGroup : userGroups){
+        for (UserGroup userGroup : userGroups) {
             group = new HashMap<>();
-            group.put("id",userGroup.getGroupId().toString());
-            group.put("name",userGroup.getName());
-            group.put("discount",userGroup.getDiscount().toString());
+            group.put("id", userGroup.getGroupId().toString());
+            group.put("name", userGroup.getName());
+            group.put("discount", userGroup.getDiscount().toString());
 
             listResponse.add(group);
             group = null;
@@ -61,9 +66,9 @@ public class GroupAdminController {
         return adminResponseModel;
     }
 
-    @RequestMapping(value = "/get/users", method = RequestMethod.GET)
+    @RequestMapping(value = "/get/users", method = RequestMethod.POST)
     @ResponseBody
-    public Object getUsersByGroupId(@RequestParam(value = "groupId") Integer groupId){
+    public Object getUsersByGroupId(@RequestParam(value = "groupId") Integer groupId) {
 
         if (groupsService.isExistUserGroup(groupId)) {
             AdminResponseModel<List<Map<String, String>>> adminResponseModel = new AdminResponseModel<>();
@@ -73,10 +78,10 @@ public class GroupAdminController {
             List<Map<String, String>> listResponse = new ArrayList<>();
             Map<String, String> userInGroup = null;
 
-            for (GroupList groupList : groupLists){
+            for (GroupList groupList : groupLists) {
                 userInGroup = new HashMap<>();
                 User user = groupList.getUser();
-                userInGroup.put("id",user.getId().toString());
+                userInGroup.put("id", user.getId().toString());
                 userInGroup.put("lastName", user.getLastName());
                 userInGroup.put("firstName", user.getFirstName());
                 userInGroup.put("isMgr", new Boolean(groupList.isManager()).toString());
@@ -87,16 +92,16 @@ public class GroupAdminController {
 
             adminResponseModel.setContent(listResponse);
             return adminResponseModel;
-        }else{
+        } else {
             AdminResponseModel<String> adminResponseModel = new AdminResponseModel<>();
             adminResponseModel.setResultFailure().setContent(env.getRequiredProperty(MESSAGE_GROUP_ID_NOT_EXIST));
             return adminResponseModel;
         }
     }
 
-    @RequestMapping(value = "/get/freeUsers", method = RequestMethod.GET)
+    @RequestMapping(value = "/get/freeUsers", method = RequestMethod.POST)
     @ResponseBody
-    public Object getUsersWhichNotIncludedInGroupWithGroupId(@RequestParam(value = "groupId") Integer groupId){
+    public Object getUsersWhichNotIncludedInGroupWithGroupId(@RequestParam(value = "groupId") Integer groupId) {
         if (groupsService.isExistUserGroup(groupId)) {
             AdminResponseModel<List<Map<String, String>>> adminResponseModel = new AdminResponseModel<>();
             adminResponseModel.setResultSuccess();
@@ -105,10 +110,10 @@ public class GroupAdminController {
             List<Map<String, String>> listResponse = new ArrayList<>();
             Map<String, String> userInGroup = null;
 
-            for (GroupList groupList : groupLists){
+            for (GroupList groupList : groupLists) {
                 userInGroup = new HashMap<>();
                 User user = groupList.getUser();
-                userInGroup.put("id",user.getId().toString());
+                userInGroup.put("id", user.getId().toString());
                 userInGroup.put("lastName", user.getLastName());
                 userInGroup.put("firstName", user.getFirstName());
 
@@ -118,7 +123,7 @@ public class GroupAdminController {
 
             adminResponseModel.setContent(listResponse);
             return adminResponseModel;
-        }else{
+        } else {
             AdminResponseModel<String> adminResponseModel = new AdminResponseModel<>();
             adminResponseModel.setResultFailure().setContent(env.getRequiredProperty(MESSAGE_GROUP_ID_NOT_EXIST));
             return adminResponseModel;
@@ -127,7 +132,7 @@ public class GroupAdminController {
 
     @RequestMapping(value = "/delete", method = RequestMethod.GET)
     @ResponseBody
-    public Object deleteGroup(@RequestParam(value = "id") Integer groupId){
+    public Object deleteGroup(@RequestParam(value = "id") Integer groupId) {
         AdminResponseModel<String> response = new AdminResponseModel<>();
         try {
             groupsService.removeGroup(groupId);
@@ -141,9 +146,9 @@ public class GroupAdminController {
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @ResponseBody
-    public Object updateGroup(@RequestBody @Valid UpdateGroupModel updateGroupModel, BindingResult result){
+    public Object updateGroup(@RequestBody @Valid UpdateGroupModel updateGroupModel, BindingResult result) {
 
-        if(result.hasErrors()){
+        if (result.hasErrors()) {
             AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
             response.setResultFailure();
 
@@ -154,7 +159,7 @@ public class GroupAdminController {
             }
             response.setContent(mapError);
             return response;
-        }else{
+        } else {
 
             groupsService.updateGroupWithUpdateGroupModel(updateGroupModel);
 
@@ -166,8 +171,8 @@ public class GroupAdminController {
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
-    public Object updateGroup(@RequestBody @Valid CreateGroupModel createGroupModel, BindingResult result){
-        if(result.hasErrors()){
+    public Object updateGroup(@RequestBody @Valid CreateGroupModel createGroupModel, BindingResult result) {
+        if (result.hasErrors()) {
             AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
             response.setResultFailure();
 
@@ -178,7 +183,7 @@ public class GroupAdminController {
             }
             response.setContent(mapError);
             return response;
-        }else{
+        } else {
 
             groupsService.createGroupWithCreateGroupModel(createGroupModel);
 
