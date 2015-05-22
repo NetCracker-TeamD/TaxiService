@@ -226,11 +226,11 @@ public class GroupAdminController {
         }
     }
 
-    @RequestMapping(value = "/add/delete", method = RequestMethod.POST)
+    @RequestMapping(value = "/delete/users", method = RequestMethod.POST)
     @ResponseBody
-    public Object addUsersToGroup(DeleteUsersFromGroupModel deleteUsersFromGroupModel, BindingResult result){
+    public Object deleteUsersFromGroup(DeleteUsersFromGroupModel deleteUsersFromGroupModel, BindingResult result){
 
-        addUsersToGroupValidator.validate(deleteUsersFromGroupModel, result);
+        deleteUsersFromGroupValidator.validate(deleteUsersFromGroupModel, result);
         if (result.hasErrors()) {
             AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
             response.setResultFailure();

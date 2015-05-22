@@ -441,8 +441,38 @@ function removeSelectedUsers() {
     getSelectedUserFromGroup().each(function (key, value) {
         dataToSend.users.push(parseInt($(value).attr('user_id')));
     });
+    dataToSend.users = dataToSend.users.toString();
     alert(JSON.stringify(dataToSend));
-    //TODO: ajax
+    $.ajax('/admin/groups/delete/users', {
+        type: 'post',
+        dataType: 'json',
+        data: dataToSend,
+        success: function (response) {
+            if (response.result == "success") {
+                showAlertSuccess(response.content);
+                //getGroups(makeUsersList);
+                //freeUsersList.find('.active').each(function (key, elem) {
+                //    $(elem).slideUp();
+                //});
+                hideUsersList();
+                makeUsersList();
+
+            } else {
+                if (response.result == "failure") {
+                    var message = '';
+                    for (var field in response.content) {
+                        message = message + '<p>' + response.content[field] + '</p>';
+                    }
+                    showAlertError(message);
+                } else {
+                    showAlertError('Some problem on server, try later');
+                }
+            }
+        },
+        error: function () {
+            showAlertError('Some problem on server');
+        }
+    });
 }
 
 function addSelectedUsers() {
@@ -453,8 +483,6 @@ function addSelectedUsers() {
         dataToSend.users.push(parseInt($(value).attr('user_id')));
     });
     dataToSend.users = dataToSend.users.toString();
-    alert(JSON.stringify(dataToSend));
-
     $.ajax('/admin/groups/add/users', {
         type: 'post',
         dataType: 'json',
@@ -462,7 +490,16 @@ function addSelectedUsers() {
         success: function (response) {
             if (response.result == "success") {
                 showAlertSuccess(response.content);
-                getGroups(makeUsersList);
+                //getGroups(makeUsersList);
+                //freeUsersList.find('.active').each(function (key, elem) {
+                //    $(elem).slideUp();
+                //});
+                freeUsersList.find('.active').each(function (key, elem) {
+                    $(elem).remove();
+                });
+                hideUsersList();
+                makeUsersList();
+
             } else {
                 if (response.result == "failure") {
                     var message = '';

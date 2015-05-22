@@ -257,7 +257,7 @@
             </div>
         </div>
 
-        <div class="col-md-4" style="height: 600px; overflow-y: auto;">
+        <div class="col-md-4">
             <div class="panel panel-info">
                 <div class="panel-heading">Users of Group
                     <button title="Change users manage status" type="button" class="btn btn-info btn-sm"
@@ -270,7 +270,8 @@
                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                     </button>
                 </div>
-                <ul class="list-group" id="group_users_list" style="display: none;"></ul>
+                <ul class="list-group" id="group_users_list"
+                    style="height: 600px; overflow-y: auto;display: none;"></ul>
             </div>
         </div>
 

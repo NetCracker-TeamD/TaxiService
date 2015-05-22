@@ -1,7 +1,6 @@
 package com.teamd.taxi.validation;
 
 import com.teamd.taxi.entity.GroupListPK;
-import com.teamd.taxi.models.admin.AddUsersGroupModel;
 import com.teamd.taxi.models.admin.DeleteUsersFromGroupModel;
 import com.teamd.taxi.persistence.repository.GroupListRepository;
 import com.teamd.taxi.persistence.repository.GroupsRepository;
@@ -32,25 +31,25 @@ public class DeleteUsersFromGroupValidator implements Validator {
 
     @Override
     public void validate(Object o, Errors errors) {
-        AddUsersGroupModel addUsersGroupModel = (AddUsersGroupModel) o;
+        DeleteUsersFromGroupModel deleteUsersFromGroupModel = (DeleteUsersFromGroupModel) o;
 
         boolean existGroup = true;
-        if (addUsersGroupModel.getGroupId() == null) {
+        if (deleteUsersFromGroupModel.getGroupId() == null) {
             errors.rejectValue(GROUP_ID, "admin.group.groupId.empty");
             existGroup = false;
         } else {
-            if (groupsRepository.findOne(addUsersGroupModel.getGroupId()) == null) {
+            if (groupsRepository.findOne(deleteUsersFromGroupModel.getGroupId()) == null) {
                 errors.rejectValue(GROUP_ID, "admin.group.groupId.nonexistent");
                 existGroup = false;
             }
         }
 
-        if (addUsersGroupModel.getUsers() == null) {
+        if (deleteUsersFromGroupModel.getUsers() == null) {
             errors.rejectValue(LIST_USERS, "admin.group.listUsers.empty");
         } else {
             if (existGroup == true) {
-                for (Integer userId : addUsersGroupModel.getUsers()) {
-                    if (groupListRepository.findOne(new GroupListPK(userId, addUsersGroupModel.getGroupId())) == null) {
+                for (Integer userId : deleteUsersFromGroupModel.getUsers()) {
+                    if (groupListRepository.findOne(new GroupListPK(userId, deleteUsersFromGroupModel.getGroupId())) == null) {
                         errors.rejectValue(LIST_USERS, "admin.group.user.notContainsInThisGroup");
                     }
                 }
