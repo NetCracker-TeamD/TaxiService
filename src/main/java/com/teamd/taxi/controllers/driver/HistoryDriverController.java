@@ -71,10 +71,10 @@ public class HistoryDriverController {
         int page = 0;
         if (requestParam.get("page") != null)
             page = Integer.parseInt(requestParam.get("page")) - 1;
-        String sort = checkSort(requestParam.get("sort"));
+        Sort sort = checkSort(requestParam.get("sort"));
         int numberOfRows = 7;
         typeList = service.findAll();
-        Pageable pageable = new PageRequest(page, numberOfRows, Sort.Direction.ASC, sort);
+        Pageable pageable = new PageRequest(page, numberOfRows, sort);
         Page<TaxiOrder> orderList = orderService.findTaxiOrderByDriver(
                 resolveSpecification(requestParam, driver.getId()),
                 pageable
@@ -95,7 +95,7 @@ public class HistoryDriverController {
         String to_date = params.get("startDate");
         if (to_date != null) {
             try {
-                specs.add(factory.executionDateGreaterThan(getCalendarByStr(to_date)));
+                specs.add(factory.executionDateGreaterThan(getCalendarByStr(to_date+" 00:00")));
             } catch (NumberFormatException exception) {
                 logger.error("error from startDate");
             }
@@ -104,7 +104,7 @@ public class HistoryDriverController {
         String from_date = params.get("endDate");
         if (from_date != null) {
             try {
-                specs.add(factory.executionDateLessThan(getCalendarByStr(from_date)));
+                specs.add(factory.executionDateLessThan(getCalendarByStr(from_date+" 23:59")));
             } catch (NumberFormatException exception) {
                 logger.error("error from endDate");
             }
@@ -140,7 +140,7 @@ public class HistoryDriverController {
     }
 
     private Calendar getCalendarByStr(String strDate) {
-        SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         Calendar cal = Calendar.getInstance(Locale.ROOT);
         try {
             cal.setTimeInMillis(f.parse(strDate).getTime());
@@ -159,14 +159,13 @@ public class HistoryDriverController {
         return null;
     }
 
-    private String checkSort(String sort) {
-        if (sort == null) {
-            return "id";
-        }
-        if (sort.equals("date")) {
-            return "executionDate";
+    private Sort checkSort(String sort) {
+        if (sort == null||sort.equals("newest")) {
+            return new Sort(Sort.Direction.DESC,"executionDate");
+        }else if (sort.equals("oldest")) {
+            return new Sort(Sort.Direction.ASC,"executionDate");
         } else
-            return "id";
+            return new Sort(Sort.Direction.DESC,"executionDate");
     }
 
     private void setFilteringOFRoutesForDriver(List<TaxiOrder> orders, int idDriver) {

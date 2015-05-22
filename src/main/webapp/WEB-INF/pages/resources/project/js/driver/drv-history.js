@@ -33,16 +33,15 @@ $(document).ready(function () {
 
     //validation get-query
     $('form').submit(function (e) {
-        var emptyinputs = $(this).find('input').filter(function () {
+        $(this).find('input').filter(function () {
             return !$.trim(this.value).length;  // get all empty fields
         }).prop('disabled', true);
-        var emptyinputs = $(this).find('option').filter(function () {
+        $(this).find('option').filter(function () {
             return !$.trim(this.value).length;  // get all empty fields
         }).prop('disabled', true);
     });
 
     //Dropdown History
-    $('.history_list .history_node').css('cursor', 'pointer');
     $('.history_list .history_node').click(function () {
         $(this).parent()
             .children('.history_details')
@@ -62,22 +61,21 @@ $(document).ready(function () {
         }
     });
     $('.map-panel .panel-heading').one('click',function () {
-        initialize($(this).parents().eq(2).find("#map-canvas"));
         $(this).parent()
             .children('.map')
             .stop()
             .slideToggle();
+        initialize($(this).parents().eq(2).find("#map-canvas"));
     });
-
     //set attribute for href
     setAttr('id');
     setAttr('address');
     setAttr('service_type');
     setAttr('startDate');
     setAttr('endDate');
-    $('#type_sort li a').each(function () {
-        var _href = $(this).attr("href");
-        $(this).attr("href", _href + attr);
+    $('#type_sort option').each(function () {
+        var _href = $(this).attr("value");
+        $(this).attr("value", _href + attr);
     });
     $('.pagination li a').each(function () {
         var _href = $(this).attr("href");
