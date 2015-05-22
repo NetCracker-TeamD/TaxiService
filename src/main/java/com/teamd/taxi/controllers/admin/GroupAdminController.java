@@ -6,6 +6,7 @@ import com.teamd.taxi.entity.UserGroup;
 import com.teamd.taxi.models.admin.*;
 import com.teamd.taxi.service.GroupsService;
 import com.teamd.taxi.validation.AddUsersToGroupValidator;
+import com.teamd.taxi.validation.DeleteUsersFromGroupValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -29,6 +30,7 @@ public class GroupAdminController {
     private static final String MESSAGE_SUCCESS_GROUP_UPDATE = "admin.group.success.update";
     private static final String MESSAGE_SUCCESS_GROUP_CREATE = "admin.group.success.create";
     private static final String MESSAGE_SUCCESS_ADD_USER_TO_GROUP = "admin.group.success.addUsersToGroup";
+    private static final String MESSAGE_SUCCESS_DELETE_USERS_FROM_GROUP = "admin.group.success.deleteUsersFromGroup";
 
     @Autowired
     Environment env;
@@ -38,6 +40,9 @@ public class GroupAdminController {
 
     @Autowired
     private AddUsersToGroupValidator addUsersToGroupValidator;
+
+    @Autowired
+    private DeleteUsersFromGroupValidator deleteUsersFromGroupValidator;
 
     @RequestMapping("/")
     public String getGroupsPage() {
@@ -220,4 +225,32 @@ public class GroupAdminController {
             return response;
         }
     }
+
+    @RequestMapping(value = "/add/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public Object addUsersToGroup(DeleteUsersFromGroupModel deleteUsersFromGroupModel, BindingResult result){
+
+        addUsersToGroupValidator.validate(deleteUsersFromGroupModel, result);
+        if (result.hasErrors()) {
+            AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
+            response.setResultFailure();
+
+            Map<String, String> mapError = new HashMap<>();
+
+            for (FieldError fieldError : result.getFieldErrors()) {
+                mapError.put(fieldError.getField(), env.getRequiredProperty(fieldError.getCode()));
+            }
+            response.setContent(mapError);
+            return response;
+        } else {
+
+            groupsService.deleteUsersFromGroupWithDeleteUsersFromGroupModel(deleteUsersFromGroupModel);
+
+            AdminResponseModel<String> response = new AdminResponseModel<>();
+            response.setResultSuccess().setContent(env.getRequiredProperty(MESSAGE_SUCCESS_DELETE_USERS_FROM_GROUP));
+            return response;
+        }
+    }
+
+
 }

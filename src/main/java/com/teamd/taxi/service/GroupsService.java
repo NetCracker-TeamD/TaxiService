@@ -6,6 +6,7 @@ import com.teamd.taxi.entity.User;
 import com.teamd.taxi.entity.UserGroup;
 import com.teamd.taxi.models.admin.AddUsersGroupModel;
 import com.teamd.taxi.models.admin.CreateGroupModel;
+import com.teamd.taxi.models.admin.DeleteUsersFromGroupModel;
 import com.teamd.taxi.models.admin.UpdateGroupModel;
 import com.teamd.taxi.persistence.repository.GroupListRepository;
 import com.teamd.taxi.persistence.repository.GroupsRepository;
@@ -84,6 +85,18 @@ public class GroupsService {
 
         for(Integer userId : addUsersGroupModel.getUsers()){
             groupLists.add(new GroupList(userId, addUsersGroupModel.getGroupId()));
+        }
+
+        userGroup.setGroups(groupLists);
+    }
+
+    @Transactional
+    public void deleteUsersFromGroupWithDeleteUsersFromGroupModel(DeleteUsersFromGroupModel deleteUsersFromGroupModel){
+        UserGroup userGroup = groupsRepository.findOne(deleteUsersFromGroupModel.getGroupId());
+        List<GroupList> groupLists = userGroup.getGroups();
+
+        for(Integer userId : deleteUsersFromGroupModel.getUsers()){
+            groupLists.remove(new GroupList(userId, deleteUsersFromGroupModel.getGroupId()));
         }
 
         userGroup.setGroups(groupLists);
