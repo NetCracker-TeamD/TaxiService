@@ -24,7 +24,8 @@ public class GroupsService {
     private GroupsRepository groupsRepository;
     @Autowired
     private GroupListRepository groupListRepository;
-
+    @Autowired
+    private UserRepository userRepository;
 
     @Transactional
     public List<UserGroup> getGroupsList() {
@@ -52,8 +53,8 @@ public class GroupsService {
         return groupsRepository.findOne(id) != null;
     }
 
-    public List<GroupList> getGroupsListWhichNotContainsUserGroupId(Integer id) {
-        return groupListRepository.findByNotContainsUserGroupGroupId(id);
+    public List<User> getUsersNotFromGroup(Integer id) {
+        return userRepository.getUserNotFromGroup(id);
     }
 
     public void removeGroup(Integer id) {
@@ -98,11 +99,11 @@ public class GroupsService {
     }
 
     @Transactional
-    public void updateManagerStatus(ChangeManagerStatusModel changeManagerStatusModel){
+    public void updateManagerStatus(ChangeManagerStatusModel changeManagerStatusModel) {
         List<GroupList> groupLists = new ArrayList<>();
-        for(Map<Integer, Boolean> userIdAndBoolean: changeManagerStatusModel.getUsers()){
-            for (Integer userId : userIdAndBoolean.keySet()){
-                groupLists.add(new GroupList(new GroupListPK(userId, changeManagerStatusModel.getGroupId()),userIdAndBoolean.get(userId)));
+        for (Map<Integer, Boolean> userIdAndBoolean : changeManagerStatusModel.getUsers()) {
+            for (Integer userId : userIdAndBoolean.keySet()) {
+                groupLists.add(new GroupList(new GroupListPK(userId, changeManagerStatusModel.getGroupId()), userIdAndBoolean.get(userId)));
             }
         }
 

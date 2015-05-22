@@ -118,13 +118,12 @@ public class GroupAdminController {
             AdminResponseModel<List<Map<String, String>>> adminResponseModel = new AdminResponseModel<>();
             adminResponseModel.setResultSuccess();
 
-            List<GroupList> groupLists = groupsService.getGroupsListWhichNotContainsUserGroupId(groupId);
+            List<User> userList = groupsService.getUsersNotFromGroup(groupId);
             List<Map<String, String>> listResponse = new ArrayList<>();
             Map<String, String> userInGroup = null;
 
-            for (GroupList groupList : groupLists) {
+            for (User user : userList) {
                 userInGroup = new HashMap<>();
-                User user = groupList.getUser();
                 userInGroup.put("id", user.getId().toString());
                 userInGroup.put("lastName", user.getLastName());
                 userInGroup.put("firstName", user.getFirstName());
@@ -207,7 +206,7 @@ public class GroupAdminController {
 
     @RequestMapping(value = "/add/users", method = RequestMethod.POST)
     @ResponseBody
-    public Object addUsersToGroup(AddUsersGroupModel addUsersGroupModel, BindingResult result){
+    public Object addUsersToGroup(AddUsersGroupModel addUsersGroupModel, BindingResult result) {
 
         addUsersToGroupValidator.validate(addUsersGroupModel, result);
         if (result.hasErrors()) {
@@ -233,7 +232,7 @@ public class GroupAdminController {
 
     @RequestMapping(value = "/delete/users", method = RequestMethod.POST)
     @ResponseBody
-    public Object deleteUsersFromGroup(DeleteUsersFromGroupModel deleteUsersFromGroupModel, BindingResult result){
+    public Object deleteUsersFromGroup(DeleteUsersFromGroupModel deleteUsersFromGroupModel, BindingResult result) {
 
         deleteUsersFromGroupValidator.validate(deleteUsersFromGroupModel, result);
         if (result.hasErrors()) {
@@ -259,7 +258,7 @@ public class GroupAdminController {
 
     @RequestMapping(value = "/update/manage-status", method = RequestMethod.POST)
     @ResponseBody
-    public Object updateManagerStatus(ChangeManagerStatusModel changeManagerStatusModel, BindingResult result){
+    public Object updateManagerStatus(ChangeManagerStatusModel changeManagerStatusModel, BindingResult result) {
         changeManagerStatusValidator.validate(changeManagerStatusModel, result);
         if (result.hasErrors()) {
             AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();

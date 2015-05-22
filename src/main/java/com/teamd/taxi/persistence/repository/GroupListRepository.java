@@ -13,7 +13,4 @@ import java.util.List;
  */
 public interface GroupListRepository extends JpaRepository<GroupList, GroupListPK> {
     public List<GroupList> findByUserGroupGroupId(Integer id);
-
-    @Query("select h from GroupList h where h.user.id not in (select g.user.id from GroupList g where g.userGroup.groupId = :groupId)")
-    public List<GroupList> findByNotContainsUserGroupGroupId(@Param("groupId") Integer id);
 }
