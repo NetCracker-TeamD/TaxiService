@@ -233,26 +233,27 @@
         </div>
         <div class="col-md-4">
             <%--<form class="form-inline pull-right ">--%>
-                <%--<div class="form-group">--%>
-                    <%--<form method="get">--%>
-                        <%--<label for="sort-input">Sort</label>--%>
-                        <%--<select class="form-control input-sm" id="sort-input" name="order" onchange="form.submit()">--%>
-                            <%--<option value="last_name">by Last Name</option>--%>
-                            <%--<option value="first_name">by First Name</option>--%>
-                        <%--</select>--%>
-                    <%--</form>--%>
-                <%--</div>--%>
+            <%--<div class="form-group">--%>
+            <%--<form method="get">--%>
+            <%--<label for="sort-input">Sort</label>--%>
+            <%--<select class="form-control input-sm" id="sort-input" name="order" onchange="form.submit()">--%>
+            <%--<option value="last_name">by Last Name</option>--%>
+            <%--<option value="first_name">by First Name</option>--%>
+            <%--</select>--%>
+            <%--</form>--%>
+            <%--</div>--%>
             <%--</form>--%>
         </div>
     </div>
     <div class="row">
         <br/>
 
-        <div id="group_list" class="col-md-4" style="height: 600px; overflow-y: auto;">
-            <div class="panel panel-default">
+        <div id="group_list" class="col-md-4">
+            <div class="panel panel-default" style="border: none;-webkit-box-shadow: none;box-shadow: none;">
                 <div class="panel-heading">Groups</div>
-                <ul class="list-group" onclick="changeActiveGroup(event)">
-                </ul>
+                <div style="height: 600px; overflow-y: auto;">
+                    <ul class="list-group" onclick="changeActiveGroup(event)"></ul>
+                </div>
             </div>
         </div>
 
@@ -276,7 +277,8 @@
         <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading" onclick="makeUsersToAdd(undefined,event)">Add new users</div>
-                <ul class="list-group" id="all_users_list" opened="false" style="height: 600px; overflow-y: auto;display: none;"></ul>
+                <ul class="list-group" id="all_users_list" opened="false"
+                    style="height: 600px; overflow-y: auto;display: none;"></ul>
             </div>
         </div>
 

@@ -22,7 +22,7 @@ public class UpdateGroupModel {
     private String name;
 
     @NotBlankOrNull(message = "Please enter group discount")
-    @Pattern(regexp = "^[-+]?\\d(\\.|\\,)\\d$", message = "Group's discount field contains invalid characters")
+    @Pattern(regexp = "^[-+]?\\d+(\\.)?(\\d+)?$", message = "Group's discount field contains invalid characters")
     private String discount;
 
     public Integer getId() {

@@ -2,10 +2,16 @@ package com.teamd.taxi.service;
 
 import com.teamd.taxi.entity.TariffByTime;
 import com.teamd.taxi.persistence.repository.TariffByTimeRepository;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 @Service
 public class TariffService {
@@ -21,6 +27,9 @@ public class TariffService {
         tariffByTimeRepository.save(tariffByTime);
     }
 
+    public TariffByTime findOne(int id){
+        return tariffByTimeRepository.findOne(id);
+    }
 
     public void removeTariff(int id) {
         tariffByTimeRepository.delete(id);

@@ -132,7 +132,7 @@ public class GroupAdminController {
         }
     }
 
-    @RequestMapping(value = "/delete", method = RequestMethod.GET)
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
     public Object deleteGroup(@RequestParam(value = "id") Integer groupId) {
         AdminResponseModel<String> response = new AdminResponseModel<>();
@@ -148,7 +148,7 @@ public class GroupAdminController {
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @ResponseBody
-    public Object updateGroup(@RequestBody @Valid UpdateGroupModel updateGroupModel, BindingResult result) {
+    public Object updateGroup(@Valid UpdateGroupModel updateGroupModel, BindingResult result) {
 
         if (result.hasErrors()) {
             AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
@@ -173,7 +173,7 @@ public class GroupAdminController {
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
-    public Object updateGroup(@RequestBody @Valid CreateGroupModel createGroupModel, BindingResult result) {
+    public Object createGroup(@Valid CreateGroupModel createGroupModel, BindingResult result) {
         if (result.hasErrors()) {
             AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
             response.setResultFailure();
