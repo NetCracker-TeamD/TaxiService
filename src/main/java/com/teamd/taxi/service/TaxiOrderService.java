@@ -170,6 +170,10 @@ public class TaxiOrderService {
                         ));
                 routes.add(route);
             }
+        } else if (serviceType.isDestinationLocationsChain()) {
+            String source = form.getSource().get(0);
+            String destination = form.getDestination().get(0);
+            routes.add(new Route(null, RouteStatus.QUEUED, source, destination, false));
         } else {
             String source = form.getSource().get(0);
             mapService.checkAddress(source);
@@ -189,9 +193,7 @@ public class TaxiOrderService {
                 multiplied.addAll(makeClones(prototype, amount));
             }
             routes = multiplied;
-        }
-        //TODO: isDestRequired
-        else {
+        } else {
             int amount = form.getCarsAmount().get(0);
             List<Route> multipled = new ArrayList<>();
             for (Route route : routes) {
