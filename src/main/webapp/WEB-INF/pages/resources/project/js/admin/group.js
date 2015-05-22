@@ -452,6 +452,7 @@ function addSelectedUsers() {
     getSelectedUserFree().each(function (key, value) {
         dataToSend.users.push(parseInt($(value).attr('user_id')));
     });
+    dataToSend.users = dataToSend.users.toString();
     alert(JSON.stringify(dataToSend));
 
     $.ajax('/admin/groups/add/users', {
@@ -467,16 +468,15 @@ function addSelectedUsers() {
                     var message = '';
                     for (var field in response.content) {
                         message = message + '<p>' + response.content[field] + '</p>';
-
                     }
                     showAlertError(message);
                 } else {
-                    showAlertError(message);
+                    showAlertError('Some problem on server, try later');
                 }
             }
         },
         error: function () {
-            showAlertError(message);
+            showAlertError('Some problem on server');
         }
     });
 }

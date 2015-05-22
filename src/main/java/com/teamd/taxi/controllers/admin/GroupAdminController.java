@@ -197,7 +197,7 @@ public class GroupAdminController {
 
     @RequestMapping(value = "/add/users", method = RequestMethod.POST)
     @ResponseBody
-    public Object addUsersToGroup(@RequestBody AddUsersGroupModel addUsersGroupModel, BindingResult result){
+    public Object addUsersToGroup(AddUsersGroupModel addUsersGroupModel, BindingResult result){
 
         addUsersToGroupValidator.validate(addUsersGroupModel, result);
         if (result.hasErrors()) {
