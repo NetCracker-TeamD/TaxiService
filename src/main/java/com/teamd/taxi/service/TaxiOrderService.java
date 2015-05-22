@@ -189,7 +189,9 @@ public class TaxiOrderService {
                 multiplied.addAll(makeClones(prototype, amount));
             }
             routes = multiplied;
-        } else {
+        }
+        //TODO: isDestRequired
+        else {
             int amount = form.getCarsAmount().get(0);
             List<Route> multipled = new ArrayList<>();
             for (Route route : routes) {
