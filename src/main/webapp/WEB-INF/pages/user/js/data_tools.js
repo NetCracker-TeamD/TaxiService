@@ -235,6 +235,7 @@ var DataTools = (function () {
                     //console.log(history.cache)
 
                     ////console.log(services.types)
+                    
                     loader.setStatus(threadName, 'success')
                 },
                 'error': function (obj) {
@@ -266,12 +267,12 @@ var DataTools = (function () {
                     caches.userHistory = response
                     formatedData.userHistory = response
                     realiseCallStack(stackName, 'success', caches.userHistory, formatedData.userHistory)
-                    loader.setStatus(threadName, 'success')
+                    //loader.setStatus(threadName, 'success')
                 },
                 'error': function (response) {
                     //console.log("Can`t retrieve user`s history information")
                     realiseCallStack(stackName, 'error', response, formatedData.userHistory)
-                    loader.setStatus(threadName, 'error')
+                    //loader.setStatus(threadName, 'error')
                 }
             })
         },
@@ -297,7 +298,7 @@ var DataTools = (function () {
                     }
                     formatedData.user = caches.user
                     realiseCallStack('user', 'success', caches.user, formatedData.user)
-                    loader.setStatus(threadName, 'success')
+                    //loader.setStatus(threadName, 'success')
                 },
                 'error': function (response) {
                     //console.log(response)
@@ -309,7 +310,7 @@ var DataTools = (function () {
 
                     //console.log("Can`t retrieve user information")
                     realiseCallStack('user', 'error', response, formatedData.user)
-                    loader.setStatus(threadName, 'error')
+                    //loader.setStatus(threadName, 'error')
                 }
             })
             //realiseCallStack('user', 'success', caches.user, formatedData.user)
@@ -382,12 +383,12 @@ var DataTools = (function () {
             		orderInfo = response
             		calcOrderStatus(orderInfo)
             		realiseCallStack(stackName, 'success', response, orderInfo)
-            		loader.setStatus(threadName, 'success')
+            		//loader.setStatus(threadName, 'success')
             	},
             	error : function(response){
             		//console.log("Can`t retrieve order information")
             		realiseCallStack(stackName, 'error', caches.user, null)
-            		loader.setStatus(threadName, 'error')
+            		//loader.setStatus(threadName, 'error')
             	}
             })
             /*
@@ -455,7 +456,7 @@ var DataTools = (function () {
     		formatedData[stackName] = caches[stackName]
 
     		realiseCallStack(stackName, 'success', caches[stackName], formatedData[stackName])
-    		loader.setStatus(threadName, 'success')
+    		//loader.setStatus(threadName, 'success')
         },
         getFavLocations = function (loader, threadName, callback) {
         	var stackName = 'fav_locations'
@@ -480,12 +481,12 @@ var DataTools = (function () {
 						formatedData.fav_locations = caches.fav_locations
 					}
                     realiseCallStack(stackName, 'success', caches.fav_locations, formatedData.fav_locations)
-                    loader.setStatus(threadName, 'success')
+                    //loader.setStatus(threadName, 'success')
                 },
                 'error': function (response) {
                     //console.log("Can`t retrieve services information")
                     realiseCallStack(stackName, 'error', caches.fav_locations, formatedData.fav_locations)
-                    loader.setStatus(threadName, 'error')
+                    //loader.setStatus(threadName, 'error')
                 }
             })
             /*caches.fav_locations = [
@@ -530,12 +531,12 @@ var DataTools = (function () {
                     caches.fav_locations = response
                     formatedData.fav_locations = response
                     realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
-                    loader.setStatus(threadName, 'success')
+                    //loader.setStatus(threadName, 'success')
                 },
                 'error': function (response) {
                     //console.log("Can`t retrieve services information")
                     realiseCallStack('fav_locations', 'error', caches.fav_locations, formatedData.fav_locations)
-                    loader.setStatus(threadName, 'error')
+                    //loader.setStatus(threadName, 'error')
                 }
             })
             /*caches.fav_locations = [

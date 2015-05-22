@@ -256,6 +256,19 @@ public class TaxiOrderService {
     }
 
     @Transactional
+    public void cancelOrder(long orderId) throws OrderUpdatingException {
+        TaxiOrder order = orderRepository.findOne(orderId);
+        List<Route> routes = order.getRoutes();
+        for (Route route : routes) {
+            if (route.getStatus() != RouteStatus.QUEUED) {
+                throw new OrderUpdatingException("not cancelable", orderId);
+            }
+            route.setStatus(RouteStatus.CANCELED);
+        }
+        orderRepository.save(order);
+    }
+
+    @Transactional
     public TaxiOrder updateTaxiOrder(long orderId, TaxiOrderForm form) throws NotCompatibleException,
             PropertyNotFoundException, NotFoundException, MapServiceNotAvailableException,
             OrderUpdatingException {

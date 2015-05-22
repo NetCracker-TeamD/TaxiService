@@ -5,6 +5,6 @@ package com.teamd.taxi.exception;
  */
 public class OrderUpdatingException extends Exception {
     public OrderUpdatingException(String cause, long orderId) {
-        super(cause + "on [" + orderId + "]");
+        super(cause + " on [" + orderId + "]");
     }
 }
