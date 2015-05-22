@@ -75,8 +75,8 @@ var Loader = (function () {
             }
         },
         check = function () {
-        	console.log('check')
-        	console.log(loadResults)
+        	//console.log('check')
+        	//console.log(loadResults)
             var doCallBack = true;
             for (var key in loadResults) {
                 if (loadResults[key] == 0) {

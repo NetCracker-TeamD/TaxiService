@@ -306,6 +306,7 @@ public class OrderController {
     @ResponseBody
     public Map<String, Object> cancelUpdating(@RequestParam("id") TaxiOrder order) throws OrderUpdatingException {
         if (order == null) {
+
             return new MapResponse().put("status", "notFound");
         }
         taxiOrderService.cancelUpdating(order.getId());
@@ -372,6 +373,7 @@ public class OrderController {
                 && (!order.getSecretViewKey().equals(secretKey))
                 || !Utils.isAuthenticated()) {
             throw accessDeniedException;
+            TODO: не слать accessDeniedException при невірному ключі
         }
         AuthenticatedUser authenticatedUser = Utils.getCurrentUser();
         String userRole = Utils.getCurrentUserRole();

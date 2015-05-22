@@ -270,7 +270,7 @@
         <div id="group_list" class="col-md-4">
             <div class="panel panel-default" style="border: none;-webkit-box-shadow: none;box-shadow: none;">
                 <div class="panel-heading">Groups</div>
-                <div style="height: 600px; overflow-y: auto;">
+                <div style="height: 550px; overflow-y: auto;">
                     <ul class="list-group" onclick="changeActiveGroup(event)"></ul>
                 </div>
             </div>
@@ -290,7 +290,7 @@
                     </button>
                 </div>
                 <ul class="list-group" id="group_users_list"
-                    style="height: 600px; overflow-y: auto;display: none;"></ul>
+                    style="height: 550px; overflow-y: auto;display: none;"></ul>
             </div>
         </div>
 
@@ -298,7 +298,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading" onclick="makeUsersToAdd(undefined,event)">Add new users</div>
                 <ul class="list-group" id="all_users_list" opened="false"
-                    style="height: 600px; overflow-y: auto;display: none;"></ul>
+                    style="height: 550px; overflow-y: auto;display: none;"></ul>
             </div>
         </div>
 

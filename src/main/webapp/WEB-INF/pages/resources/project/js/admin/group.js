@@ -431,10 +431,44 @@ function manageStatusToggle() {
         user.id = parseInt($(value).attr('user_id'));
         var status = $(value).find('.glyphicon').is('span');
         user.mgr = !status;
+
         dataToSend.users.push(user);
     });
     alert(JSON.stringify(dataToSend));
-    //TODO: ajax
+    //$.ajax('/admin/groups/update/manage-status', {
+    //    type: 'post',
+    //    dataType: 'json',
+    //    data: dataToSend,
+    //    success: function (response) {
+    //        if (response.result == "success") {
+    //            showAlertSuccess(response.content);
+    //            //Not remove here
+    //            groupUsersList.find('.active').each(function (key, elem) {
+    //                $(elem).removeClass('active');
+    //                $(elem).slideUp();
+    //            });
+    //            removeUsersModal.modal('hide');
+    //            if (freeUsersList.attr('opened') === 'true') {
+    //                hideUsersToAdd();
+    //                makeUsersToAdd();
+    //            }
+    //
+    //        } else {
+    //            if (response.result == "failure") {
+    //                var message = '';
+    //                for (var field in response.content) {
+    //                    message = message + '<p>' + response.content[field] + '</p>';
+    //                }
+    //                showAlertError(message);
+    //            } else {
+    //                showAlertError('Some problem on server, try later');
+    //            }
+    //        }
+    //    },
+    //    error: function () {
+    //        showAlertError('Some problem on server');
+    //    }
+    //});
 }
 
 function removeSelectedUsers() {
