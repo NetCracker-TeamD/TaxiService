@@ -16,7 +16,7 @@ public class CreateGroupModel {
     private String name;
 
     @NotBlank(message = "Please enter group discount")
-    @Pattern(regexp = "^[-+]?\\d(\\.|\\,)\\d$", message = "Group's discount field contains invalid characters")
+    @Pattern(regexp = "^[-+]?\\d+(\\.)?(\\d+)?$", message = "Group's discount field contains invalid characters")
     private String discount;
 
     public String getName() {

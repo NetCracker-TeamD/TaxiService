@@ -231,6 +231,25 @@ function updateGroup(groupId, name, discount) {
 function createGroup(name, discount) {
     alert(name);
     alert(discount);
+    $.ajax('/admin/groups/create', {
+        type: 'post',
+        dataType: 'json',
+        data: {name: name, discount: discount},
+        success: function (response) {
+            if (response.result == "success") {
+                alert(response.content);
+            } else {
+                if (response.result == "failure") {
+                    alert(response.content);
+                } else {
+                    showAlertError("Some problem on server, try later");
+                }
+            }
+        },
+        error: function () {
+            showAlertError("Some problem on server");
+        }
+    });
 }
 
 function showUsersList() {

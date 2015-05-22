@@ -171,7 +171,7 @@ public class GroupAdminController {
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
-    public Object updateGroup(@RequestBody @Valid CreateGroupModel createGroupModel, BindingResult result) {
+    public Object createGroup(@Valid CreateGroupModel createGroupModel, BindingResult result) {
         if (result.hasErrors()) {
             AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
             response.setResultFailure();
