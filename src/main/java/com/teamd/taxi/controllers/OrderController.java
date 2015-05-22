@@ -306,6 +306,7 @@ public class OrderController {
     @ResponseBody
     public Map<String, Object> cancelUpdating(@RequestParam("id") TaxiOrder order) throws OrderUpdatingException {
         if (order == null) {
+
             return new MapResponse().put("status", "notFound");
         }
         taxiOrderService.cancelUpdating(order.getId());
