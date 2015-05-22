@@ -52,7 +52,7 @@ function showModalSuccess(message) {
 
 function showModalError(modalId, message) {
     var errorAlert = modalId.find('.modal-error').eq(0);
-    errorAlert.find('p').html("<strong>Error!</strong> " + message);
+    errorAlert.find('p').html(message);
     errorAlert.slideDown();
 }
 
@@ -61,7 +61,7 @@ function showAlertError(message) {
     alertError.slideDown(400);
     setTimeout(function () {
         alertError.slideUp(600);
-    }, 5000);
+    }, 7000);
 }
 
 function showAlertSuccess(message) {
@@ -69,7 +69,7 @@ function showAlertSuccess(message) {
     alertSuccess.slideDown(400);
     setTimeout(function () {
         alertSuccess.slideUp(600);
-    }, 5000);
+    }, 7000);
 }
 
 removeGroupModal.on('show.bs.modal', function (event) {
@@ -176,7 +176,7 @@ function getGroups(callback, activeGroupId) {
             if (response.result == "success") {
                 $.each(response.content, function (key, value) {
                     list.append($('<li group_id="' + value.id + '" class="list-group-item"></li>')
-                        .append('<span class="badge">' + value.discount + '</span>' + value.name));
+                        .append('<span class="badge">' + value.discount + '%</span>' + value.name));
                 });
                 if (activeGroupId !== undefined) {
                     list.find("li[group_id='" + activeGroupId + "']").addClass('active');
@@ -215,38 +215,98 @@ function changeActiveGroup(node) {
 // Return result of operation and message
 // URL: /admin/groups/delete?id=35
 function removeGroup(groupId) {
-    alert(groupId);
+    $.ajax('/admin/groups/delete', {
+        type: 'post',
+        dataType: 'json',
+        data: {id: groupId},
+        success: function (response) {
+            if (response.result == "success") {
+                removeGroupModal.modal('hide');
+                showAlertSuccess(response.content);
+                getGroups(makeUsersList);
+            } else {
+                if (response.result == "failure") {
+                    var message = '';
+                    for (var field in response.content) {
+                        message = message + '<p>' + response.content[field] + '</p>';
+
+                    }
+                    showModalError(removeGroupModal, message);
+                } else {
+                    removeGroupModal.modal('hide');
+                    showAlertError("Some problem on server, try later");
+                }
+            }
+        },
+        error: function () {
+            removeGroupModal.modal('hide');
+            showAlertError("Some problem on server");
+        }
+    });
 }
 
 // Return result of operation and message
 // URL: /admin/groups/update?id=35&name=newGroupName&discount=15
 function updateGroup(groupId, name, discount) {
-    alert(groupId);
-    alert(name);
-    alert(discount);
+    $.ajax('/admin/groups/update', {
+        type: 'post',
+        dataType: 'json',
+        data: {id: groupId, name: name, discount: discount},
+        success: function (response) {
+            if (response.result == "success") {
+                updateGroupModal.modal('hide');
+                showAlertSuccess(response.content);
+                getGroups(makeUsersList);
+            } else {
+                if (response.result == "failure") {
+                    var message = '';
+                    for (var field in response.content) {
+                        message = message + '<p>' + response.content[field] + '</p>';
+
+                    }
+                    showModalError(updateGroupModal, message);
+                } else {
+                    updateGroupModal.modal('hide');
+                    showAlertError("Some problem on server, try later");
+                }
+            }
+        },
+        error: function () {
+            updateGroupModal.modal('hide');
+            showAlertError("Some problem on server");
+        }
+    });
 }
 
 // Return result of operation and message
 // URL: /admin/groups/create?name=groupName&discount=-0.05
 function createGroup(name, discount) {
-    alert(name);
-    alert(discount);
     $.ajax('/admin/groups/create', {
         type: 'post',
         dataType: 'json',
         data: {name: name, discount: discount},
         success: function (response) {
             if (response.result == "success") {
-                alert(response.content);
+                createGroupModal.modal('hide');
+                showAlertSuccess(response.content);
+                getGroups(makeUsersList);
             } else {
                 if (response.result == "failure") {
-                    alert(response.content);
+                    var message = '';
+                    for (var field in response.content) {
+                        message = message + '<p>' + response.content[field] + '</p>';
+
+                    }
+                    showModalError(createGroupModal, message);
+                    //alert(JSON.stringify(response.content));
                 } else {
+                    createGroupModal.modal('hide');
                     showAlertError("Some problem on server, try later");
                 }
             }
         },
         error: function () {
+            createGroupModal.modal('hide');
             showAlertError("Some problem on server");
         }
     });
@@ -393,7 +453,32 @@ function addSelectedUsers() {
         dataToSend.users.push(parseInt($(value).attr('user_id')));
     });
     alert(JSON.stringify(dataToSend));
-    //TODO: ajax
+
+    $.ajax('/admin/groups/add/users', {
+        type: 'post',
+        dataType: 'json',
+        data: dataToSend,
+        success: function (response) {
+            if (response.result == "success") {
+                showAlertSuccess(response.content);
+                getGroups(makeUsersList);
+            } else {
+                if (response.result == "failure") {
+                    var message = '';
+                    for (var field in response.content) {
+                        message = message + '<p>' + response.content[field] + '</p>';
+
+                    }
+                    showAlertError(message);
+                } else {
+                    showAlertError(message);
+                }
+            }
+        },
+        error: function () {
+            showAlertError(message);
+        }
+    });
 }
 
 function searchFreeUsers(text) {
