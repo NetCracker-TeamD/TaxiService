@@ -5,6 +5,9 @@
  */
 package com.teamd.taxi.entity;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
@@ -67,7 +70,7 @@ public class TaxiOrder implements Serializable {
     private ServiceType serviceType;
 
     @JoinColumn(name = "car_class_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = true)
     private CarClass carClass;
 
     public TaxiOrder() {

@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
@@ -73,7 +73,7 @@ public class QueueController {
     public String loadQueue(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
         log.info("Received params: " + params);
         Driver driver = driverService.getDriver(currentDriverID);
-        pageable = new PageRequest(pageable.getPageNumber(), PAGE_SIZE);
+        pageable = new PageRequest(pageable.getPageNumber(), PAGE_SIZE, Sort.Direction.DESC, "executionDate");
         //вибрані сервіси з TRUE значенням інші з FALSE
         Map<ServiceType, Boolean> selectedTypes = getSelectedTypes(params);
         //повертає всі id`s фіч для даного водія і його машини
@@ -225,23 +225,29 @@ public class QueueController {
         @Override
         public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> cq, CriteriaBuilder cb) {
             cq.distinct(true);
-            Subquery<Long> taxiOrderIdSubquery = cq.subquery(Long.class);
-            Root<TaxiOrder> subRoot = taxiOrderIdSubquery.from(TaxiOrder.class);
-            taxiOrderIdSubquery.select(subRoot.<Long>get("id"));
-            Join<TaxiOrder, Feature> subFeatureJoin = subRoot.join("features");
-            taxiOrderIdSubquery.where(cb.not(
-                    subFeatureJoin.get("id").in(featureIds)
-            ));
-
+            Predicate featurePredicate = null;
+            if (featureIds.size() != 0) {
+                Subquery<Long> taxiOrderIdSubquery = cq.subquery(Long.class);
+                Root<TaxiOrder> subRoot = taxiOrderIdSubquery.from(TaxiOrder.class);
+                taxiOrderIdSubquery.select(subRoot.<Long>get("id"));
+                Join<TaxiOrder, Feature> subFeatureJoin = subRoot.join("features");
+                taxiOrderIdSubquery.where(cb.not(
+                        subFeatureJoin.get("id").in(featureIds)
+                ));
+                featurePredicate = cb.not(root.<Long>get("id").in(taxiOrderIdSubquery));
+            }
             Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.HOUR, 1);
+            calendar.add(Calendar.HOUR, 1); //TODO: move to info table
 
-            return cb.and(
-                    cb.not(root.<Long>get("id").in(taxiOrderIdSubquery)),
+            Predicate retValue = cb.and(
                     cb.lessThan(root.<Calendar>get("executionDate"), calendar),
-                    cb.or(cb.equal(root.<CarClass>get("carClass"), carClass), cb.isNull(root.<CarClass>get("carClass"))),
-                    cb.or(cb.equal(root.<Sex>get("driverSex"), sex), cb.isNull(root.<Sex>get("driverSex")))
+                    cb.or(cb.isNull(root.<CarClass>get("carClass")), cb.equal(root.<CarClass>get("carClass"), carClass)),
+                    cb.or(cb.isNull(root.<Sex>get("driverSex")), cb.equal(root.<Sex>get("driverSex"), sex))
             );
+            if (featurePredicate != null) {
+                retValue = cb.and(retValue, featurePredicate);
+            }
+            return retValue;
         }
     }
 

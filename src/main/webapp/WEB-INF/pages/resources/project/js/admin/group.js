@@ -394,7 +394,10 @@ function makeUsersToAdd(groupId, node) {
                 $.each(users, function (key, value) {
                     var userRow = $('<li user_id="' + value.id + '" class="list-group-item">' + value.lastName + ' ' + value.firstName + '</li>');
                     userRow.attr('onclick', 'selectUser(event)');
-                    freeUsersList.append(userRow);
+                    //TODO: bug fix
+                    if (!freeUsersList.find("[user_id='" + value.id + "']").is('li')) {
+                        freeUsersList.append(userRow);
+                    }
                 });
                 showUsersToAdd();
             } else {
@@ -442,7 +445,6 @@ function removeSelectedUsers() {
         dataToSend.users.push(parseInt($(value).attr('user_id')));
     });
     dataToSend.users = dataToSend.users.toString();
-    alert(JSON.stringify(dataToSend));
     $.ajax('/admin/groups/delete/users', {
         type: 'post',
         dataType: 'json',
@@ -450,12 +452,16 @@ function removeSelectedUsers() {
         success: function (response) {
             if (response.result == "success") {
                 showAlertSuccess(response.content);
-                //getGroups(makeUsersList);
-                //freeUsersList.find('.active').each(function (key, elem) {
-                //    $(elem).slideUp();
-                //});
-                hideUsersList();
-                makeUsersList();
+                //Not remove here
+                groupUsersList.find('.active').each(function (key, elem) {
+                    $(elem).removeClass('active');
+                    $(elem).slideUp();
+                });
+                removeUsersModal.modal('hide');
+                if (freeUsersList.attr('opened') === 'true') {
+                    hideUsersToAdd();
+                    makeUsersToAdd();
+                }
 
             } else {
                 if (response.result == "failure") {
