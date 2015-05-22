@@ -7,6 +7,7 @@ import com.teamd.taxi.exception.InfoNotFoundException;
 import com.teamd.taxi.exception.ItemNotFoundException;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
+import com.teamd.taxi.persistence.repository.RouteRepository;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import com.teamd.taxi.service.*;
 import com.teamd.taxi.service.email.MailService;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -41,6 +44,9 @@ public class CurrentOrderController {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private RouteRepository routeRepository;
 
     @Autowired
     private PriceCountService priceCountService;
@@ -222,8 +228,9 @@ public class CurrentOrderController {
 
             taxiOrder.getRoutes().add(route);
             driver.getRoutes().add(route);
-            taxiOrderRepository.save(taxiOrder);
-            driverService.save(driver);
+            routeService.saveRoute(route);
+//            taxiOrderRepository.save(taxiOrder);
+            //driverService.save(driver);
 
             to.addProperty("source", source);
             to.addProperty("destination", dest);
@@ -252,7 +259,7 @@ public class CurrentOrderController {
         TaxiOrder taxiOrder;
 
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) {
-            long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 1000;
+            long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 2000;
             long executeOrderDate = taxiOrder.getExecutionDate().getTimeInMillis();
             //TODO В БАЗІ ПОМИЛКА isDestinationLocationsChain повинно бути true/false aле не null
             if (taxiOrder.getServiceType().isDestinationLocationsChain() != null && taxiOrder.getServiceType().isDestinationLocationsChain()) {
@@ -471,7 +478,7 @@ public class CurrentOrderController {
         User user = taxiOrder.getCustomer();
         Object[] obj = {taxiOrder.getExecutionDate(), routes.get(0).getSourceAddress()};
         try {
-            mailService.sendNotification("ivanyv.ivan@yandex.ua", Notification.ASSIGNED, obj);
+            mailService.sendNotification(user.getEmail(), Notification.ASSIGNED, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -482,13 +489,15 @@ public class CurrentOrderController {
         Calendar calendar = Calendar.getInstance();
         r.setStatus(RouteStatus.IN_PROGRESS);
         r.setStartTime(calendar);
-        routeService.saveRoute(r);
+        Route r1 = r;
+        routeService.saveRoute(r1);
 
         TaxiOrder taxiOrder = r.getOrder();
+
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress()};
         try {
-            mailService.sendNotification("ivanyv.ivan@yandex.ua", Notification.IN_PROGRESS, obj);
+            mailService.sendNotification(user.getEmail(), Notification.IN_PROGRESS, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -505,7 +514,7 @@ public class CurrentOrderController {
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress(), r.getCompletionTime()};
         try {
-            mailService.sendNotification("ivanyv.ivan@yandex.ua", Notification.COMPLETED, obj);
+            mailService.sendNotification(user.getEmail(), Notification.COMPLETED, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -522,7 +531,7 @@ public class CurrentOrderController {
         User user = taxiOrder.getCustomer();
         Object[] obj = {r.getSourceAddress()};
         try {
-            mailService.sendNotification("ivanyv.ivan@yandex.ua", Notification.REFUSED, obj);
+            mailService.sendNotification(user.getEmail(), Notification.REFUSED, obj);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -537,5 +546,10 @@ public class CurrentOrderController {
         if (drFeatures.containsAll(toFeature))
             return true;
         else return false;
+    }
+
+    @RequestMapping("/findOrder")
+    public void findOrder(@RequestParam("id") long id, HttpServletResponse response) throws IOException {
+        response.getWriter().append("" + taxiOrderRepository.findOne(id));
     }
 }

@@ -44,7 +44,8 @@
         <div class="panel-heading order-details">
             <div class="row">
                 <strong>
-                    <div class="col-sm-4">{{:order.executionDate}}</div>
+                     <div class="col-sm-1">{{:order.id}}</div>
+                    <div class="col-sm-3">{{:order.executionDate}}</div>
                     <div class="col-sm-4">{{:order.serviceType.name}}</div>
                     <div class="col-sm-2">{{:order.paymentType}}</div>
                     <div class="col-sm-2">
@@ -112,7 +113,8 @@
                     <div class="panel-heading panel-info">
                         <div class="panel-info">
                             <div class="row">
-                                <div class="col-sm-4"><strong>Time</strong></div>
+                                <div class="col-sm-1"><strong>#</strong></div>
+                                <div class="col-sm-3"><strong>Time</strong></div>
                                 <div class="col-sm-4"><strong>Service</strong></div>
                                 <div class="col-sm-2"><strong>Payment type</strong></div>
                                 <div class="col-sm-2"><strong>View</strong></div>

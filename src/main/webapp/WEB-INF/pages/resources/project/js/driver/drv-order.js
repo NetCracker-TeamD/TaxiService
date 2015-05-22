@@ -159,7 +159,6 @@ function codeLatLng(location) {
     var lat = location.coords.latitude;
     var lng = location.coords.longitude;
     var latlng = new google.maps.LatLng(lat, lng);
-
     geocoder.geocode({'latLng': latlng}, function (results, status) {
         if (status == google.maps.GeocoderStatus.OK) {
             if (results[0]) {
@@ -170,8 +169,7 @@ function codeLatLng(location) {
                     position: latlng,
                     map: map
                 });
-                alert(results[0].formatted_address + " " + results[0].formatted_address);
-                infowindowGeo.setContent(results[0].formatted_address + results[0].formatted_address);
+                infowindowGeo.setContent(results[0].formatted_address);
                 $('#currentLocation').val(results[0].formatted_address);
                 console.log(results[0].formatted_address);
                 infowindowGeo.open(map, markerGeo);
@@ -250,9 +248,7 @@ $(document).ready(function () {
                     $('#orderPanel').addClass("hidden");
                     break;
             }
-            alert("lalalalala" + response.newAddress);
             if (response.newAddress == 'enable') {
-
                 $('#newRoute').removeClass("hidden");
             }
             execTime = new Date(response.executeOrderDate);
@@ -263,7 +259,6 @@ $(document).ready(function () {
             alert('Error: Load Current State ' + e);
         }
     });
-
     function CurrentTime() {
         var currentTime = new Date();
         document.getElementById("currentTime").innerHTML = " " + currentTime.toLocaleTimeString();//.toLocaleTimeString();
@@ -302,40 +297,44 @@ $(document).ready(function () {
     });
 
     $(".start").click(function () {
+        $(".completeBtn").addClass("disabled");
+        $(this).addClass("disabled");
         // stop refuse timer
         isDriverGoesToClient = false;
         isPaused = true;
+
         $("#refusePanel").addClass("hidden");
         $("#customerIsLate").addClass("hidden");
 
         var status = 'inProgress';
         changeStatus(status);
-
-        $(".completeBtn").removeClass("disabled");
-        $(this).addClass("disabled");
     });
 
     $(".completeBtn").click(function () {
+        $(this).addClass("disabled");
+        $('.start').addClass('disabled');
         //start refuse timer
         lastCompletionRoute = new Date();
         isPaused = false;
 
         var status = 'complete';
         changeStatus(status);
-
-        $(this).addClass("disabled");
-        $(".start").removeClass("disabled");
     });
     $('#refuseBtn').click(function () {
-
+        $(this).addClass("disabled");
+        $('.start').addClass('disabled');
+        $(".completeBtn").addClass("disabled");
         var status = 'refuse';
         changeStatus(status);
     });
 
 
-    $('#newRouteBtn').click(function () {
+    var routeBtn = $('#newRouteBtn');
+
+    routeBtn.click(function () {
+        //routeBtn.addClass("disabled"); TODO block button and field for server response
         var dest = $('#newAddress').val();
-        $('#newAddress').val("");
+        $("#newAddress").val("");
 
         loadAddress(function (dots) {
             if (dots != null) {
@@ -356,7 +355,7 @@ $(document).ready(function () {
                             'value="' + response.destination + '" name="dest" readonly>' +
                             '</div>' +
                             '<div style="padding-top: 5px; padding-bottom: 10px;">' +
-                            '<span id="' + response.id + '" class="label label-info glyphicon glyphicon-ok findForRefuse">' +
+                            '<span id="' + response.id + '" class="label label-info glyphicon glyphicon-list findForRefuse">' +
                             response.routeStatus + '</span></div>'));
                         } else {
                             alert("Set New Route : " + response.status);
@@ -404,12 +403,15 @@ function changeStatus(status) {
         success: function (response) {
             console.log(response.status)
             if (response.status == 'IN PROGRESS') {
+                $('.completeBtn').removeClass("disabled");
                 $("#" + response.id).removeClass("findForRefuse")
                     .removeClass("label-info")
                     .removeClass("glyphicon-list")
                     .addClass("label-primary")
                     .addClass("glyphicon-hourglass");
+
             } else if (response.status == 'COMPLETED') {
+                $('.start').removeClass("disabled");
                 $("#" + response.id).removeClass("findForRefuse")
                     .removeClass("label-primary")
                     .removeClass("glyphicon-hourglass")
@@ -428,9 +430,8 @@ function changeStatus(status) {
                 $(".completeBtn").addClass('disabled');
                 $("#refuseBtn").addClass("hidden");
                 $("#customerIsLate").addClass("hidden");
-                $(".start").addClass("disabled");
                 $("#newAddress").prop('disabled', true);
-                $('#newRouteBtn').addClass("disabled");
+                $(".start").addClass("disabled");
                 $('#paintWay').addClass("disabled");
                 if (response.orderStatus == 'complete') {
                     $('.resultMessage').text("Total services price : " + response.totalPrice);
@@ -440,6 +441,7 @@ function changeStatus(status) {
                     $('#resultWindow').modal('show');
                 }
             }
+
         },
         error: function (e) {
             alert('Error: ' + e);
