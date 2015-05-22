@@ -8,6 +8,8 @@ import com.teamd.taxi.models.admin.UpdateDriverModel;
 import com.teamd.taxi.persistence.repository.CarRepository;
 import com.teamd.taxi.persistence.repository.DriverRepository;
 import com.teamd.taxi.persistence.repository.FeatureRepository;
+import com.teamd.taxi.service.email.MailService;
+import com.teamd.taxi.service.email.Notification;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.mail.MessagingException;
 import java.util.List;
 
 /**
@@ -40,6 +43,9 @@ public class DriverService {
 
     @Autowired
     private CarRepository carRepository;
+
+    @Autowired
+    private MailService mailService;
 
     @Transactional
     public Driver getDriver(int id) {
@@ -75,7 +81,13 @@ public class DriverService {
     @Transactional
     public void createDriverAccount(Driver driver) {
         String password = stringGenerator.generateString(DRIVER_PASS_LENGTH);
-        //TODO send pass to driver mail address
+        //TODO Test sending pass to driver mail address
+        Object[] obj = {password};
+        try {
+            mailService.sendNotification(driver.getEmail(), Notification.DRIVER_REGISTRATION, obj);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
 
         driver.setPassword(encoder.encode(password));
         driverRepository.save(driver);
