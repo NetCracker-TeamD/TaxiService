@@ -4,10 +4,7 @@ import com.teamd.taxi.entity.GroupList;
 import com.teamd.taxi.entity.GroupListPK;
 import com.teamd.taxi.entity.User;
 import com.teamd.taxi.entity.UserGroup;
-import com.teamd.taxi.models.admin.AddUsersGroupModel;
-import com.teamd.taxi.models.admin.CreateGroupModel;
-import com.teamd.taxi.models.admin.DeleteUsersFromGroupModel;
-import com.teamd.taxi.models.admin.UpdateGroupModel;
+import com.teamd.taxi.models.admin.*;
 import com.teamd.taxi.persistence.repository.GroupListRepository;
 import com.teamd.taxi.persistence.repository.GroupsRepository;
 import com.teamd.taxi.persistence.repository.UserRepository;
@@ -18,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GroupsService {
@@ -97,6 +95,17 @@ public class GroupsService {
         for (Integer userId : deleteUsersFromGroupModel.getUsers()) {
             groupListRepository.delete(new GroupListPK(userId, deleteUsersFromGroupModel.getGroupId()));
         }
+    }
 
+    @Transactional
+    public void updateManagerStatus(ChangeManagerStatusModel changeManagerStatusModel){
+        List<GroupList> groupLists = new ArrayList<>();
+        for(Map<Integer, Boolean> userIdAndBoolean: changeManagerStatusModel.getUsers()){
+            for (Integer userId : userIdAndBoolean.keySet()){
+                groupLists.add(new GroupList(new GroupListPK(userId, changeManagerStatusModel.getGroupId()),userIdAndBoolean.get(userId)));
+            }
+        }
+
+        groupListRepository.save(groupLists);
     }
 }

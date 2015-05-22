@@ -6,6 +6,7 @@ import com.teamd.taxi.entity.UserGroup;
 import com.teamd.taxi.models.admin.*;
 import com.teamd.taxi.service.GroupsService;
 import com.teamd.taxi.validation.AddUsersToGroupValidator;
+import com.teamd.taxi.validation.ChangeManagerStatusValidator;
 import com.teamd.taxi.validation.DeleteUsersFromGroupValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -31,6 +32,7 @@ public class GroupAdminController {
     private static final String MESSAGE_SUCCESS_GROUP_CREATE = "admin.group.success.create";
     private static final String MESSAGE_SUCCESS_ADD_USER_TO_GROUP = "admin.group.success.addUsersToGroup";
     private static final String MESSAGE_SUCCESS_DELETE_USERS_FROM_GROUP = "admin.group.success.deleteUsersFromGroup";
+    private static final String MESSAGE_SUCCESS_UPDATE_MANAGER_STATUS = "admin.group.success.updateManagerStatus";
 
     @Autowired
     Environment env;
@@ -43,6 +45,9 @@ public class GroupAdminController {
 
     @Autowired
     private DeleteUsersFromGroupValidator deleteUsersFromGroupValidator;
+
+    @Autowired
+    private ChangeManagerStatusValidator changeManagerStatusValidator;
 
     @RequestMapping("/")
     public String getGroupsPage() {
@@ -252,5 +257,28 @@ public class GroupAdminController {
         }
     }
 
+    @RequestMapping(value = "/update/manage-status", method = RequestMethod.POST)
+    @ResponseBody
+    public Object updateManagerStatus(ChangeManagerStatusModel changeManagerStatusModel, BindingResult result){
+        changeManagerStatusValidator.validate(changeManagerStatusModel, result);
+        if (result.hasErrors()) {
+            AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
+            response.setResultFailure();
 
+            Map<String, String> mapError = new HashMap<>();
+
+            for (FieldError fieldError : result.getFieldErrors()) {
+                mapError.put(fieldError.getField(), env.getRequiredProperty(fieldError.getCode()));
+            }
+            response.setContent(mapError);
+            return response;
+        } else {
+
+            groupsService.updateManagerStatus(changeManagerStatusModel);
+
+            AdminResponseModel<String> response = new AdminResponseModel<>();
+            response.setResultSuccess().setContent(env.getRequiredProperty(MESSAGE_SUCCESS_UPDATE_MANAGER_STATUS));
+            return response;
+        }
+    }
 }
