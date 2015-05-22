@@ -21,7 +21,7 @@ public class ServiceTypeService {
     private ServiceTypeRepository serviceTypeRepository;
 
     @Transactional
-     public List<ServiceType> findAll() {
+    public List<ServiceType> findAll() {
         List<ServiceType> serviceTypes = serviceTypeRepository.findAll();
         for (ServiceType serviceType : serviceTypes) {
             Hibernate.initialize(serviceType.getAllowedCarClasses());
@@ -29,10 +29,12 @@ public class ServiceTypeService {
         }
         return serviceTypes;
     }
+
     @Transactional
-    public void save(ServiceType serviceType){
+    public void save(ServiceType serviceType) {
         serviceTypeRepository.save(serviceType);
     }
+
     @Transactional
     public List<ServiceType> findAll(Sort sort) {
         List<ServiceType> serviceTypes = serviceTypeRepository.findAll(sort);
@@ -42,11 +44,14 @@ public class ServiceTypeService {
         }
         return serviceTypes;
     }
+
     @Transactional
     public ServiceType findById(int serviceTypeId) {
         ServiceType serviceType = serviceTypeRepository.findOne(serviceTypeId);
-        Hibernate.initialize(serviceType.getAllowedFeatures());
-        Hibernate.initialize(serviceType.getAllowedCarClasses());
+        if (serviceType != null) {
+            Hibernate.initialize(serviceType.getAllowedFeatures());
+            Hibernate.initialize(serviceType.getAllowedCarClasses());
+        }
         return serviceType;
     }
 

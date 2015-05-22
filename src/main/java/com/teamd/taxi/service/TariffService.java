@@ -2,9 +2,6 @@ package com.teamd.taxi.service;
 
 import com.teamd.taxi.entity.TariffByTime;
 import com.teamd.taxi.persistence.repository.TariffByTimeRepository;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +20,7 @@ public class TariffService {
         return tariffByTimeRepository.findAll(pageable);
     }
 
-    public void save(TariffByTime tariffByTime){
+    public void save(TariffByTime tariffByTime) {
         tariffByTimeRepository.save(tariffByTime);
     }
 
