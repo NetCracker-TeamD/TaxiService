@@ -141,16 +141,17 @@ public class CurrentOrderController {
                     List<Float> listPrice;
                     TaxiOrder taxiOrderBuf = taxiOrderService.findOneById(taxiOrderId);
                     List<Route> routesWithPrice = getChainForDriver(taxiOrderBuf, drvId);
-                    if (taxiOrderBuf.getServiceType().isDestinationLocationsChain() != null &&
-                            taxiOrderBuf.getServiceType().isDestinationLocationsChain()) {
+                    Boolean isChain = taxiOrderBuf.getServiceType().isDestinationLocationsChain();
+                    if (isChain != null && isChain) {
                         listPrice = priceCountService.countPriceForLastChainOrder(taxiOrderBuf.getId(), driver.getId());
                         for (int i = routesWithPrice.size() - 1; i > 0; i--) {
                             Route r = routesWithPrice.get(i);
                             if (r.getStatus() == RouteStatus.COMPLETED) {
-                                totalPrice += listPrice.get(r.getChainPosition() - 1);
-                                r.setTotalPrice(listPrice.get(r.getChainPosition() - 1));
+                                Float price = listPrice.get(r.getChainPosition() - 1);
+                                totalPrice += price;
+                                r.setTotalPrice(price);
                                 routeService.saveRoute(r);
-                                if (r.getChainPosition() == 1)
+                                if (r.getChainPosition() == 1) //WTF???
                                     break;
                             }
                         }
@@ -545,10 +546,5 @@ public class CurrentOrderController {
         if (drFeatures.containsAll(toFeature))
             return true;
         else return false;
-    }
-
-    @RequestMapping("/findOrder")
-    public void findOrder(@RequestParam("id") long id, HttpServletResponse response) throws IOException {
-        response.getWriter().append("" + taxiOrderRepository.findOne(id));
     }
 }

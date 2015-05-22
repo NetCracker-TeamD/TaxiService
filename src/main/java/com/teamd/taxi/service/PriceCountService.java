@@ -299,6 +299,7 @@ public class PriceCountService {
             float routePrice = routePrices.get(i);
             routePrices.set(i, routePrice + featurePrice);
         }
+        System.out.println("Counted prices: " + routePrices);
         return routePrices;
     }
 
