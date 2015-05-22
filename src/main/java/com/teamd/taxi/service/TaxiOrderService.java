@@ -170,7 +170,7 @@ public class TaxiOrderService {
                         ));
                 routes.add(route);
             }
-        } else if (serviceType.isDestinationLocationsChain()) {
+        } else if (serviceType.isDestinationRequired()) {
             String source = form.getSource().get(0);
             String destination = form.getDestination().get(0);
             routes.add(new Route(null, RouteStatus.QUEUED, source, destination, false));

@@ -22,13 +22,13 @@ public class MailService {
         });
     }
 
-    public void sendMessage(String subject, String body, String from, String to) throws MessagingException, AddressException {
+    public void sendMessage(String subject, String body, String from, String to) throws MessagingException {
         MimeMessage msg = new MimeMessage(session);
         msg.setSubject(subject);
         msg.setContent(body, "text/html");
         msg.setFrom(new InternetAddress(from));
         msg.addRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-        Transport.send(msg);// TODO: uncomment
+        //Transport.send(msg);// TODO: uncomment
     }
 
     public void sendNotification(String to, Notification pattern, Object... args) throws MessagingException {
