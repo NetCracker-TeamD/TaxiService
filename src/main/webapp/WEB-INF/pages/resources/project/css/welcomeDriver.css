@@ -7,5 +7,10 @@
     max-width: 500px;
     align-items: center;
 }
+.order-details{
+    cursor: pointer;
+}
 
-
+.order-details:hover {
+    background-color:#66afe9;
+}
