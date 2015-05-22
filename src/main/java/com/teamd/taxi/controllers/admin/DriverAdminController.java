@@ -90,7 +90,7 @@ public class DriverAdminController {
         Sort sort = new Sort(new Sort.Order(DEFAULT_SORT_DIRECTION, pageModel.getOrder()));
         Page<Driver> drivers = driverService.getDrivers(new PageRequest(pageModel.getPage(), DEFAULT_NUM_OF_RECORDS_ON_PAGE, sort));
         model.addAttribute("page", drivers);
-        model.addAttribute("order", pageModel.getCleanOrder());
+        model.addAttribute("order", pageModel.getCleanOrder().toString().toLowerCase());
 
         ArrayList<Integer> pagination = pagesUtil.getPagination(pageModel.getPage(), drivers.getTotalPages());
         model.addAttribute("pagination", pagination);
@@ -177,6 +177,7 @@ public class DriverAdminController {
         @Override
         public JsonElement serialize(Driver driver, Type type, JsonSerializationContext context) {
             JsonObject json = new JsonObject();
+            json.addProperty("id", driver.getId());
             json.addProperty("lastName", driver.getLastName());
             json.addProperty("firstName", driver.getFirstName());
             json.addProperty("email", driver.getEmail());

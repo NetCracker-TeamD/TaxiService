@@ -118,6 +118,7 @@ public class IndexAndRegistrationController {
         MapResponse mapResponse = new MapResponse().put("isAuthenticated", isAuthenticated);
         if (isAuthenticated) {
             mapResponse.put("role", Utils.getCurrentUserRole());
+            mapResponse.put("userId", Utils.getCurrentUser().getId());
         }
         return mapResponse;
     }

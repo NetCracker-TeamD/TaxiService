@@ -144,7 +144,7 @@
                 <h4 class="modal-title">Remove driver account</h4>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger alert-dismissible modal-error hidden">
+                <div class="alert alert-danger alert-dismissible modal-error">
                     <p>Error-Message</p>
                 </div>
                 <form>
@@ -189,6 +189,33 @@
     </div>
 </div>
 
+<div class="modal fade centered-modal" id="unbind_car" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Unbind car</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger alert-dismissible modal-error">
+                    <p>Error-Message</p>
+                </div>
+                <form>
+                    <input type="hidden" name="driver_id"/>
+                </form>
+                <p class="lead">Are you really want to release this car?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info"
+                onclick="unbindCar($('#unbind_car').find('[name=\'driver_id\']').val())">Release Car
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade centered-modal" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -219,11 +246,11 @@
                 <form method="get">
                     <label for="sort-input">Sort</label>
                     <select class="form-control input-sm" id="sort-input" name="order" onchange="form.submit()">
-                        <option value="LAST_NAME">by Last Name</option>
-                        <option value="FIRST_NAME">by First Name</option>
-                        <option value="SEX">by Sex</option>
-                        <option value="ENABLED">by Enabled</option>
-                        <option value="AT_WORK">by At Work</option>
+                        <option value="last_name">by Last Name</option>
+                        <option value="first_name">by First Name</option>
+                        <option value="sex">by Sex</option>
+                        <option value="enabled">by Enabled</option>
+                        <option value="at_work">by At Work</option>
                     </select>
                 </form>
             </div>
@@ -248,7 +275,7 @@
             <tbody>
             <%int num = ((Page) request.getAttribute("page")).getSize() * ((Page) request.getAttribute("page")).getNumber();%>
             <c:forEach var="driver" items="${page.content}">
-                <tr onclick="openDriverInfo(event,${driver.id})">
+                <tr <c:if test="${driver.car == null}">class="warning"</c:if> onclick="openDriverInfo(event,${driver.id})">
                     <td>
                         <%=++num%>
                     </td>
@@ -257,12 +284,6 @@
                     <td><a href="mailto:#">${driver.email}</a></td>
                     <td>${driver.phoneNumber}</td>
                     <td>${driver.sex}</td>
-                        <%--<c:forEach var="feature" items="${driverFeatures}">--%>
-                        <%--<td>--%>
-                        <%--<span class="glyphicon <c:choose><c:when test="${driver.features.contains(feature)}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"--%>
-                        <%--aria-hidden="true"></span>--%>
-                        <%--</td>--%>
-                        <%--</c:forEach>--%>
                     <td>
                         <span class="glyphicon <c:choose><c:when test="${driver.isEnabled()}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
                               aria-hidden="true"></span>
@@ -271,7 +292,7 @@
                         <span class="glyphicon <c:choose><c:when test="${driver.isAtWork()}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
                               aria-hidden="true"></span>
                     </td>
-                    <td>${driver.car.model}</td>
+                    <td car-id="${driver.car.carId}">${driver.car.model}</td>
                     <td>${driver.license}</td>
                 </tr>
             </c:forEach>

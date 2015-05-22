@@ -43,11 +43,11 @@ var DataTools = (function () {
             return $.isSet(stack) ? stack.length > 0 : false
         },
         realiseCallStack = function (stackName, status, response, data) {
-            console.log("realising " + stackName)
+            //console.log("realising " + stackName)
             var stack = callStacks[stackName]
             callStacks[stackName] = []
             if (!$.isSet(stack)) {
-                console.log("attemp to realise alredy empty stack " + stackName)
+                //console.log("attemp to realise alredy empty stack " + stackName)
                 return;
             }
             for (var i = 0; i < stack.length; i++) {
@@ -55,13 +55,13 @@ var DataTools = (function () {
                 if ($.isFunc(callback.call)) callback.call(status, response, data)
 
             }
-            console.log("realised " + stackName)
+            //console.log("realised " + stackName)
 
             //VERY IMPORTANT, change load state only after calling all callback for data
             for (var i = 0; i < stack.length; i++) {
                 var callback = stack[i]
-                console.log(callback)
-                console.log(callback.loader)
+                //console.log(callback)
+                //console.log(callback.loader)
                 callback.loader.setStatus(callback.thread, status)
 
             }
@@ -100,11 +100,11 @@ var DataTools = (function () {
                 if ($.isFunc(callback)) callback(status, serverResponse, formatedData.services.descriptions[serviceType])
             })
         }
-    getServiceFeatures = function (loader, threadName, callback, serviceType) {
-        loadServices(loader, threadName, function (status, serverResponse, data) {
-            if ($.isFunc(callback)) callback(status, serverResponse, formatedData.services.features[serviceType])
-        })
-    },
+	    getServiceFeatures = function (loader, threadName, callback, serviceType) {
+	        loadServices(loader, threadName, function (status, serverResponse, data) {
+	            if ($.isFunc(callback)) callback(status, serverResponse, formatedData.services.features[serviceType])
+	        })
+	    },
         loadServices = function (loader, threadName, callback) {
             if (isCallStackBusy('services')) {
                 addCallToStack('services', loader, threadName, callback)
@@ -124,10 +124,10 @@ var DataTools = (function () {
                     services.types = []
                     services.descriptions = {}
                     services.features = {}
-                    //console.log(response)
-                    //console.log(services)
+                    ////console.log(response)
+                    ////console.log(services)
                     $.each(response.services, function (key, service) {
-                        //console.log(service)
+                        ////console.log(service)
                         if (service.multipleDestinationLocations && service.chain) {
                             service.multipleDestinationLocations = false
                         }
@@ -216,7 +216,7 @@ var DataTools = (function () {
                     realiseCallStack('services', 'success', response, null)
                 },
                 'error': function (response) {
-                    console.log("Can`t retrieve services information")
+                    //console.log("Can`t retrieve services information")
                     realiseCallStack('services', 'error', response, null)
                 }
             })
@@ -228,24 +228,53 @@ var DataTools = (function () {
             }
             $.ajax(serverAddress + "/user/loadHistory" + postfix, {
                 'success': function (response) {
-                    console.log(response)
+                    //console.log(response)
                     history.cache = response.orders,
                         history.pageNumber = response.pageDetails.pageNumber,
                         history.pagesAmount = response.totalPage
-                    console.log(history.cache)
+                    //console.log(history.cache)
 
-                    //console.log(services.types)
+                    ////console.log(services.types)
+                    
                     loader.setStatus(threadName, 'success')
                 },
                 'error': function (obj) {
-                    console.log("Can`t retrieve history information")
-                    console.log(obj)
+                    //console.log("Can`t retrieve history information")
+                    //console.log(obj)
                     loader.setStatus(threadName, 'error')
                 }
             })
         },
-        getHistory = function (loader, threadName, callback) {
-            return history
+        getUserHistory = function(loader, threadName, callback, userId, pageNumber){
+        	if (!$.isSet(pageNumber)){
+        		pageNumber = 1
+        	}
+        	//console.log(userId, pageNumber)
+			var stackName = 'user_history'
+            if (isCallStackBusy(stackName)) {
+                addCallToStack(stackName, loader, threadName, callback)
+                return;
+            }
+            addCallToStack(stackName, loader, threadName, callback)
+            /*if (isCacheFresh('fav_locations')){
+             realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
+             return;
+             }*/
+
+            $.ajax(serverAddress + "/user/loadHistory?userId="+userId+'&page='+pageNumber, {
+                'success': function (response) {
+                    //console.log(response)
+                    caches.userHistory = response
+                    formatedData.userHistory = response
+                    realiseCallStack(stackName, 'success', caches.userHistory, formatedData.userHistory)
+                    //loader.setStatus(threadName, 'success')
+                },
+                'error': function (response) {
+                    //console.log("Can`t retrieve user`s history information")
+                    realiseCallStack(stackName, 'error', response, formatedData.userHistory)
+                    //loader.setStatus(threadName, 'error')
+                }
+            })
         },
         getUser = function (loader, threadName, callback) {
             if (isCallStackBusy('user')) {
@@ -260,54 +289,109 @@ var DataTools = (function () {
 
             $.ajax(serverAddress + "/isUserLogged", {
                 'success': function (response) {
-                    console.log(response)
+                    //console.log(response)
                     caches.user = {
                         "isLogged": response.isAuthenticated,
+                        "userId" : response.userId,
                         "isBlocked": false,
                         "role": response.role,
                     }
                     formatedData.user = caches.user
                     realiseCallStack('user', 'success', caches.user, formatedData.user)
-                    loader.setStatus(threadName, 'success')
+                    //loader.setStatus(threadName, 'success')
                 },
                 'error': function (response) {
-                    console.log(response)
+                    //console.log(response)
                     caches.user = {
                         "isLogged": false,
                         "isBlocked": false,
                     }
                     formatedData.user = caches.user
 
-                    console.log("Can`t retrieve user information")
-                    realiseCallStack('user', 'error', caches.user, formatedData.user)
-                    loader.setStatus(threadName, 'error')
+                    //console.log("Can`t retrieve user information")
+                    realiseCallStack('user', 'error', response, formatedData.user)
+                    //loader.setStatus(threadName, 'error')
                 }
             })
             //realiseCallStack('user', 'success', caches.user, formatedData.user)
         },
+        calcOrderStatus = function(order){
+			orderInfo.status = "queued"
+    		if (orderInfo.updating) {
+    			orderInfo.status = "updating"
+    		} else if (orderInfo.complete) {
+    			orderInfo.status = "completed"
+    		} else {
+    			var cars = orderInfo.carsAmount
+    			var inprog = false,
+    				canceled = false,
+    				refused = false,
+    				completed = false,
+    				assigned = false
+    			for (var i=0;i<cars.length;i++) {
+    				for (var j=0;j<cars[i].length;j++) {
+    					var state = cars[i][j].status
+    					switch (state){
+    						case "COMPLETED":
+    							completed = true;
+    							break;
+    						case "CANCELED":
+    							canceled = true;
+    							break;
+    						case "REFUSED":
+    							refused = true;
+    							break;
+    						case "ASSIGNED":
+    							assigned = true;
+    							break;
+    						case "IN_PROGRESS":
+    							inprog = true;
+    							break;
+    					}
+    				}
+    			}
+
+    			if ( inprog || ( assigned && (completed || refused || canceled) ) ) {
+    				orderInfo.status = "in progress"
+    			} else if (assigned) {
+					orderInfo.status = "assigned"
+    			} else if (completed) {
+					orderInfo.status = "completed"
+    			} else if (refused) {
+					orderInfo.status = "refused"
+    			} else if (canceled) {
+					orderInfo.status = "canceled"
+    			}
+    		}
+        },
         getOrderInfo = function (loader, threadName, callback, orderId, secretKey) {
             var stackName = 'order_' + orderId
-            if (isCallStackBusy(stackName)) {
+            /*if (isCallStackBusy(stackName)) {
                 addCallToStack(stackName, loader, threadName, callback)
                 return;
-            }
+            }*/
             addCallToStack(stackName, loader, threadName, callback)
-            if (isCacheFresh(stackName)) {
+            /*if (isCacheFresh(stackName)) {
                 realiseCallStack(stackName, 'success', caches.user, formatedData.user)
                 return;
-            }
+            }*/
+            
+            $.ajax(serverAddress+"/getOrder?id="+orderId+(($.isSet(secretKey) ? "&secret="+secretKey : "")), {
+            	success : function(response) {
+            		//console.log('order information loaded')
+            		//console.log(response)
+            		orderInfo = response
+            		calcOrderStatus(orderInfo)
+            		realiseCallStack(stackName, 'success', response, orderInfo)
+            		//loader.setStatus(threadName, 'success')
+            	},
+            	error : function(response){
+            		//console.log("Can`t retrieve order information")
+            		realiseCallStack(stackName, 'error', caches.user, null)
+            		//loader.setStatus(threadName, 'error')
+            	}
+            })
             /*
-             $.ajax(serverAddress+"/services", {
-             'success' : function(response) {
-             realiseCallStack(stackName, 'success', caches.user, formatedData.user)
-             loader.setStatus(threadName, 'success')
-             },
-             'error' : function(response){
-             console.log("Can`t retrieve services information")
-             realiseCallStack(stackName, 'error', caches.user, formatedData.user)
-             loader.setStatus(threadName, 'error')
-             }
-             })*/
             caches[stackName] = {
                 "status": "queued",
                 "serviceType": "5",
@@ -324,6 +408,7 @@ var DataTools = (function () {
             }
             formatedData[stackName] = caches[stackName]
             realiseCallStack(stackName, 'success', caches[stackName], formatedData[stackName])
+            */
         },
         tryLogin = function (data, callback) {
             $.ajax({
@@ -334,13 +419,13 @@ var DataTools = (function () {
                 processData: false,
                 success: function (response) {
                     if (response.authenticationStatus) {
-                        console.log("USER LOGGED-----------")
+                        //console.log("USER LOGGED-----------")
                         caches.user = {
                             "isLogged": true,
                             "isBlocked": false,
                         }
                         formatedData.user = caches.user
-                        console.log(caches.user)
+                        //console.log(caches.user)
                     }
                     if ($.isSet(callback)) {
                         callback("success", response)
@@ -353,12 +438,33 @@ var DataTools = (function () {
                 }
             })
         },
-        getFavLocations = function (loader, threadName, callback) {
-            if (isCallStackBusy('fav_locations')) {
-                addCallToStack('fav_locations', loader, threadName, callback)
+        getAllowedSortProperties = function(loader, threadName, callback){
+        	var stackName = 'allowedSortProperties'
+        	if (isCallStackBusy(stackName)) {
+                addCallToStack(stackName, loader, threadName, callback)
                 return;
             }
-            addCallToStack('fav_locations', loader, threadName, callback)
+            addCallToStack(stackName, loader, threadName, callback)
+
+        	caches[stackName] = [
+        		{ value : "registrationDate", name : "Registration Date", isSelected: true },
+        		{ value : "serviceType.name", name : "Service" },
+        		{ value : "paymentType", name : "Payment Type" },
+        		{ value : "driverSex", name : "Driver Sex" }
+    		]
+
+    		formatedData[stackName] = caches[stackName]
+
+    		realiseCallStack(stackName, 'success', caches[stackName], formatedData[stackName])
+    		//loader.setStatus(threadName, 'success')
+        },
+        getFavLocations = function (loader, threadName, callback) {
+        	var stackName = 'fav_locations'
+            if (isCallStackBusy(stackName)) {
+                addCallToStack(stackName, loader, threadName, callback)
+                return;
+            }
+            addCallToStack(stackName, loader, threadName, callback)
             /*if (isCacheFresh('fav_locations')){
              realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
              return;
@@ -366,7 +472,7 @@ var DataTools = (function () {
 
             $.ajax(serverAddress + "/user/addresses", {
                 'success': function (response) {
-                    console.log(response)
+                    //console.log(response)
                     caches.fav_locations = response
                     formatedData.fav_locations = response
                     if (userLocation!=null) {
@@ -374,13 +480,13 @@ var DataTools = (function () {
 					} else {
 						formatedData.fav_locations = caches.fav_locations
 					}
-                    realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
-                    loader.setStatus(threadName, 'success')
+                    realiseCallStack(stackName, 'success', caches.fav_locations, formatedData.fav_locations)
+                    //loader.setStatus(threadName, 'success')
                 },
                 'error': function (response) {
-                    console.log("Can`t retrieve services information")
-                    realiseCallStack('fav_locations', 'error', caches.fav_locations, formatedData.fav_locations)
-                    loader.setStatus(threadName, 'error')
+                    //console.log("Can`t retrieve services information")
+                    realiseCallStack(stackName, 'error', caches.fav_locations, formatedData.fav_locations)
+                    //loader.setStatus(threadName, 'error')
                 }
             })
             /*caches.fav_locations = [
@@ -398,7 +504,7 @@ var DataTools = (function () {
              */
         },
         /*
-         lcoations_list = [
+         locations_list = [
          {
          name : "Location name",
          address : "Some address, street, city ...",
@@ -421,16 +527,16 @@ var DataTools = (function () {
 
             $.ajax(serverAddress + "/user/saveAddresses", {
                 'success': function (response) {
-                    console.log(response)
+                    //console.log(response)
                     caches.fav_locations = response
                     formatedData.fav_locations = response
                     realiseCallStack('fav_locations', 'success', caches.fav_locations, formatedData.fav_locations)
-                    loader.setStatus(threadName, 'success')
+                    //loader.setStatus(threadName, 'success')
                 },
                 'error': function (response) {
-                    console.log("Can`t retrieve services information")
+                    //console.log("Can`t retrieve services information")
                     realiseCallStack('fav_locations', 'error', caches.fav_locations, formatedData.fav_locations)
-                    loader.setStatus(threadName, 'error')
+                    //loader.setStatus(threadName, 'error')
                 }
             })
             /*caches.fav_locations = [
@@ -468,9 +574,11 @@ var DataTools = (function () {
         "getOrderInfo": getOrderInfo,
         "setUserLocation": setUserLocation,
         "getUser": getUser,
-        "getHistory": getHistory,
+        "getUserHistory": getUserHistory,
         "loadServices": loadServices,
         "loadHistory": loadHistory,
+        "getAllowedSortProperties" : getAllowedSortProperties,
+        "calcOrderStatus" : calcOrderStatus
         //"tryLogin" : tryLogin
     }
 })()

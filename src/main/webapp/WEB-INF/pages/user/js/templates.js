@@ -1,10 +1,16 @@
 var Templates = (function () {
     var
         lockAllControls = function (holder) {
-            holder.find(":input").prop({'readonly': true, 'disabled': true});
+            if (holder.is(":input")){
+                holder.prop({'readonly': true, 'disabled': true})
+            }
+            holder.find(":input").prop({'readonly': true, 'disabled': true})
         },
         unlockAllControls = function (holder) {
-            holder.find(":input").prop({'readonly': false, 'disabled': false});
+            if (holder.is(":input")){
+                holder.prop({'readonly': true, 'disabled': true})
+            }
+            holder.find(":input").prop({'readonly': false, 'disabled': false})
         },
         getHeaderContainer = function () {
             var container = $('<nav class="navbar navbar-inverse navbar-fixed-top">\
@@ -90,12 +96,14 @@ var Templates = (function () {
      info = {
      form : $("formSelector"),
      button : $("buttonSelector"),
+     url : "some url",//optional, if not setted uses form actioni
      dataFormater : function(){return data_to_send },//if seted gets data for sending by calling it
      success : function(),//callback called after response with success status,
      error : function(),//callback called after response with error status,
      validator : function(),//validate data befor sending, if return not true cansels request
      right : true //place spinner in right,
-     useJSON : true //use json
+     useJSON : true //use json,
+     method : "get" | "post"
      }
      */
         makeNiceSubmitButton = function (info, caller) {
@@ -106,7 +114,9 @@ var Templates = (function () {
                 validator = info.validator,
                 right = info.right,
                 useJSON = info.useJSON,
-                dataFormater = info.dataFormater
+                dataFormater = info.dataFormater,
+                method = info.method,
+                url = info.url
 
             if (!submitBtn.hasClass("has-spinner")) {
                 submitBtn.addClass("has-spinner")
@@ -129,9 +139,14 @@ var Templates = (function () {
                 }
 
                 if ($.isSet(submitBtn.attr("disabled"))) return;
-                var method = form.attr("method").toLowerCase(),
-                    url = form.attr("action"),
-                    data = form.serialize(),
+                if ($.isSet(method)) {
+                    method = form.attr("method").toLowerCase()
+                }
+
+                if (!$.isSet(url)) {
+                    url = form.attr("action")
+                }
+                var data = form.serialize(),
                     onQueryEnded = function () {
                         //enable form
                         unlockAllControls(form)
@@ -140,21 +155,28 @@ var Templates = (function () {
                     }
                 var contentType = "application/x-www-form-urlencoded; charset=UTF-8"
                 if (useJSON) {
+                    console.log(form)
+                    console.log(form.serializeObject())
+                    console.log(form.serializeArray())
+                    console.log(form.serialize())
                     data = JSON.stringify(form.serializeObject())
+                    console.log(data)
                     contentType = "application/json; charset=utf-8"
                 }
                 if ($.isSet(dataFormater)) {
                     data = dataFormater()
                 }
+                console.log('data is')
+                console.log(data)
                 method = (method != "get" && method != "post") ? "post" : method
                 //lock form
                 lockAllControls(form);
                 submitBtn.addClass("active")
                 submitBtn.attr("disabled", "")
-                console.log(data)
+                //console.log(data)
                 if ($.isSet(caller)) {
                     caller(data, function (status, response) {
-                        console.log("status is " + status)
+                        //console.log("status is " + status)
                         if (status == "success") {
                             onQueryEnded();
                             if ($.isSet(onSuccess)) {
@@ -191,7 +213,7 @@ var Templates = (function () {
                 }
             })
         },
-        getOrderPage = function (orderInfo) {//button
+        getOrderPage = function (orderInfo, userInfo) {//button
             var container = $('<div class="col-sm-5 col-sm-offset-1">\
                     <form class="form-horizontal" id="orderForm" method="POST" action="/makeOrder">\
                         <div class="form-group">\
@@ -232,14 +254,19 @@ var Templates = (function () {
                 if ($.isSet(orderInfo.secret)) {
                     form.prepend('<input type="hidden" name="secret" value="' + orderInfo.secret + '">')
                 }
-                var statusBlock = $("<div></div>")
+                //var statusBlock = $("<div>Status : </div>")
                 label.text("Order review")
+                statusBlock = label
                 switch (status.toLowerCase()) {
                     case "queued" :
                         statusBlock.append('<button type="button" class="btn btn-primary">Queued</button>')
-                        buttonsHolder.append('<button type="button" class="btn btn-primary btn-lg" data-action="edit">Edit</button>')
-                        buttonsHolder.append('<span>&nbsp;</span>')
-                        buttonsHolder.append('<button type="button" class="btn btn-danger btn-lg" data-action="cancel">Cancel order</button>')
+                        if (userInfo.isLogged){
+                            buttonsHolder.append('<button type="button" class="btn btn-primary btn-lg" data-action="edit">Edit</button>')
+                            buttonsHolder.append('<span>&nbsp;</span>')
+                            buttonsHolder.append('<button type="button" class="btn btn-warning btn-lg" data-action="cancel">Cancel order</button>')
+                        }
+                        //console.log(statusBlock)
+                        //console.log(buttonsHolder)
                         break;
                     case "updating" :
                         statusBlock.append('<button type="button" class="btn btn-info">Updating</button>')
@@ -269,7 +296,7 @@ var Templates = (function () {
             }
             return container
         },
-        getDropDownAddressHTML = function (items, isRemovable) {
+        getDropDownAddress = function (items, isRemovable) {
             var str = '<div data-type="dropdown-address-list" class="input-group-btn">\
 				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>\
 				<ul class="dropdown-menu dropdown-menu-right" role="menu">'
@@ -287,7 +314,8 @@ var Templates = (function () {
 				</button>'
             }
             str += '</div>'
-            return str
+            var conteiner  = $(str)
+            return conteiner
         },
         getAddressesContainer = function () {
             return $('<div class="form-group" id="addressesContainer">\
@@ -323,12 +351,20 @@ var Templates = (function () {
                 uniqNumber++
                 var container = $('<div class="input-group"></div>'),
                     input = $('<input data-number="' + (baseNumber + uniqNumber) + '" name="'
-                    + name + '" data-type="address" type="text" class="form-control">')
-                container.append(input)
-                container.append(getDropDownAddressHTML(locationsList, isRemovable))
+                    + name + '" data-type="address" type="text" class="form-control">'),
+                    dropdown = getDropDownAddress(locationsList, isRemovable)
+                
                 if (hasCarsAmount) {
-                    //TODO: style spinner input, now it looks very bad
-                    container.append(getSpinerInput("cars_amount", 1))
+                    var addressHolder = $('<div class="input-group"></div>'),
+                        spinerHolder = $('<div class="input-group"></div>')
+                    addressHolder.append(input)
+                    addressHolder.append(dropdown)
+                    spinerHolder.append(getSpinerInput("cars_amount", 1))
+                    container.append(addressHolder)
+                    container.append(spinerHolder)
+                } else {
+                    container.append(input)
+                    container.append(dropdown)
                 }
                 return container;
             }
@@ -349,7 +385,7 @@ var Templates = (function () {
                     removeBtn = $('<div class="input-group-btn"><button class="btn btn-danger" type="button" data-action="remove">\
                     <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>\
                 </button></div>')
-                addressInput.append(getDropDownAddressHTML(locationsList, false))
+                addressInput.append(getDropDownAddress(locationsList, false))
                 nameInput.append(removeBtn)
                 container.append(nameInput)
                 container.append(addressInput)
@@ -360,7 +396,7 @@ var Templates = (function () {
         })()
     getDateTimePicker = function (name, value, config) {
         var picker = $('<div class="input-group date">\
-				<input type="text" class="form-control" name="' + name + '" value="' + value + '" />\
+				<input type="text" class="form-control" id="'+name+'" name="' + name + '" value="' + value + '" />\
 				<span class="input-group-addon">\
 					<span class="glyphicon glyphicon-calendar"></span>\
 				</span>\
@@ -369,7 +405,7 @@ var Templates = (function () {
         return picker
     },
         getTime = function (isNow, isCustom) {
-            console.log(isNow, isCustom)
+            //console.log(isNow, isCustom)
             var container = $('<div class="form-group"><label>Enter time</label></div>')
             if (isNow == isCustom && isNow == true) {
                 container.append('<div class="radio">\
@@ -416,7 +452,8 @@ var Templates = (function () {
             }
             return container
         },
-        getFeaturesGroup = function (feature, inputName) {
+        //if doSelect not set or is seted to true then isSelected items will be checked
+        getFeaturesGroup = function (feature, inputName, doSelect) {
             var items = feature.items
             if (items.length < 1) {
                 return "";
@@ -433,7 +470,7 @@ var Templates = (function () {
             for (var i in items) {
                 var item = items[i]
                 container.append($('<label class="radio-inline">\
-				<input type="' + type + '" name="' + inputName + '" value="' + item.id + '"' + ((item.checked) ? "checked" : "") + '>' + item.name +
+				<input type="' + type + '" name="' + inputName + '" value="' + item.id + '"' + ( (item.checked && (!$.isSet(doSelect) || doSelect==true)) ? "checked" : "") + '>' + item.name +
                 '</label>'))
             }
             container.append('<div class="clearfix"></div>')
@@ -460,7 +497,7 @@ var Templates = (function () {
         },
         getSpinerInput = function (inputName, minValue) {
             var container = $('<div class="input-group">\
-				<input type="text" name="' + inputName + '" class="form-control" data-type="cars-amount">\
+				<input type="text" name="' + inputName + '" class="form-control" data-type="cars-amount" data-min="'+minValue+'">\
 				<div class="input-group-btn">\
 				<button type="button" class="btn btn-default" data-action="inc"><span class="glyphicon glyphicon-chevron-up"></span></button>\
 				<button type="button" class="btn btn-default" data-action="dec"><span class="glyphicon glyphicon-chevron-down"></span></button>\
@@ -471,9 +508,9 @@ var Templates = (function () {
             input.numeric({decimal: false, negative: false})
             input.val(minValue)
             //coz jquery.numeric doesn`t support min/max
-            var min = minValue,
-                max = 99
+            var max = 99
             filter = function (e) {
+                var min = parseInt(input.attr('data-min'))
                 if (input.val() < min) {
                     input.val(min)
                 } else if (input.val() > max) {
@@ -639,7 +676,7 @@ var Templates = (function () {
                     addressesContainer.append(addressBlock)
                 }
             }
-            console.log(groupAddresses)
+            //console.log(groupAddresses)
             formAddresses.find('div').append(groupAddresses)
             formAddresses.append($('<button class="btn btn-primary pull-right" data-action="save"\
                 data-form-id="addresses" type="submit">Save</button>'))
@@ -651,64 +688,131 @@ var Templates = (function () {
             var container = $('<div>Edit getViewOrder</div>')
             return container
         },
-        getViewHistory = function (history) {
-            console.log(history)
-            var container = $('<div><h2>Your history</h2></div>')
-            container.append('<h3 class="pull-right">page ' + (parseInt(history.pageNumber) + 1) + "/" + history.pagesAmount + '</h3>')
-            container.append('<div class="clearfix"></div>')
+        getHistoryContainer = function(){
+            var container = $('<div><div class="row" data-type="filters"></div>\
+                <div class="row" data-type="orders"></div>\
+                <div data-type="pager"></div>\
+            </div>')
+            return container
+        },
+        /*
+        pagerInfo = {
+            currentPage : 8,
+            pagesAmount : 50,
+            pagesAtOnce : 5,
+            urlFormater : function(i){
+                return "/pager/"+i
+            }
+        }
+        */
+        getPager = function(pagerInfo){
+            var currentPage = pagerInfo.currentPage,
+                pagesAmount = pagerInfo.pagesAmount,
+                start = Math.max(1,  Math.min(currentPage - Math.floor(pagerInfo.pagesAtOnce/2),pagesAmount)),
+                end = Math.max(1, Math.min(start + pagerInfo.pagesAtOnce, pagesAmount)),
+                urlFormater = pagerInfo.urlFormater,
+                pager = $('<ul class="pagination"></ul>')
 
-            var table = $('<table class="table"></table>'),
-                table_wrap = $('<div class="table-responsive"></div>')
-            container.append(table_wrap)
-            table_wrap.append(table)
-            var header = $('<thead class="cf"><tr></tr></thead>')
-            header.append('<th>Service type</th>')
-            header.append('<th>Registration datetime</th>')
-            header.append('<th>Execution datetime</th>')
-            header.append('<th>Payment type</th>')
-            header.append('<th>Options</th>')
-            header.append('<th>Locations</th>')
-            header.append('<th>Cars</th>')
-            header.append('<th>Distance</th>')
-            header.append('<th>Price</th>')
-            table.append(header)
-            if ($.isSet(history.oreders)) {
-                for (var i = 0; i < history.orders.length; i++) {
-                    var order = history.orders[i],
-                        height = order.assembledRoutes.length
-                    for (var j = 0; j < height; j++) {
-                        var row = $('<tr></tr>'),
-                            route = order.assembledRoutes[j]
-                        if (j == 0) {
-                            row.append('<td colspan="' + height + '">' + order.order.serviceType.name + '</td>')
-                            row.append('<td colspan="' + height + '">' + order.order.registrationDate + '</td>')
-                            row.append('<td colspan="' + height + '">' + order.order.executionDate + '</td>')
-                            row.append('<td colspan="' + height + '">' + order.order.paymentType + '</td>')
-                            row.append('<td colspan="' + height + '">OPTIONS</td>')
-                        }
-                        row.append('<td>' + route.sourceAddress + " -> " + route.destinationAddress + '</td>')
-                        row.append('<td>' + route.totalCars + "/" + route.finishedCars + '</td>')
-                        row.append('<td>' + route.totalDistance + '</td>')
-                        row.append('<td>' + route.totalPrice + '</td>')
-                        table.append(row)
-                    }
-
-                    //table
-                    /*header.append('<th>Service type</th>')
-                     header.append('<th>Registration datetime</th>')
-                     header.append('<th>Execution datetime</th>')
-                     header.append('<th>Payment type</th>')
-                     header.append('<th>Locations</th>')
-                     header.append('<th>Options</th>')
-                     header.append('<th>Comment</th>')
-                     */
+            if (!$.isSet(urlFormater)) {
+                urlFormater = function(i){
+                    return "/pager/"+i
                 }
             }
+
+            for (var i = start; i < end; i++) {
+                pager.append('<li' + ((i == currentPage) ? ' class="active"' : '') +
+                    '><a href="' + urlFormater(i) + '" data-page="' + i + '">'+ i +'</a></li>')
+            }
+
+            pager.on('click', function(e){
+                e.preventDefault()
+                var target = $(e.target),
+                    tagName = target.prop("tagName").toLowerCase(),
+                    current = target
+                if (tagName == 'a'){
+                    current = target.closest('li')
+                }
+                pager.find('.active').removeClass('active')
+                current.addClass('active')
+                //console.log(current.find('a').attr('data-page'))
+            })
+            return pager
+
+        },
+        /*
+            ordersInfo = [
+                {
+                    
+                }
+            ]
+        */
+        getHistoryOrders = function(ordersInfo){
+            var container = $("<div></div>")
+            for (var i=0;i<ordersInfo.length;i++){
+                var info = ordersInfo[i],
+                    o = info.order,
+                    r = info.assembledRoutes[0]
+                container.append('<a data-order-id="'+o.id+'" href="#">'+
+                    o.serviceType.name+' | '+o.registrationDate+' | '+r.sourceAddress+' | '+r.finishedCars+'/'+r.totalCars+
+                    '</a><br>')
+            }
+            //console.log(ordersInfo)
+            return container
+        },
+        getHistoryFilters = function(allowedSortProperties){
+            var container = $('<form method="POST" action="/user/loadHistory"></form>'),
+                sortFilter = $('<div class="col-sm-2 vcenter"><div class="dropdown">\
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Sort by\
+                        <span class="caret"></span></button>\
+                    <ul id="sort-menu" class="dropdown-menu" role="menu"></ul>\
+                </div></div>'),
+                sortMenu = sortFilter.find('[role="menu"]'),
+                pickerFrom = getDateTimePicker("from", "", {locale: 'en'}),
+                pickerTo = getDateTimePicker("to", "", {locale: 'en'}),
+                applyBtn = $('<div class="col-sm-2 vcenter"><button class="btn btn-primary pull-right" data-action="apply"\
+                            data-form-id="contacts" type="submit">Apply</button></div>'),
+                fromWrap = $('<div class="col-sm-4 vcenter controls form-inline"><label for="from"> From : </label></div>'),
+                toWrap = $('<div class="col-sm-4 vcenter controls form-inline"><label for="to"> To : </label></div>'),
+                okGlyph = $('<span id="ok-glyph" class="glyphicon glyphicon-ok"></span>')
+
+            pickerFrom.on("dp.change", function (e) {
+                pickerTo.data("DateTimePicker").minDate(e.date);
+            })
+            pickerTo.on("dp.change", function (e) {
+                pickerFrom.data("DateTimePicker").maxDate(e.date);
+            })
+            fromWrap.append(pickerFrom)
+            toWrap.append(pickerTo)
+
+            for (var i=0;i<allowedSortProperties.length;i++){
+                var property = allowedSortProperties[i];
+                var item = $('<li><a href="#"'+((property.isSelected) ? ' class="selected-property"' : "") +
+                        ' data-property="'+property.value+'">'+property.name+'</a></li>')
+                if (property.isSelected) {
+                    item.find('a').append(okGlyph)
+                }
+                sortMenu.append(item)
+            }
+
+            sortFilter.find('[role="menu"]').on('click', 'a', function (event) {
+                event.preventDefault();
+                var previous = sortFilter.find('[role="menu"] a.selected-property').removeClass('selected-property');
+                var target = $(event.target);
+                target.append(okGlyph);
+                target.addClass('selected-property');
+            });
+
+            container.append(sortFilter)
+            container.append(fromWrap)
+            container.append(toWrap)
+            container.append(applyBtn)
+
             return container
         }
+        
 
     return public_interface = {
-        "getDropDownAddressHTML": getDropDownAddressHTML,
+        "getDropDownAddress": getDropDownAddress,
         "getAddressesContainer": getAddressesContainer,
         "getAddressesGroup": getAddressesGroup,
         "getAddress": getAddress,
@@ -730,10 +834,14 @@ var Templates = (function () {
         "getAbout": getAbout,
         "getEditAccount": getEditAccount,
         "getViewOrder": getViewOrder,
-        "getViewHistory": getViewHistory,
         "lockAllControls": lockAllControls,
         "unlockAllControls": unlockAllControls,
         "makeNiceSubmitButton": makeNiceSubmitButton,
-        "getFavAddress": getFavAddress
+        "getFavAddress": getFavAddress,
+        "getHistoryOrders": getHistoryOrders,
+        "getHistoryContainer" : getHistoryContainer,
+        "getPager" : getPager,
+        "getHistoryFilters" : getHistoryFilters
+
     }
 })()

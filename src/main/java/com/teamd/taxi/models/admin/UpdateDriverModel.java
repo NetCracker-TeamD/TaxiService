@@ -54,6 +54,7 @@ public class UpdateDriverModel {
     @FreeCarId
     private Integer carId;
 
+    private boolean carChange;
 
     public UpdateDriverModel() {
     }
@@ -149,6 +150,14 @@ public class UpdateDriverModel {
         this.carId = carId;
     }
 
+    public boolean isCarChange() {
+        return carChange;
+    }
+
+    public void setCarChange(boolean carChange) {
+        this.carChange = carChange;
+    }
+
     public Driver toDriver() {
         Driver d = new Driver();
         d.setId(this.id);
@@ -161,8 +170,6 @@ public class UpdateDriverModel {
         d.setAtWork(atWork);
         d.setLicense(license);
         d.setFeatures(features);
-        if (carId != null)
-            d.setCar(new Car(carId));
         return d;
     }
 
@@ -182,7 +189,11 @@ public class UpdateDriverModel {
         if (atWork != null) driver.setAtWork(atWork);
         if (license != null) driver.setLicense(license);
         if (features != null) driver.setFeatures(features);
-        if (carId != null) driver.setCar(new Car(carId));
+        if (carChange && carId != null) {
+            driver.setCar(new Car(carId));
+        } else if (carChange) {
+            driver.setCar(null);
+        }
         return driver;
     }
 

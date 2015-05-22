@@ -36,7 +36,10 @@ var MapTools = (function () {
         onMarkerMoved = function (marker_id) {
             var lis = listeners.onMarkerMoved
             if ($.isSet(lis)) {
-                getNameForLocation(markers[marker_id].gmm.position.k, markers[marker_id].gmm.position.D, function (locationName) {
+                console.log('moved marker '+marker_id)
+            	var pos = markers[marker_id].gmm.position
+            	console.log(pos)
+                getNameForLocation(pos.lat(), pos.lng(), function (locationName) {
                     for (var i = 0; i < lis.length; i++) {
                         lis[i](marker_id, locationName)
                     }
@@ -109,7 +112,7 @@ var MapTools = (function () {
         updateMarker = function (key, location, type) {
             addMarker(key, location, type)
         },
-        clearAllMarker = function () {
+        clearAllMarkers = function () {
             for (var key in markers) {
                 removeMarker(key)
             }
@@ -220,8 +223,7 @@ var MapTools = (function () {
         },
         setMapCenter = function (newCenter) {
 //			console.log(newCenter)
-            if ((newCenter.k == undefined || newCenter.k == null) &&
-                (newCenter.D == undefined || newCenter.D == null)) {
+            if ( !$.isSet(newCenter.lat()) && !$.isSet(newCenter.lng()) ) {
                 map.setCenter(new google.maps.LatLng(newCenter.latitude,
                     newCenter.longitude))
             } else {
@@ -267,7 +269,7 @@ var MapTools = (function () {
                             }
                         }
                         //if address isn`t well detailed
-                        callback(results[0].geometry.location.k + ', ' + results[0].geometry.location.D)
+                        callback(results[0].geometry.location.lat() + ', ' + results[0].geometry.location.lgn())
                     } else {
                         console.log('No results found');
                     }
@@ -393,7 +395,7 @@ var MapTools = (function () {
         "getMarkersAmount": getMarkersAmount,
         "removeMarker": removeMarker,
         "markersFitWindow": markersFitWindow,
-        "clearAllMarker": clearAllMarker,
+        "clearAllMarkers": clearAllMarkers,
         "calcAndDrawRoute": calcAndDrawRoute,
         "clearRoutes": clearRoutes,
         "enableDraggableMarkers": enableDraggableMarkers,

@@ -125,7 +125,7 @@
                         <div id="driverIdError" class="alert alert-danger alert-dismissible modal-error hidden">
                             <p></p>
                         </div>
-                        <select id="car_driver" load="true" loadByChange="true" class="form-control"  onclick="generationDrivers(this, 'No driver')" onchange="changeDriver(this)">
+                        <select id="car_driver" load="true" loadByChange="true" class="form-control"  onclick="generationDrivers(this, 'No driver','')" onchange="changeDriver(this)">
 
                         </select>
                     </div>
@@ -141,7 +141,7 @@
     </div>
 </div>
 
-<div class="modal fade centered-modal" id="remove_car" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade centered-modal" id="remove_car" reloadPage="true" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -168,7 +168,7 @@
     </div>
 </div>
 
-<div class="modal fade centered-modal" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade centered-modal" id="successModal" reloadPage="true" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -198,10 +198,10 @@
                 <form method="get">
                     <label for="sort-input">Sort</label>
                     <select class="form-control input-sm" id="sort-input" name="order" onchange="form.submit()">
-                        <option value="MODEL">by Model</option>
-                        <option value="DRIVER">by Driver</option>
-                        <option value="CLASS">by Class</option>
-                        <option value="CATEGORY">by Category</option>
+                        <option value="model">by Model</option>
+                        <option value="driver">by Driver</option>
+                        <option value="class">by Class</option>
+                        <option value="category">by Category</option>
                     </select>
                 </form>
             </div>
@@ -228,21 +228,30 @@
             <tbody>
             <%int num = ((Page) request.getAttribute("page")).getSize() * ((Page) request.getAttribute("page")).getNumber();%>
             <c:forEach var="car" items="${page.content}">
+                <tr style="display: none;">
+                    <td colspan="10" style="padding: 0px;">
+                        <div id="update_errors_${car.carId}" class="alert alert-danger alert-dismissible modal-error"  style="margin-bottom:0px">
+                        </div>
+                    </td>
+                </tr>
                 <tr>
                     <td>
                         <%=++num%>
                     </td>
                     <td car-id="${car.carId}">${car.model}</td>
                     <td>${car.category}</td>
-                    <td>${car.carClass.className}</td>
+                    <td>
+                    ${car.carClass.className}
+                        <p class="hidden">${car.carClass.id}</p>
+                    </td>
                     <c:forEach var="feature" items="${carFeatures}">
                         <td>
-                        <span class="glyphicon <c:choose><c:when test="${car.features.contains(feature)}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
+                        <span id="${feature.id}" class="glyphicon <c:choose><c:when test="${car.features.contains(feature)}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
                               aria-hidden="true"></span>
                         </td>
                     </c:forEach>
                     <td>
-                        <span class="glyphicon <c:choose><c:when test="${car.isEnabled()}">glyphicon-ok glyphicon-yes</c:when><c:otherwise>glyphicon-remove glyphicon-no</c:otherwise></c:choose>"
+                        <span  class="glyphicon <c:choose><c:when test="${car.isEnabled()}">glyphicon-ok glyphicon-yes enable</c:when><c:otherwise>glyphicon-remove glyphicon-no enable</c:otherwise></c:choose>"
                               aria-hidden="true"></span>
                     </td>
                     <td driver-id="${car.driver.id}"><a href="">${car.driver.lastName} ${car.driver.firstName}</a></td>

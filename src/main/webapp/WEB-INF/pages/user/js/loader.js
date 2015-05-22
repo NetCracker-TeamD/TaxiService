@@ -4,7 +4,7 @@
  //init loader and bind callback when all necessary datas will be loaded
  var loader = new Loader()
  loader.addCallBack(function(){
- console.log("calling create page")
+ //console.log("calling create page")
  createPage()
  })
  //binding data loaders
@@ -48,18 +48,22 @@ var Loader = (function () {
             return ids;
         },
         runCallBacks = function () {
-            console.log("calling")
-            for (var i in callBacks) {
-                var callBack = callBacks[i]
+            console.log("run callbacks")
+            var oldCallBacks = callBacks
+            callBacks = []
+            //oldCallBacks = []
+            for (var i in oldCallBacks) {
+                var callBack = oldCallBacks[i]
                 if (typeof callBack == "function") {
                     callBack()
                 }
             }
-            console.log("all callBacks called")
+            oldCallBacks = []
+            //console.log("all callBacks called")
         },
         addThreadName = function (name) {
             loadResults[name] = 0
-            console.log("Thread " + name + " added")
+            //console.log("Thread " + name + " added")
         },
         addThreadNames = function (names) {
             if (typeof names == "string") {
@@ -71,25 +75,27 @@ var Loader = (function () {
             }
         },
         check = function () {
+        	console.log('check')
+        	console.log(loadResults)
             var doCallBack = true;
             for (var key in loadResults) {
                 if (loadResults[key] == 0) {
                     doCallBack = false
                 }
             }
-            console.log(loadResults)
-            console.log(doCallBack)
+            //console.log(loadResults)
+            //console.log(doCallBack)
             if (doCallBack) {
                 runCallBacks()
             }
         },
         addCallBack = function (callBack) {
             callBacks.push(callBack)
-            console.log("callback added")
+            //console.log("callback added")
         },
         setStatus = function (name, status) {
             loadResults[name] = status.toString()
-            console.log("Thread '" + name + "' loaded with status '" + loadResults[name] + "'")
+            //console.log("Thread '" + name + "' loaded with status '" + loadResults[name] + "'")
             check()
         }
 

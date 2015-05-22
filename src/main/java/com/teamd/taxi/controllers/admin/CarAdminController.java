@@ -45,6 +45,7 @@ public class CarAdminController {
     private static final String MESSAGE_CAR_ID_NOT_EXIST = "admin.car.delete.nonexistent";
     private static final String MESSAGE_SUCCESS_DELETE = "admin.car.delete.success";
     private static final String MESSAGE_SUCCESS_CAR_CREATED = "admin.car.create.success";
+    private static final String MESSAGE_SUCCESS_CAR_UPDATE = "admin.car.update.success";
 
     @Resource
     private Environment env;
@@ -69,7 +70,7 @@ public class CarAdminController {
         Sort sort = new Sort(new Sort.Order(DEFAULT_SORT_DIRECTION, pageModel.getOrder()));
         Page<Car> cars = carService.getCars(new PageRequest(pageModel.getPage(), DEFAULT_NUM_OF_RECORDS_ON_PAGE, sort));
         model.addAttribute("page", cars);
-        model.addAttribute("order", pageModel.getCleanOrder());
+        model.addAttribute("order", pageModel.getCleanOrder().toString().toLowerCase());
 
         ArrayList<Integer> pagination = pagesUtil.getPagination(pageModel.getPage(), cars.getTotalPages());
         model.addAttribute("pagination", pagination);
@@ -179,7 +180,7 @@ public class CarAdminController {
 
     @RequestMapping(value = "/update_car", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public AdminResponseModel<Map<String, String>> updateCar(@RequestBody UpdateCarModel updateCarModel, BindingResult result){
+    public AdminResponseModel<Map<String, String>> updateCar(@RequestBody @Valid UpdateCarModel updateCarModel, BindingResult result){
 
         AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
 
@@ -190,14 +191,17 @@ public class CarAdminController {
             Map<String, String> mapError = new HashMap<>();
 
             for (FieldError fieldError : result.getFieldErrors()) {
-                mapError.put(fieldError.getField(), fieldError.getCode());
+                mapError.put(fieldError.getField(), fieldError.getDefaultMessage());
             }
             response.setContent(mapError);
             return response;
         }else {
+
+            carService.updateCar(updateCarModel);
+
             response.setResultSuccess();
             response.setContent(new HashMap<String, String>() {{
-                put("message", "Update norm");
+                put("message", env.getRequiredProperty(MESSAGE_SUCCESS_CAR_UPDATE));
             }});
             return response;
         }
