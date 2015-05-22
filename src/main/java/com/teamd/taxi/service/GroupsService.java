@@ -4,6 +4,7 @@ import com.teamd.taxi.entity.GroupList;
 import com.teamd.taxi.entity.GroupListPK;
 import com.teamd.taxi.entity.User;
 import com.teamd.taxi.entity.UserGroup;
+import com.teamd.taxi.models.admin.AddUsersGroupModel;
 import com.teamd.taxi.models.admin.CreateGroupModel;
 import com.teamd.taxi.models.admin.UpdateGroupModel;
 import com.teamd.taxi.persistence.repository.GroupListRepository;
@@ -74,5 +75,17 @@ public class GroupsService {
         userGroup.setDiscount(Float.parseFloat(createGroupModel.getDiscount()));
         userGroup.setGroups(null);
         groupsRepository.save(userGroup);
+    }
+
+    @Transactional
+    public void addUsersToGroupWithAddUsersGroupModel(AddUsersGroupModel addUsersGroupModel){
+        UserGroup userGroup = groupsRepository.findOne(addUsersGroupModel.getGroupId());
+        List<GroupList> groupLists = userGroup.getGroups();
+
+        for(Integer userId : addUsersGroupModel.getUsers()){
+            groupLists.add(new GroupList(userId, addUsersGroupModel.getGroupId()));
+        }
+
+        userGroup.setGroups(groupLists);
     }
 }

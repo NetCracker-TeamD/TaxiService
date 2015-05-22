@@ -3,11 +3,9 @@ package com.teamd.taxi.controllers.admin;
 import com.teamd.taxi.entity.GroupList;
 import com.teamd.taxi.entity.User;
 import com.teamd.taxi.entity.UserGroup;
-import com.teamd.taxi.models.admin.AdminResponseModel;
-import com.teamd.taxi.models.admin.CreateGroupModel;
-import com.teamd.taxi.models.admin.UpdateCarModel;
-import com.teamd.taxi.models.admin.UpdateGroupModel;
+import com.teamd.taxi.models.admin.*;
 import com.teamd.taxi.service.GroupsService;
+import com.teamd.taxi.validation.AddUsersToGroupValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -30,12 +28,16 @@ public class GroupAdminController {
     private static final String MESSAGE_SUCCESS_GROUP_DELETE = "admin.group.success.delete";
     private static final String MESSAGE_SUCCESS_GROUP_UPDATE = "admin.group.success.update";
     private static final String MESSAGE_SUCCESS_GROUP_CREATE = "admin.group.success.create";
+    private static final String MESSAGE_SUCCESS_ADD_USER_TO_GROUP = "admin.group.success.addUsersToGroup";
 
     @Autowired
     Environment env;
 
     @Autowired
     private GroupsService groupsService;
+
+    @Autowired
+    private AddUsersToGroupValidator addUsersToGroupValidator;
 
     @RequestMapping("/")
     public String getGroupsPage() {
@@ -193,4 +195,29 @@ public class GroupAdminController {
         }
     }
 
+    @RequestMapping(value = "/add/users", method = RequestMethod.POST)
+    @ResponseBody
+    public Object addUsersToGroup(@RequestBody AddUsersGroupModel addUsersGroupModel, BindingResult result){
+
+        addUsersToGroupValidator.validate(addUsersGroupModel, result);
+        if (result.hasErrors()) {
+            AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
+            response.setResultFailure();
+
+            Map<String, String> mapError = new HashMap<>();
+
+            for (FieldError fieldError : result.getFieldErrors()) {
+                mapError.put(fieldError.getField(), env.getRequiredProperty(fieldError.getCode()));
+            }
+            response.setContent(mapError);
+            return response;
+        } else {
+
+            groupsService.addUsersToGroupWithAddUsersGroupModel(addUsersGroupModel);
+
+            AdminResponseModel<String> response = new AdminResponseModel<>();
+            response.setResultSuccess().setContent(env.getRequiredProperty(MESSAGE_SUCCESS_ADD_USER_TO_GROUP));
+            return response;
+        }
+    }
 }
