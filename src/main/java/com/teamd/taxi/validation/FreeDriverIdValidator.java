@@ -25,6 +25,9 @@ public class FreeDriverIdValidator implements ConstraintValidator<FreeDriverId, 
         if (value == null) {
             return true;
         }
+        if(value.toString().equals("-1")){
+            return true;
+        }
         for (Driver driver : driverRepository.findByCarCarId(null)) {
             if (driver.getId().equals(value)) {
                 return true;

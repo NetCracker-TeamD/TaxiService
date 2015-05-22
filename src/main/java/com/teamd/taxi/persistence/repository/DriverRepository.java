@@ -9,6 +9,6 @@ public interface DriverRepository extends PagingAndSortingRepository<Driver, Int
 
     Driver findByEmail(String email);
 
-    public List<Driver> findByCarCarId(Integer carId);
+    public List<Driver> findByCarCarId(Integer id);
 
 }
