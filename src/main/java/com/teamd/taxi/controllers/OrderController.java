@@ -373,6 +373,7 @@ public class OrderController {
                 && (!order.getSecretViewKey().equals(secretKey))
                 || !Utils.isAuthenticated()) {
             throw accessDeniedException;
+            TODO: не слать accessDeniedException при невірному ключі
         }
         AuthenticatedUser authenticatedUser = Utils.getCurrentUser();
         String userRole = Utils.getCurrentUserRole();

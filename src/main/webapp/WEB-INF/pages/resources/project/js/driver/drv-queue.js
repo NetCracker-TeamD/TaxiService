@@ -2,7 +2,8 @@
  * Created by Іван on 04.05.2015.
  */
 $(document).ready(function () {
-    $('#orders-container .order-details').css('cursor', 'pointer');
+    //$('#orders-container .order-details').css('cursor', 'pointer');
+
     $('#orders-container').on('click', '.order-details', function (event) {
         $(this).parent()
             .children('.free-route')
