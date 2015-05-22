@@ -48,13 +48,17 @@ var Loader = (function () {
             return ids;
         },
         runCallBacks = function () {
-            //console.log("calling")
-            for (var i in callBacks) {
-                var callBack = callBacks[i]
+            console.log("run callbacks")
+            var oldCallBacks = callBacks
+            callBacks = []
+            //oldCallBacks = []
+            for (var i in oldCallBacks) {
+                var callBack = oldCallBacks[i]
                 if (typeof callBack == "function") {
                     callBack()
                 }
             }
+            oldCallBacks = []
             //console.log("all callBacks called")
         },
         addThreadName = function (name) {
@@ -71,6 +75,8 @@ var Loader = (function () {
             }
         },
         check = function () {
+        	console.log('check')
+        	console.log(loadResults)
             var doCallBack = true;
             for (var key in loadResults) {
                 if (loadResults[key] == 0) {

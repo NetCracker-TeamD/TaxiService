@@ -43,18 +43,22 @@ var App = (function(){
 				}
 				var 
 					user = tmpStorage.user,
-					container = Templates.getOrderPage(orderInfo),
+					container = Templates.getOrderPage(orderInfo, user),
 					serviceTypes = container.find("#serviceType"),
 					orderDetails = container.find('[data-type="order-details"]'),
 					map = container.find('[data-type="map"]'),
 					orderForm = container.find('#orderForm'),
 					enableEditing = (loadOrder) ? (user.isLogged && !user.isBlocked) : false
 				//bind order status specific actions
+				console.log(loadOrder)
+				console.log(orderInfo)
 				if (loadOrder) {
 					switch (orderInfo.status) {
+						//add cancel button event handler
 						case "queued":
 							var editBtn = container.find('[data-action="edit"]'),
 								cancelBtn = container.find('[data-action="cancel"]')
+							//edit
 							Templates.makeNiceSubmitButton({
 								form: orderForm,
 								button: editBtn,
@@ -88,6 +92,121 @@ var App = (function(){
 									//craeteDOM()
 								}
 							})
+							//cancel
+							Templates.makeNiceSubmitButton({
+								form: orderForm,
+								button: cancelBtn,
+								method : "get",
+								url : "/cancelOrder?id="+orderInfo.orderId,
+								dataFormater : function(){
+									return ""
+								},
+								success: function(response){
+									console.log(response)
+									if (response.status=="OK"){
+										tmpStorage.currentOrder.updating = true
+										DataTools.calcOrderStatus(tmpStorage.currentOrder)
+										BootstrapDialog.show({
+											type: BootstrapDialog.TYPE_INFO, closable: true,
+											title: "Order canceling",
+											message: "Our order successfully canceled",
+											buttons: [{
+												label : "Create new order",
+												action: function(dialog){
+													dialog.close()
+													showOrderPage()
+												}
+											}],
+										})
+									} else {
+										BootstrapDialog.show({
+											type: BootstrapDialog.TYPE_DANGER, closable: true,
+											title: "Server returns bad status",
+											message: "Server returns bad status '"+response.status+"'",
+										})
+										//craeteDOM()
+									}
+								}, 
+								error : function(response){
+									console.log(response)
+									BootstrapDialog.show({
+										type: BootstrapDialog.TYPE_DANGER, closable: true,
+										title: "Server error",
+										message: "Server returns error with status '"+response.statusText+"'",
+									})
+									//craeteDOM()
+								}
+							})
+							break
+						case "updating":
+							var saveBtn = container.find('[data-action="save"]'),
+								cancelBtn = container.find('[data-action="cancel-changes"]')
+							//save
+							Templates.makeNiceSubmitButton({
+								form: orderForm,
+								button: saveBtn,
+								method : "post",
+								useJSON : true,
+								url : "/updateOrder",
+								success: function(response){
+									console.log(response)
+									if (response.status=="OK"){
+										showOrderPage(orderId, secretKey)
+									} else {
+										Templates.lockAllControls(serviceTypes)
+										BootstrapDialog.show({
+											type: BootstrapDialog.TYPE_DANGER, closable: true,
+											title: "Server returns bad status",
+											message: "Server returns bad status '"+response.status+"'",
+										})
+										//craeteDOM()
+									}
+								}, 
+								error : function(response){
+									console.log(response)
+									Templates.lockAllControls(serviceTypes)
+									BootstrapDialog.show({
+										type: BootstrapDialog.TYPE_DANGER, closable: true,
+										title: "Server error",
+										message: "Server returns error with status '"+response.statusText+"'",
+									})
+									//craeteDOM()
+								}
+							})
+							//cancel
+							Templates.makeNiceSubmitButton({
+								form: orderForm,
+								button: cancelBtn,
+								method : "get",
+								url : "/cancelUpdating?id="+orderInfo.orderId,
+								dataFormater : function(){
+									return ""
+								},
+								success: function(response){
+									console.log(response)
+									if (response.status=="OK"){
+										tmpStorage.currentOrder.updating = false
+										DataTools.calcOrderStatus(tmpStorage.currentOrder)
+										createDOM()
+									} else {
+										BootstrapDialog.show({
+											type: BootstrapDialog.TYPE_DANGER, closable: true,
+											title: "Server returns bad status",
+											message: "Server returns bad status '"+response.status+"'",
+										})
+										//craeteDOM()
+									}
+								}, 
+								error : function(response){
+									console.log(response)
+									BootstrapDialog.show({
+										type: BootstrapDialog.TYPE_DANGER, closable: true,
+										title: "Server error",
+										message: "Server returns error with status '"+response.statusText+"'",
+									})
+									//craeteDOM()
+								}
+							})
 							break
 					}
 
@@ -98,8 +217,8 @@ var App = (function(){
 		   				button : makeOrderBtn,
 		   				useJSON : true,
 		   				success : function(response){
-		   					console.log("response")
-		   					console.log(response)
+		   					//console.log("response")
+		   					//console.log(response)
 		   					var trackLink = response.trackLink,
 		   					//: "/viewOrder?trackNum=10651&secretKey=null"
 		   						trackNumber = $.getURLParam(trackLink, "trackNum"),
@@ -107,7 +226,7 @@ var App = (function(){
 		   					if (secretKey == "null") {
 		   						secretKey = null
 		   					}
-		   					console.log(trackNumber, secretKey)
+		   					//console.log(trackNumber, secretKey)
 							var watchIt = function(){
 								console.log("go to track link")
 								showOrderPage(trackNumber, secretKey)
@@ -154,6 +273,7 @@ var App = (function(){
 					serviceTypes.bind("change", function(e){
 						var newServiceType = $(e.target).find('option[value="'+$(e.target).val()+'"]').text()
 						container.find('[data-type="price-holder"]').hide()
+						console.log("createInputsForServiceType !loadOrder")
 						createInputsForServiceType(orderDetails, newServiceType)
 					})
 				} else {
@@ -161,6 +281,7 @@ var App = (function(){
 					Templates.lockAllControls(serviceTypes)
 					var newServiceType = serviceTypes.find('option[value="'+orderInfo.serviceType+'"]').text()
 					createInputsForServiceType(orderDetails, newServiceType, orderInfo)
+					console.log("createInputsForServiceType loadOrder++++")
 					if (orderInfo.status!="updating"){
 						Templates.lockAllControls(orderDetails)
 					}
@@ -468,7 +589,7 @@ var App = (function(){
 						newAddressBlock = Templates.getFavAddress(tmpStorage.favouriteLocations, name, startNumber),
 						input = newAddressBlock.find('[data-type="address"]')[0]
 					var holder = $(target.parent()).find('[data-type="address-group"]')
-					console.log(holder)
+					//console.log(holder)
 					holder.append(newAddressBlock)
 					MapTools.modAutocompleteAddressInput(input, updateRoutes)
 					return;
@@ -476,13 +597,14 @@ var App = (function(){
 			}
 		},
 		createInputsForServiceType = function(holder, newServiceType, orderInfo) {
-			MapTools.clearAllMarker()
+			MapTools.clearAllMarkers()
 			MapTools.markersFitWindow()
 			holder.html("")
 			holder.append(Templates.getWhiteLoader)
 			var loadOrder = $.isSet(orderInfo)
 			//create DOM))
 			var createDOM = function(){
+				console.log("CreateDom called")
 				var SD = tmpStorage.serviceDescription,
 					SF = tmpStorage.serviceFeatures,
 					FL = tmpStorage.favouriteLocations,
@@ -492,7 +614,7 @@ var App = (function(){
 				if (!user.isLogged){
 					holder.append(Templates.getContacts())
 				}
-				console.log(SD)
+				//console.log(SD)
 				var timeBlock = Templates.getTime(SD.timing.indexOf("now")>-1, SD.timing.indexOf("specified")>-1)
 				holder.append(timeBlock)
 				if (loadOrder) {
@@ -578,7 +700,7 @@ var App = (function(){
 				features.append()
 				for (var i in SF) {
 					feature = SF[i]
-					console.log(feature)
+					//console.log(feature)
 					if (feature.isCategory==true){
 						var featureBlock = Templates.getFeaturesGroup(feature,"features", !loadOrder)
 						features.append(featureBlock)
@@ -615,9 +737,14 @@ var App = (function(){
 					} 
 				}
 				holder.append(features)
-
+				MapTools.clearAllMarkers()
+				//console.log(holder.find('input[data-type="address"]'))
 				holder.find('input[data-type="address"]').each(function(i,input){
 					MapTools.modAutocompleteAddressInput(input, updateRoutes)
+					if (loadOrder) {
+						//console.log('trigged', input)
+						$(input).trigger('change')
+					}
 				})
 
 				if (loadOrder && orderInfo.status!="updating"){
@@ -628,9 +755,9 @@ var App = (function(){
 			}
 
 			//init loader and bind callback when all necessary datas will be loaded
-			
+			//console.log("init loader-------------------");
 			var loader = new Loader()
-			loader.addCallBack(function(){ createDOM() })
+			loader.addCallBack(function(){ console.log("calling create dom from loader--------------------"); createDOM() })
 			//binding data loaders
 			var ids = loader.getArrayUniqId(3)
 			DataTools.getServiceDescription(loader, ids[0], function(status, response, serviceDescription){
@@ -766,9 +893,9 @@ var App = (function(){
 					filters = container.find('[data-type="filters"]'),
 					orders = container.find('[data-type="orders"]')
 					pager = container.find('[data-type="pager"]')
-				console.log(allowedSortProperties)
-				console.log(history)
-				console.log(pagerInfo)
+				//console.log(allowedSortProperties)
+				//console.log(history)
+				//console.log(pagerInfo)
 				filters.append(Templates.getHistoryFilters(allowedSortProperties))
 				orders.append(Templates.getHistoryOrders(history))
 				pager.append(Templates.getPager(pagerInfo))

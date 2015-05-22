@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.lang.reflect.Type;
@@ -311,12 +312,43 @@ public class OrderController {
         return new MapResponse().put("status", "OK");
     }
 
+    @RequestMapping(value = "/cancelOrder", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public Map<String, Object> cancelOrder(@RequestParam("id") TaxiOrder order) throws OrderUpdatingException {
+        if (order == null) {
+            return new MapResponse().put("status", "notFound");
+        }
+        taxiOrderService.cancelOrder(order.getId());
+        return new MapResponse().put("status", "OK");
+    }
+
+    @RequestMapping("/testRequest")
+    public void testrRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        System.out.println("Method: " + request.getMethod());
+        Map<String, String[]> params = request.getParameterMap();
+        for (String key : params.keySet()) {
+            System.out.println("Key = " + key);
+            for (String value : params.get(key)) {
+                System.out.println(value);
+            }
+        }
+        System.out.println("Body:");
+        try (BufferedReader reader = request.getReader()) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
+        response.setStatus(200);
+    }
+
     @RequestMapping(value = "/updateOrder", produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public Map<String, Object> updateOrder(@RequestParam("id") long orderId, Reader reader)
+    public Map<String, Object> updateOrder(Reader reader)
             throws ParseException, PropertyNotFoundException, ItemNotFoundException,
             MapServiceNotAvailableException, NotFoundException, NotCompatibleException, OrderUpdatingException {
         JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
+        long orderId = getAndCheck(orderObject, "orderId").getAsLong();
         TaxiOrderForm form = fillForm(orderObject);
         taxiOrderService.updateTaxiOrder(orderId, form);
         return new MapResponse().put("status", "OK");

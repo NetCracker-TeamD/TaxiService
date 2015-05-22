@@ -155,12 +155,19 @@ var Templates = (function () {
                     }
                 var contentType = "application/x-www-form-urlencoded; charset=UTF-8"
                 if (useJSON) {
+                    console.log(form)
+                    console.log(form.serializeObject())
+                    console.log(form.serializeArray())
+                    console.log(form.serialize())
                     data = JSON.stringify(form.serializeObject())
+                    console.log(data)
                     contentType = "application/json; charset=utf-8"
                 }
                 if ($.isSet(dataFormater)) {
                     data = dataFormater()
                 }
+                console.log('data is')
+                console.log(data)
                 method = (method != "get" && method != "post") ? "post" : method
                 //lock form
                 lockAllControls(form);
@@ -206,7 +213,7 @@ var Templates = (function () {
                 }
             })
         },
-        getOrderPage = function (orderInfo) {//button
+        getOrderPage = function (orderInfo, userInfo) {//button
             var container = $('<div class="col-sm-5 col-sm-offset-1">\
                     <form class="form-horizontal" id="orderForm" method="POST" action="/makeOrder">\
                         <div class="form-group">\
@@ -253,9 +260,11 @@ var Templates = (function () {
                 switch (status.toLowerCase()) {
                     case "queued" :
                         statusBlock.append('<button type="button" class="btn btn-primary">Queued</button>')
-                        buttonsHolder.append('<button type="button" class="btn btn-primary btn-lg" data-action="edit">Edit</button>')
-                        buttonsHolder.append('<span>&nbsp;</span>')
-                        buttonsHolder.append('<button type="button" class="btn btn-warning btn-lg" data-action="cancel">Cancel order</button>')
+                        if (userInfo.isLogged){
+                            buttonsHolder.append('<button type="button" class="btn btn-primary btn-lg" data-action="edit">Edit</button>')
+                            buttonsHolder.append('<span>&nbsp;</span>')
+                            buttonsHolder.append('<button type="button" class="btn btn-warning btn-lg" data-action="cancel">Cancel order</button>')
+                        }
                         //console.log(statusBlock)
                         //console.log(buttonsHolder)
                         break;
