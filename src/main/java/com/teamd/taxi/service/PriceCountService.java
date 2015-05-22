@@ -69,7 +69,7 @@ public class PriceCountService {
                 }
             }
         }
-        //
+        //тарифікація по годинам
         List<TimeCoeffPair> processed = new ArrayList<>();
         for (int i = 0; i < pairs.size(); i++) {
             List<TimeCoeffPair> nonProcessed = new ArrayList<>();
@@ -123,12 +123,13 @@ public class PriceCountService {
         float tariffMultiplier;
         float orderMultiplier;
         ServiceType type = route.getOrder().getServiceType();
-        if (type.getPriceByDistance() == null) {
+        Float priceByDistance = type.getPriceByDistance();
+        if (priceByDistance == null) {
             tariffMultiplier = type.getPriceByTime();
             //виражаємо час у годинах
             orderMultiplier = (float) (totalDuration / (60 * 60 * 1000));
         } else {
-            tariffMultiplier = type.getPriceByDistance();
+            tariffMultiplier = priceByDistance;
             orderMultiplier = route.getDistance();
         }
         for (TimeCoeffPair part : processed) {

@@ -38,9 +38,8 @@ public class GroupReportController {
     long userId = 31;
     long groupId;
 
-
     @Autowired
-    UserRepository userRepository;
+    UserRepository userRepository; //TODO: замінить на CustomerUserService
 
     @Autowired
     GroupsService groupsService;
@@ -141,15 +140,15 @@ public class GroupReportController {
     @RequestMapping(value = "/statistic/exportNewOrders", method = RequestMethod.GET)
     public ModelAndView getExcelNewOrders(@RequestParam("startDate") final String startDate,
                                           @RequestParam("endDate") final String endDate) {
-       if (isValidDate(startDate) & isValidDate(endDate)) {
+        if (isValidDate(startDate) && isValidDate(endDate)) {
             List report = reportService.getNewOrderList(reportService.getNewOrders(startDate, endDate, groupId));
             return new ModelAndView("newOrders", "report", report);
-        }else {
-           RedirectView view=new RedirectView("/user/statistic",true);
-           view.setExpandUriTemplateVariables(false);
-           Map params=new HashMap();
-           params.put("group",groupId);
-           view.setAttributesMap(params);
+        } else {
+            RedirectView view = new RedirectView("/user/statistic", true);
+            view.setExpandUriTemplateVariables(false);
+            Map params = new HashMap();
+            params.put("group", groupId);
+            view.setAttributesMap(params);
             return new ModelAndView(view);
         }
 

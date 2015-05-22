@@ -24,8 +24,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -63,36 +61,36 @@ public class CurrentOrderController {
     @Autowired
     private TaxiOrderRepository taxiOrderRepository;
 
-    //hardcode) must take from session
-//      TODO
+    //TODO: hardcode) must take from session
     private int driverId = 6;
 
     @RequestMapping(value = "/order", method = RequestMethod.GET)
-    private String viewQueue(Model model, HttpServletRequest requst) {
+    private String viewQueue(Model model) {
         boolean isActiveOrder = true;
         Driver driver = driverService.getDriver(driverId);
         int drvId = driver.getId();
         TaxiOrder taxiOrder;
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(drvId)) == null) {
             isActiveOrder = false;
-            model.addAttribute("isActiveOrder", isActiveOrder);
         } else {
             List<Route> sortRoutes = getChainForDriver(taxiOrder, drvId);
-            model.addAttribute("isActiveOrder", isActiveOrder);
             model.addAttribute("sortRoutes", sortRoutes);
         }
+        model.addAttribute("isActiveOrder", isActiveOrder);
         return "driver/drv-current-order";
     }
 
 
     @RequestMapping(value = "/assign", method = RequestMethod.GET)
-    private String assignOrder(Model model, HttpServletRequest requst) {
-        if (!checkInputParam(requst)) {
+    private String assignOrder(HttpServletRequest request) {
+        //TODO: назва не дає майже ніякої інформації щодо того що робить метод
+        if (!checkInputParam(request)) {
             return "redirect:error";
         } else
             return "redirect:order";
     }
 
+    //TODO: змінить це ім'я
     @RequestMapping(value = "/lifeCircleOrder", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String processOrder(@RequestParam(value = "status") String status) throws InfoNotFoundException, ItemNotFoundException {
@@ -151,7 +149,7 @@ public class CurrentOrderController {
                                 totalPrice += price;
                                 r.setTotalPrice(price);
                                 routeService.saveRoute(r);
-                                if (r.getChainPosition() == 1) //WTF???
+                                if (r.getChainPosition() == 1) //TODO: WTF???
                                     break;
                             }
                         }
@@ -176,7 +174,7 @@ public class CurrentOrderController {
                     }
                 }
             }
-        }
+        } //TODO: а else де???
         return new Gson().toJson(to);
     }
 
@@ -184,7 +182,8 @@ public class CurrentOrderController {
     public
     @ResponseBody
     String[] loadAddress() {
-
+        //TODO: хмм... а нашо діставать водія, якшо тобі від нього треба
+        //тільки id-шник який в тебе і так є???
         Driver driver = driverService.getDriver(driverId);
         TaxiOrder taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
         List<Route> routes = getChainForDriver(taxiOrder, driver.getId());
@@ -275,7 +274,7 @@ public class CurrentOrderController {
                 } else {
                     Calendar completionDate;
                     taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
-                    if ((completionDate = getTimeOfLastComletionRouteInChain(taxiOrder, driver.getId())) == null) {
+                    if ((completionDate = getTimeOfLastCompletionRouteInChain(taxiOrder, driver.getId())) == null) {
                         to.addProperty("currentOrderState", "driverInProgress");
                     } else {
                         to.addProperty("lastCompletionRoute", completionDate.getTimeInMillis());
@@ -311,7 +310,7 @@ public class CurrentOrderController {
         return false;
     }
 
-    private Calendar getTimeOfLastComletionRouteInChain(TaxiOrder taxiOrder, int driverId) {
+    private Calendar getTimeOfLastCompletionRouteInChain(TaxiOrder taxiOrder, int driverId) {
         List<Route> sortRoutes = getChainForDriver(taxiOrder, driverId);
         for (int i = 0; i < sortRoutes.size(); i++) {
             Route r = sortRoutes.get(i);
@@ -324,16 +323,19 @@ public class CurrentOrderController {
         return null;
     }
 
-    private boolean checkInputParam(HttpServletRequest requst) {
-        System.out.println(requst.getParameter("source") + "    " + requst.getParameter("dest"));
+    //TODO: на один false приходиться 5 різних випадків: як зрозуміть що саме сталось, якщо повернулось false ???
+    //TODO: це все має бути одна транзакція, аби унеможливити зміну даних з якими ти працюєш
+    private boolean checkInputParam(HttpServletRequest request) {
+        System.out.println("source = " + request.getParameter("source") + ", dest = " + request.getParameter("dest"));
         Driver driver = driverService.getDriver(driverId);
         TaxiOrder taxiOrder;
-        if ((taxiOrder = isOrderExist(requst)) == null) {
+        if ((taxiOrder = isOrderExist(request)) == null) {
             return false;
         }
         if (taxiOrderService.findCurrentOrderByDriverId(driver.getId()) != null) {
             return false;
         }
+        //TODO: всередині ти знову знаходиш водія по id. Навіщо? Он він, вже знайдений вгорі. Те саме стосується замовлення
         if (!checkDriverAndOrderFeature(driver.getId(), taxiOrder.getId())) {
             return false;
         }
@@ -343,13 +345,16 @@ public class CurrentOrderController {
         List<Route> routes = getChain(taxiOrder);
 
         // поки водій вибирав, всі роути ордера зайняли
+        System.out.println(routes);
         if (!routes.isEmpty()) {
             // якщо роут не ланцюжком
             if (!isRouteChain(taxiOrder)) {
                 // перевірка адресів призначення і прибуття
-                if ((route = checkDestSourceParam(routes, requst)) != null) {
+                if ((route = checkDestSourceParam(routes, request)) != null) {
                     log.info("AssignStatus NOT Chain " + route);
                     routes.add(route);
+                    //TODO: серйозний баг. Ти підписуєш водія зразу на всі роути, які знайшлись
+                    //TODO: а не тільки на той, який він хотів. Спробуй сервіс N -> 1
                     initAssignStatus(driver, routes);
                     return true;
                 } else {
@@ -372,34 +377,35 @@ public class CurrentOrderController {
         List<Route> routes = new ArrayList<>(assRoutes.size());
 
         for (int j = 0; j < assRoutes.size(); j++) {
-            boolean bussy = false;
-            for (Route r : assRoutes.get(j).getRoutes()) {
-                if (r.getStatus() == RouteStatus.QUEUED) {
-                    routes.add(r);
-                    bussy = true;
+            boolean busy = false;
+            for (Route route : assRoutes.get(j).getRoutes()) {
+                if (route.getStatus() == RouteStatus.QUEUED) {
+                    routes.add(route);
+                    busy = true;
                     break;
                 }
             }
-            if (bussy == false) {
+            if (busy == false) {
                 return new ArrayList<>();
             }
         }
         return routes;
     }
 
+    //TODO: все-таки, залишить тільки останній ланцюг і прибрать сортування
     private List<Route> getChainForDriver(TaxiOrder taxiOrder, int driverId) {
         System.out.println("Taxi Order ID = " + taxiOrder.getId() + "  Driever " + driverId);
         AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
-        List<AssembledRoute> assRoutes = assembledOrder.getAssembledRoutes();
+        List<AssembledRoute> assembledRoutes = assembledOrder.getAssembledRoutes();
         List<Route> routes = new ArrayList<>();
 
-        for (int j = 0; j < assRoutes.size(); j++) {
-            for (Route r : assRoutes.get(j).getRoutes()) {
-                if ((r.getDriver() != null) && (driverId == r.getDriver().getId())) {
-                    System.out.println("GET CHAIN FOR DIRIVER ID:" + r.getDriver().getId() + " Routes STATUS : " + r.getStatus() +
-                            "   ADDRESS : " + r.getSourceAddress() + "  ID: " + r.getId());
-                    routes.add(r);
-
+        for (int j = 0; j < assembledRoutes.size(); j++) {
+            for (Route route : assembledRoutes.get(j).getRoutes()) {
+                Driver routeDriver = route.getDriver();
+                if ((routeDriver != null) && (driverId == routeDriver.getId())) {
+                    System.out.println("GET CHAIN FOR DIRIVER ID:" + route.getDriver().getId() + " Routes STATUS : " + route.getStatus() +
+                            "   ADDRESS : " + route.getSourceAddress() + "  ID: " + route.getId());
+                    routes.add(route);
                 }
             }
         }
@@ -421,20 +427,22 @@ public class CurrentOrderController {
 
     private boolean isRouteChain(TaxiOrder taxiOrder) {
         //only TaxiAsap and Taxi In Advance can be chain
-        if (taxiOrder.getServiceType().isDestinationLocationsChain() != null) {
-            return taxiOrder.getServiceType().isDestinationLocationsChain();
-        }
-        return false;
+        Boolean isChain = taxiOrder.getServiceType().isDestinationLocationsChain();
+        return isChain == null ? false : isChain;
     }
 
     // перевірка призначення і прибуття, тільки для роутів != chain
-    private Route checkDestSourceParam(List<Route> routes, HttpServletRequest requst) {
+    private Route checkDestSourceParam(List<Route> routes, HttpServletRequest request) {
         String source, dest;
-        if (requst.getParameter("source") != null) {
-            source = requst.getParameter("source");
-            if ((dest = requst.getParameter("dest")) != null) {
+        if ((source = request.getParameter("source")) != null) {
+            //TODO: якщо тобі випадково пришлють dest, ти ніколи не підпишеш водія на
+            //TODO: маршрут, в якому в принципі відсутній пункт призначення.
+            //TODO: Треба робити перевірки згідно типу сервісу та прапорців у ньому
+            //TODO: upd: між іншим, ти ж сам і присилаєш собі пустий dest, перевір на Taxi for long term
+            if ((dest = request.getParameter("dest")) != null) {
                 for (Route r : routes) {
-                    if (r.getSourceAddress().equals(source) && r.getDestinationAddress().equals(dest)) {
+                    if (r.getSourceAddress().equals(source)
+                            && r.getDestinationAddress().equals(dest)) { //TODO: а ще тут чекає NullPointer
                         return r;
                     }
                 }
@@ -448,17 +456,22 @@ public class CurrentOrderController {
         return null;
     }
 
-    private TaxiOrder isOrderExist(HttpServletRequest requst) {
+    //TODO: назва методу не відповідає тому що він робить
+    private TaxiOrder isOrderExist(HttpServletRequest request) {
         TaxiOrder taxiOrder;
         long id = -1;
-        if (requst.getParameter("id") != null) {
-            id = Long.valueOf(requst.getParameter("id"));
+        if (request.getParameter("id") != null) {
+            //TODO: NumberFormatException так і чекає
+            id = Long.valueOf(request.getParameter("id"));
         } else {
             return null;
         }
+        //TODO: в обох випадках вертається поточне значення taxiOrder - нащо такі складності ?)
         if ((taxiOrder = taxiOrderService.findOneById(id)) != null) {
             return taxiOrder;
-        } else return null;
+        } else {
+            return null;
+        }
     }
 
 
@@ -472,7 +485,7 @@ public class CurrentOrderController {
         List<Route> rlist = new ArrayList<>(driver.getRoutes());
         rlist.addAll(routes);
         driver.setRoutes(rlist);
-        driverService.save(driver);
+        driverService.save(driver); //TODO: треба подумать чи потрібно це взагалі ...
 
         TaxiOrder taxiOrder = routes.get(0).getOrder();
         User user = taxiOrder.getCustomer();
@@ -537,7 +550,7 @@ public class CurrentOrderController {
         }
     }
 
-    // check for responsibility driver and order features
+    // check for compatibility driver and order features
     private boolean checkDriverAndOrderFeature(int driverId, long orderId) {
         Driver driver = driverService.getDriver(driverId);
         List<Feature> drFeatures = driverService.getDriver(driverId).getFeatures();

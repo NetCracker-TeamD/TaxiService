@@ -337,6 +337,7 @@ public class TaxiOrderService {
         if (orders.isEmpty()) {
             return null;
         }
+        //TODO: прибрать це
         TaxiOrder order = orders.get(0);
         System.out.println("READ FEATURES  ");
         Hibernate.initialize(order.getFeatures());
