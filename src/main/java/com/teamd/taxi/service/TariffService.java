@@ -17,10 +17,9 @@ public class TariffService {
         return tariffByTimeRepository.findAll(pageable);
     }
 
-    public void save(TariffByTime tariffByTime){
+    public void save(TariffByTime tariffByTime) {
         tariffByTimeRepository.save(tariffByTime);
     }
-
 
     public void removeTariff(int id) {
         tariffByTimeRepository.delete(id);

@@ -272,32 +272,32 @@ public class TaxiOrderService {
     public TaxiOrder updateTaxiOrder(long orderId, TaxiOrderForm form) throws NotCompatibleException,
             PropertyNotFoundException, NotFoundException, MapServiceNotAvailableException,
             OrderUpdatingException {
-        TaxiOrder old = orderRepository.findOne(orderId);
-        for (Route route : old.getRoutes()) {
+        TaxiOrder oldOrder = orderRepository.findOne(orderId);
+        for (Route route : oldOrder.getRoutes()) {
             if (route.getStatus() != RouteStatus.UPDATING) {
                 throw new OrderUpdatingException("not under updating", orderId);
             }
         }
         TaxiOrder orderWithUpdates = fillOrder(form, null);
         //копируем данные
-        old.setDriverSex(orderWithUpdates.getDriverSex());
-        old.setCarClass(orderWithUpdates.getCarClass());
-        old.setRegistrationDate(Calendar.getInstance());
-        old.setPaymentType(orderWithUpdates.getPaymentType());
-        old.setExecutionDate(orderWithUpdates.getExecutionDate());
-        old.setFeatures(orderWithUpdates.getFeatures());
+        oldOrder.setDriverSex(orderWithUpdates.getDriverSex());
+        oldOrder.setCarClass(orderWithUpdates.getCarClass());
+        oldOrder.setRegistrationDate(Calendar.getInstance());
+        oldOrder.setPaymentType(orderWithUpdates.getPaymentType());
+        oldOrder.setExecutionDate(orderWithUpdates.getExecutionDate());
+        oldOrder.setFeatures(orderWithUpdates.getFeatures());
         //удаляем старые маршруты
-        List<Route> oldRoutes = old.getRoutes();
+        List<Route> oldRoutes = oldOrder.getRoutes();
         routeRepository.delete(oldRoutes);
         //добавляем новые
         List<Route> routes = orderWithUpdates.getRoutes();
         for (Route route : routes) {
-            route.setOrder(old);
+            route.setOrder(oldOrder);
         }
-        old.setRoutes(routes);
+        oldOrder.setRoutes(routes);
         //сохраняем
-        old = orderRepository.save(old);
-        return old;
+        oldOrder = orderRepository.save(oldOrder);
+        return oldOrder;
     }
 
     private List<Route> makeClones(Route prototype, int amount) {

@@ -68,7 +68,7 @@ public class QueueController {
     private static final Logger log = Logger.getLogger(QueueController.class);
 
 
-    @RequestMapping(value = "/loadQueue", produces = "application/json;charset=UTF-8" )
+    @RequestMapping(value = "/loadQueue", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public String loadQueue(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
         log.info("Received params: " + params);
@@ -81,7 +81,7 @@ public class QueueController {
 
 
         //запит на доступні замовлення
-        Specifications<TaxiOrder> spec = where(new OrderSpec(featureIds, driver.getCar().getCarClass(),driver.getSex()))
+        Specifications<TaxiOrder> spec = where(new OrderSpec(featureIds, driver.getCar().getCarClass(), driver.getSex()))
                 .and(new RouteSpec());
         Specification<TaxiOrder> additional = resolveSpecification(selectedTypes);
         if (additional != null) {
@@ -145,8 +145,8 @@ public class QueueController {
 
         Driver driver = driverService.getDriver(currentDriverID);
         TaxiOrder taxiOrder;
-        log.info("PARAMETER "+taxiOrderService.findCurrentOrderByDriverId(driver.getId()));
-        if(!driver.isAtWork() || ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) ){
+        log.info("PARAMETER " + taxiOrderService.findCurrentOrderByDriverId(driver.getId()));
+        if (!driver.isAtWork() || ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null)) {
             model.addAttribute("activeOrder", true);
             model.addAttribute("pageable", pageable);
             model.addAttribute("selectedServices", selectedTypes);
@@ -178,8 +178,8 @@ public class QueueController {
         List<Feature> merged = new ArrayList<>(driver.getFeatures());
         merged.addAll(car.getFeatures());
         System.out.print("/nFEATURE = ");
-        for( Feature f :  car.getFeatures()){
-            System.out.print(f.getId()+" __ ");
+        for (Feature f : car.getFeatures()) {
+            System.out.print(f.getId() + " __ ");
         }
 
         List<Integer> featureIds = new ArrayList<>();
