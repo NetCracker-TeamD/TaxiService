@@ -358,7 +358,7 @@ $(document).ready(function () {
                             '<span id="' + response.id + '" class="label label-info glyphicon glyphicon-list findForRefuse">' +
                             response.routeStatus + '</span></div>'));
                         } else {
-                            alert("Set New Route : " + response.status);
+                            //alert("Set New Route : " + response.status);
                         }
                     },
                     error: function (e) {
@@ -366,7 +366,7 @@ $(document).ready(function () {
                     }
                 });
             } else {
-                alert('Error: dots null');
+                //alert('Error: dots null');
             }
         });
     });
@@ -383,7 +383,7 @@ function loadAddress(callback) {
             $.each(response, function (index, value) {
                 dots.push(value);
             });
-            alert(dots[dots.length - 1]);
+            //alert(dots[dots.length - 1]);
             callback(dots);
         },
         error: function (e) {
@@ -448,7 +448,3 @@ function changeStatus(status) {
         }
     });
 }
-
-
-
-
