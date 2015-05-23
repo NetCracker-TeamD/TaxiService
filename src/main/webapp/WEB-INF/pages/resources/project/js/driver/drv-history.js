@@ -5,7 +5,7 @@ $(document).ready(function () {
     var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
 
     $('.clear_param').on('click', function () {
-        window.location = "history";
+        window.location = window.location.href.split("?")[0];
     });
     var checkin = $('#from_date').datepicker({
         format: 'dd/mm/yyyy',

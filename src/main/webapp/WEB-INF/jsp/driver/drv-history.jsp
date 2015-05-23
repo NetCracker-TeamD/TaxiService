@@ -28,12 +28,24 @@
     <script src="../../pages/resources/bootstrap/js/bootstrap-datepicker.js"></script>
     <script src="../../pages/resources/project/js/driver/drv-history.js" type="text/javascript"></script></head>
 <body>
-<%@ include file="../../pages/driver/drv-header.html"%>
-<div class="jumbotron welcome" style="height:150px;">
-    <div class="container" style="height:150px;">
-        <h1 style="color:yellow; text-align:right;">History</h1>
-    </div>
-</div>
+<c:choose>
+    <c:when test="${role == 'ROLE_ADMINISTRATOR'}">
+        <%@ include file="../../pages/admin/admin-header.html"%>
+        <div class="jumbotron" style="background-color: #fff; ">
+            <div class="container" style="height: 15px;">
+                <h2 style="color:#000;">The history of the taxi driver with ID = ${driver_id}</h2>
+            </div>
+        </div>
+    </c:when>
+    <c:when test="${role == 'ROLE_DRIVER'}">
+        <%@include file="../../pages/driver/drv-header.html"%>
+        <div class="jumbotron welcome" style="height:150px;">
+            <div class="container" style="height:150px;">
+                <h1 style="color:yellow; text-align:right;">History</h1>
+            </div>
+        </div>
+    </c:when>
+</c:choose>
 <div class="container">
     <div class="jumbotron">
         <div class="panel panel-default">
@@ -42,7 +54,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                    <label>ID</label>
+                                    <label>ID </label>
                                     <input  placeholder="ID Order" value="${param.id_order}" class="form-control" name="id_order" type="text">
 
                                     <label>Address</label>
