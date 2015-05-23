@@ -24,8 +24,8 @@ public class MailService {
 
     public void sendMessage(String subject, String body, String from, String to) throws MessagingException {
         MimeMessage msg = new MimeMessage(session);
-        msg.setSubject(subject);
-        msg.setContent(body, "text/html");
+        msg.setSubject(subject, "UTF-8");
+        msg.setContent(body, "text/html; charset=UTF-8");
         msg.setFrom(new InternetAddress(from));
         msg.addRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
         //Transport.send(msg);// TODO: uncomment
