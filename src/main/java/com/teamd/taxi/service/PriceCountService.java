@@ -5,9 +5,7 @@ import com.teamd.taxi.exception.InfoNotFoundException;
 import com.teamd.taxi.exception.ItemNotFoundException;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
-import com.teamd.taxi.models.TaxiOrderForm;
 import com.teamd.taxi.persistence.repository.*;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,10 +46,10 @@ public class PriceCountService {
         Calendar start = (Calendar) route.getStartTime().clone();
         Calendar complete = (Calendar) route.getCompletionTime().clone();
         //розбиваємо по дням
-        List<TimeCoeffPair> pairs = splitByDays(new TimeCoeffPair(start, complete, 1f));
+        List<Interval> pairs = splitByDays(new Interval(start, complete, 1f));
         //тарифікація по дням року
         for (TariffByTime dayOfYearTariff : dayOfYearTariffs) {
-            for (TimeCoeffPair pair : pairs) {
+            for (Interval pair : pairs) {
                 int dayOfYear = pair.from.get(DAY_OF_YEAR);
                 if (dayOfYearTariff.getFrom().get(DAY_OF_YEAR) >= dayOfYear
                         && dayOfYear <= dayOfYearTariff.getTo().get(DAY_OF_YEAR)) {
@@ -61,7 +59,7 @@ public class PriceCountService {
         }
         //тарифікація по дням тижня
         for (TariffByTime dayOfWeekTariff : dayOfWeekTariffs) {
-            for (TimeCoeffPair pair : pairs) {
+            for (Interval pair : pairs) {
                 int dayOfYear = pair.from.get(DAY_OF_WEEK);
                 if (dayOfWeekTariff.getFrom().get(DAY_OF_WEEK) >= dayOfYear
                         && dayOfYear <= dayOfWeekTariff.getTo().get(DAY_OF_WEEK)) {
@@ -70,10 +68,10 @@ public class PriceCountService {
             }
         }
         //тарифікація по годинам
-        List<TimeCoeffPair> processed = new ArrayList<>();
+        List<Interval> processed = new ArrayList<>();
         for (int i = 0; i < pairs.size(); i++) {
-            List<TimeCoeffPair> nonProcessed = new ArrayList<>();
-            TimeCoeffPair pair = pairs.get(i);
+            List<Interval> nonProcessed = new ArrayList<>();
+            Interval pair = pairs.get(i);
             nonProcessed.add(pair);
             Queue<TariffByTime> tariffByTimeQueue = new LinkedList<>(timeOfDayTariffs);
             //проходимо по всім тарифам
@@ -82,33 +80,49 @@ public class PriceCountService {
                 //намагаємось знайти відповідність серед необроблених
                 //часових інтервалів
                 for (int j = 0; j < nonProcessed.size(); j++) {
-                    TimeCoeffPair nextPair = nonProcessed.get(j);
-                    boolean leftBoundEntry = nextTariff.getFrom().compareTo(nextPair.from) >= 0
-                            && nextTariff.getFrom().compareTo(nextPair.to) <= 0;
-                    boolean rightBoundEntry = nextTariff.getTo().compareTo(nextPair.from) >= 0
-                            && nextTariff.getTo().compareTo(nextPair.to) <= 0;
+                    Interval nextInterval = nonProcessed.get(j);
+                    Calendar tariffFrom = nextTariff.getFrom();
+                    Calendar tariffTo = nextTariff.getTo();
+                    boolean leftBoundEntry = tariffFrom.compareTo(nextInterval.from) >= 0
+                            && tariffFrom.compareTo(nextInterval.to) <= 0;
+                    boolean rightBoundEntry = tariffTo.compareTo(nextInterval.from) >= 0
+                            && tariffTo.compareTo(nextInterval.to) <= 0;
+                    boolean isProcessed = leftBoundEntry || rightBoundEntry;
+                    /** legend:
+                     * () - interval
+                     * [] - tariff
+                     */
+                    // (____[____]____)
                     if (leftBoundEntry && rightBoundEntry) {
                         //розбиваємо проміжок на 3
-                        TimeCoeffPair[] leftSplit = nextPair.splitWithOneSecondDifference(nextTariff.getFrom(), false);
-                        TimeCoeffPair[] rightSplit = leftSplit[1].splitWithOneSecondDifference(nextTariff.getTo(), true);
+                        Interval[] leftSplit = nextInterval.splitWithOneSecondDifference(nextTariff.getFrom(), false);
+                        Interval[] rightSplit = leftSplit[1].splitWithOneSecondDifference(nextTariff.getTo(), true);
                         //оновлюємо ціну
                         rightSplit[0].coeff *= nextTariff.getPrice();
                         //заносимо в потрібний список
                         processed.add(rightSplit[0]);
                         nonProcessed.add(leftSplit[0]);
                         nonProcessed.add(rightSplit[1]);
-                    } else if (leftBoundEntry) {
-                        TimeCoeffPair[] leftSplit = nextPair.splitWithOneSecondDifference(nextTariff.getFrom(), false);
+                    } //(____[____)____]
+                    else if (leftBoundEntry) {
+                        Interval[] leftSplit = nextInterval.splitWithOneSecondDifference(nextTariff.getFrom(), false);
                         leftSplit[1].coeff *= nextTariff.getPrice();
                         processed.add(leftSplit[1]);
                         nonProcessed.add(leftSplit[0]);
-                    } else if (rightBoundEntry) {
-                        TimeCoeffPair[] rightSplit = nextPair.splitWithOneSecondDifference(nextTariff.getTo(), true);
+                    } // [____(____]____)
+                    else if (rightBoundEntry) {
+                        Interval[] rightSplit = nextInterval.splitWithOneSecondDifference(nextTariff.getTo(), true);
                         rightSplit[0].coeff *= nextTariff.getPrice();
                         processed.add(rightSplit[0]);
                         nonProcessed.add(rightSplit[1]);
-                    }
-                    if (leftBoundEntry || rightBoundEntry) {
+                    } //[____(____)____]
+                    else if (tariffFrom.compareTo(nextInterval.from) < 0
+                            && tariffTo.compareTo(nextInterval.to) > 0) {
+                        isProcessed = true;
+                        nextInterval.coeff *= nextTariff.getPrice();
+                        processed.add(nextInterval);
+                    } //else ()[] or []()
+                    if (isProcessed) {
                         nonProcessed.remove(j);
                         break; //більше одного тарифу бути не може
                         //оскільки вони не перетинаються
@@ -132,7 +146,7 @@ public class PriceCountService {
             tariffMultiplier = priceByDistance;
             orderMultiplier = route.getDistance();
         }
-        for (TimeCoeffPair part : processed) {
+        for (Interval part : processed) {
             price += part.coeff * tariffMultiplier * orderMultiplier * (part.getDuration() / totalDuration);
         }
         //враховуємо автомобіль
@@ -334,22 +348,22 @@ public class PriceCountService {
         return Math.max(routePrice * groupDiscount, serviceType.getMinPrice()) + featurePrice;
     }
 
-    private static class TimeCoeffPair {
+    private static class Interval {
         public Calendar from;
         public Calendar to;
         public float coeff;
 
-        public TimeCoeffPair(Calendar from, Calendar to, float coeff) {
+        public Interval(Calendar from, Calendar to, float coeff) {
             this.from = from;
             this.to = to;
             this.coeff = coeff;
         }
 
-        public TimeCoeffPair[] splitWithOneSecondDifference(Calendar between, boolean secondToTheRight) {
-            TimeCoeffPair[] pair = new TimeCoeffPair[2];
+        public Interval[] splitWithOneSecondDifference(Calendar between, boolean secondToTheRight) {
+            Interval[] pair = new Interval[2];
 
-            pair[0] = new TimeCoeffPair(from, (Calendar) between.clone(), coeff);
-            pair[1] = new TimeCoeffPair((Calendar) between.clone(), to, coeff);
+            pair[0] = new Interval(from, (Calendar) between.clone(), coeff);
+            pair[1] = new Interval((Calendar) between.clone(), to, coeff);
             if (secondToTheRight) {
                 pair[1].from.add(SECOND, 1);
             } else {
@@ -364,7 +378,7 @@ public class PriceCountService {
 
         @Override
         public String toString() {
-            return "TimeCoeffPair{" +
+            return "Interval{" +
                     "from=" + from.getTime() +
                     ", to=" + to.getTime() +
                     ", coeff=" + coeff +
@@ -372,8 +386,8 @@ public class PriceCountService {
         }
     }
 
-    private static List<TimeCoeffPair> splitByDays(TimeCoeffPair pair) {
-        LinkedList<TimeCoeffPair> pairs = new LinkedList<>();
+    private static List<Interval> splitByDays(Interval pair) {
+        LinkedList<Interval> pairs = new LinkedList<>();
         pairs.add(pair);
 
         Calendar from = pair.from;
@@ -385,11 +399,11 @@ public class PriceCountService {
             next.set(SECOND, from.getActualMaximum(SECOND));
 
             pairs.pollLast();
-            pairs.add(new TimeCoeffPair(from, next, 1f));
+            pairs.add(new Interval(from, next, 1f));
 
             next = (Calendar) next.clone();
             next.add(SECOND, 1);
-            pairs.add(new TimeCoeffPair(next, to, 1f));
+            pairs.add(new Interval(next, to, 1f));
 
             from = next;
         }
