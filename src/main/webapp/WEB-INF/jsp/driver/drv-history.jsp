@@ -34,10 +34,6 @@
         <h1 style="color:yellow; text-align:right;">History</h1>
     </div>
 </div>
-<c:set var="page" value="?"/>
-<c:if test="${param.page!=null}">
-    <c:set var="page" value="${page}page=${param.page}&"/>
-</c:if>
 <div class="container">
     <div class="jumbotron">
         <div class="panel panel-default">
@@ -93,12 +89,12 @@
                         <select  id="type_sort" class="selectpicker" onChange="window.location.href=this.value" >
                             <c:choose>
                                 <c:when test="${param.sort=='oldest'}">
-                                    <option value="${page}sort=newest">newest</option>
+                                    <option value="?sort=newest">newest</option>
                                     <option selected="true" value="${page}sort=oldest">oldest</option>
                                 </c:when>
                                 <c:otherwise>
                                     <option selected="true" value="${page}sort=newest">newest</option>
-                                    <option value="${page}sort=oldest">oldest</option>
+                                    <option value="?sort=oldest">oldest</option>
                                 </c:otherwise>
                             </c:choose>
                         </select>
