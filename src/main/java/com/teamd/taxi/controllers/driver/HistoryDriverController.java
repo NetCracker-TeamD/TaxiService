@@ -45,17 +45,12 @@ public class HistoryDriverController {
 
     private List<ServiceType> typeList;
 
-
-    private enum Role{
-        ROLE_ADMINISTRATOR, ROLE_DRIVER
-    }
-
     Logger logger = Logger.getLogger(HistoryDriverController.class);
 
     @RequestMapping(value = "/history/{driverId}", method = RequestMethod.GET)
     public String getDriverHistoryById(Model model, @RequestParam Map<String, String> requestParam, @PathVariable int driverId) {
         Driver driver = driverService.getDriver(driverId);
-        setViewHistory(model, requestParam, driver, Role.ROLE_ADMINISTRATOR);
+        setViewHistory(model, requestParam, driver, "ROLE_ADMINISTRATOR");
         return "driver/drv-history";
     }
 
@@ -66,12 +61,12 @@ public class HistoryDriverController {
         AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_DRIVER"))) {
             Driver driver = driverService.getDriver((int) auth.getId());
-            setViewHistory(model, requestParam, driver, Role.ROLE_DRIVER);
+            setViewHistory(model, requestParam, driver, "ROLE_DRIVER");
             return "driver/drv-history";
         }
         return null;
     }
-    private void setViewHistory(Model model, Map<String, String> requestParam, Driver driver, Role role ) {
+    private void setViewHistory(Model model, Map<String, String> requestParam, Driver driver, String role ) {
         int page = 0;
         if (requestParam.get("page") != null)
             page = Integer.parseInt(requestParam.get("page")) - 1;
@@ -91,7 +86,7 @@ public class HistoryDriverController {
         model.addAttribute("orderList", orders);
         model.addAttribute("pages", orderList.getTotalPages());
         model.addAttribute("serviceTypes", typeList);
-        model.addAttribute("role", role.name());
+        model.addAttribute("role", role);
         model.addAttribute("driver_id", driver.getId());
     }
 
