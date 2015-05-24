@@ -235,18 +235,18 @@ public class QueueController {
                         subFeatureJoin.get("id").in(featureIds)
                 ));
                 featurePredicate = cb.not(root.<Long>get("id").in(taxiOrderIdSubquery));
+            } else {
+                featurePredicate = cb.isEmpty(root.<List<Feature>>get("features"));
             }
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.HOUR, 1); //TODO: move to info table
 
             Predicate retValue = cb.and(
+                    featurePredicate,
                     cb.lessThan(root.<Calendar>get("executionDate"), calendar),
                     cb.or(cb.isNull(root.<CarClass>get("carClass")), cb.equal(root.<CarClass>get("carClass"), carClass)),
                     cb.or(cb.isNull(root.<Sex>get("driverSex")), cb.equal(root.<Sex>get("driverSex"), sex))
             );
-            if (featurePredicate != null) {
-                retValue = cb.and(retValue, featurePredicate);
-            }
             return retValue;
         }
     }
