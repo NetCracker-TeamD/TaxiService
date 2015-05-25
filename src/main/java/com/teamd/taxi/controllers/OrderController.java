@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.lang.reflect.Type;
@@ -90,11 +88,9 @@ public class OrderController {
 
         if (userAuthenticated) {
             long userId = ((AuthenticatedUser) authentication.getPrincipal()).getId();
-            BlackListItem blackListItem = blackListService.findByUserId(userId);
-            int refusedOrders = blackListItem.getRefusedOrders();
-            assert (refusedOrders >= 0 && refusedOrders <= 3);
-            if (refusedOrders == 3) {
-                retVal.put("blockedDueToRefuses", true);
+            long refusedOrders = blackListService.countByUserId(userId);
+            if (refusedOrders >= BlackListService.REFUSED_ORDERS_LIMIT) {
+                retVal.put("status", "blockedDueToRefuses");
                 return gson.toJson(retVal);
             }
             retVal.put("locations", addressService.findAddressesByUserId(userId));
@@ -104,6 +100,15 @@ public class OrderController {
         retVal.put("services", serviceTypeService.findAll());
 
         return gson.toJson(retVal);
+    }
+
+    //Set of auxiliary methods to work with JSON
+    private JsonElement getAndCheck(JsonObject object, String propName) throws PropertyNotFoundException {
+        JsonElement element = object.get(propName);
+        if (element == null) {
+            throw new PropertyNotFoundException(propName + " is null");
+        }
+        return element;
     }
 
     private List<String> readStringList(JsonObject jsonObject, String propName, boolean checkEmpty) throws PropertyNotFoundException {
@@ -250,7 +255,7 @@ public class OrderController {
 
     @RequestMapping(value = "/countPrice", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String countApproximatePrice(Reader reader)
+    public Map<String, Object> countApproximatePrice(Reader reader)
             throws ParseException, PropertyNotFoundException, ItemNotFoundException, MapServiceNotAvailableException, NotFoundException, NotCompatibleException {
         JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
         TaxiOrderForm form = fillForm(orderObject);
@@ -262,14 +267,14 @@ public class OrderController {
             userId = ((AuthenticatedUser) authentication.getPrincipal()).getId();
         }
         TaxiOrder order = taxiOrderService.fillOrder(form, null);
-        return "{\"price\":" + priceCountService.approximateOrderPrice(order, userId) + "}";
+        return new MapResponse().put("price", priceCountService.approximateOrderPrice(order, userId));
     }
 
     @RequestMapping(value = "/makeOrder", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String makeOrder(Reader reader) throws IOException,
+    public Map<String, Object> makeOrder(Reader reader) throws IOException,
             PropertyNotFoundException, ItemNotFoundException, ParseException,
-            NotCompatibleException, NotFoundException, MapServiceNotAvailableException, OrderingBlockedDueRefusesException {
+            NotCompatibleException, NotFoundException, MapServiceNotAvailableException {
         //заполняем форму
         JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
         logger.info("Received orderObject: " + orderObject);
@@ -297,14 +302,22 @@ public class OrderController {
             user = userService.findById(authenticatedUser.getId());
         }
         //вносим заказ в базу
-        TaxiOrder order = taxiOrderService.createNewTaxiOrder(form, user);
-
+        TaxiOrder order;
+        try {
+            order = taxiOrderService.createNewTaxiOrder(form, user);
+        } catch (OrderingBlockedDueRefusedException exception) {
+            //превышено количество refused-заказов, отказываемся от обслуживания
+            return new MapResponse().put("status", "blockedDueToRefuses");
+        }
         //отправка ответа
+        /*
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("success", true);
+        jsonObject.addProperty("status", "OK");
         //TODO: add real link with MvcComponentsBuilder, don't add a secret key if user is authenticated
         jsonObject.addProperty("trackLink", "/viewOrder?trackNum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
-        return new GsonBuilder().disableHtmlEscaping().create().toJson(jsonObject);
+        new GsonBuilder().disableHtmlEscaping().create().toJson(jsonObject);*/
+        return new MapResponse().put("status", "OK")
+                .put("trackLink", "/viewOrder?trackNum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
     }
 
     private void checkAccess(TaxiOrder order, String secretKey, boolean allowAdmin) throws SecretKeyMismatchException {
@@ -347,13 +360,18 @@ public class OrderController {
     public Map<String, Object> setUpdating(
             @RequestParam("id") TaxiOrder order,
             @RequestParam(value = "secretKey", required = false) String secretKey)
-            throws OrderUpdatingException, SecretKeyMismatchException {
+            throws SecretKeyMismatchException {
         if (order == null) {
             return new MapResponse().put("status", "notFound");
         }
         checkAccess(order, secretKey, false);
-        taxiOrderService.setUpdating(order.getId());
-        return new MapResponse().put("status", "OK");
+        String status = "OK";
+        try {
+            taxiOrderService.setUpdating(order.getId());
+        } catch (OrderUpdatingException e) {
+            status = "orderPickedUp";
+        }
+        return new MapResponse().put("status", status);
     }
 
     @RequestMapping(value = "/cancelUpdating", produces = "application/json;charset=UTF-8")
@@ -425,12 +443,11 @@ public class OrderController {
         return gson.toJson(convertTaxiOrderToObject(order));
     }
 
-    private JsonElement getAndCheck(JsonObject object, String propName) throws PropertyNotFoundException {
-        JsonElement element = object.get(propName);
-        if (element == null) {
-            throw new PropertyNotFoundException(propName + " is null");
-        }
-        return element;
+    @ExceptionHandler(SecretKeyMismatchException.class)
+    @ResponseBody
+    public Map<String, Object> secretKeyMismatchHandler(HttpServletResponse response) {
+        response.setContentType("application/json;charset=UTF-8");
+        return new MapResponse().put("status", "secretKeyMismatch");
     }
 
     @ExceptionHandler({
@@ -445,9 +462,7 @@ public class OrderController {
             JsonSyntaxException.class,
             JsonParseException.class,
             IllegalArgumentException.class,
-            OrderUpdatingException.class,
-            OrderingBlockedDueRefusesException.class,
-            SecretKeyMismatchException.class
+            OrderUpdatingException.class
     })
     public void handleException(Exception e, HttpServletResponse response) throws IOException {
         logger.error(e);
