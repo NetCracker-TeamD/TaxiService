@@ -6,7 +6,6 @@ import com.teamd.taxi.exception.*;
 import com.teamd.taxi.models.TaxiOrderForm;
 import com.teamd.taxi.persistence.repository.BlackListItemRepository;
 import com.teamd.taxi.persistence.repository.RouteRepository;
-import com.teamd.taxi.persistence.repository.ServiceTypeRepository;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
@@ -192,13 +191,12 @@ public class TaxiOrderService {
             throws NotCompatibleException,
             MapServiceNotAvailableException,
             PropertyNotFoundException,
-            NotFoundException, OrderingBlockedDueRefusesException {
+            NotFoundException, OrderingBlockedDueRefusedException {
         BlackListItem userItem = null;
         //проверим может ли этот пользователь оформить заказ
         if (user.getUserRole() == UserRole.ROLE_CUSTOMER) {
-            userItem = user.getBlackListItem();
-            if (userItem != null && userItem.getRefusedOrders() == 3) {
-                throw new OrderingBlockedDueRefusesException();
+            if (blackListItemRepository.countByUser_Id(user.getId()) >= BlackListService.REFUSED_ORDERS_LIMIT) {
+                throw new OrderingBlockedDueRefusedException();
             }
         }
         TaxiOrder order = fillOrder(form, user);

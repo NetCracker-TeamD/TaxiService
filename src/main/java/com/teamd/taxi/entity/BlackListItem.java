@@ -11,14 +11,11 @@ public class BlackListItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "refused_orders")
-    private Integer refusedOrders;
-
     @Column(name = "payed")
     private Boolean payed;
 
-    @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true, nullable = false)
-    @OneToOne(optional = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @ManyToOne(optional = false)
     private User user;
 
     @JoinColumn(name = "taxi_order_to_pay", referencedColumnName = "id", unique = true)
@@ -31,14 +28,6 @@ public class BlackListItem {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Integer getRefusedOrders() {
-        return refusedOrders;
-    }
-
-    public void setRefusedOrders(Integer refusedOrders) {
-        this.refusedOrders = refusedOrders;
     }
 
     public User getUser() {

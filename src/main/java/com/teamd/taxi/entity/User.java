@@ -46,9 +46,8 @@ public class User implements Serializable {
     @Column(name = "is_confirmed")
     private Boolean confirmed;
 
-    @OneToOne(mappedBy = "user")
-
-    private BlackListItem blackListItem;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    private List<BlackListItem> blackListItems;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     private List<GroupList> groups;
@@ -129,13 +128,13 @@ public class User implements Serializable {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
-    
-    public BlackListItem getBlackListItem() {
-        return blackListItem;
+
+    public List<BlackListItem> getBlackListItems() {
+        return blackListItems;
     }
 
-    public void setBlackListItem(BlackListItem blackListItem) {
-        this.blackListItem = blackListItem;
+    public void setBlackListItems(List<BlackListItem> blackListItems) {
+        this.blackListItems = blackListItems;
     }
 
     public String getConfirmationCode() {
