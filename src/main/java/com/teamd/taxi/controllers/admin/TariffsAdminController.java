@@ -1,6 +1,7 @@
 package com.teamd.taxi.controllers.admin;
 
 import com.teamd.taxi.entity.*;
+import com.teamd.taxi.persistence.repository.TariffByTimeRepository;
 import com.teamd.taxi.service.CarClassService;
 import com.teamd.taxi.service.FeatureService;
 import com.teamd.taxi.service.ServiceTypeService;
@@ -10,10 +11,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -88,6 +92,7 @@ public class TariffsAdminController {
         return "{\"status\" : \"success\"}";
     }
 
+
     @RequestMapping(value = "/byTime", method = RequestMethod.GET)
     public String viewTariffsByTime(Model model, @RequestParam(value = "page", defaultValue = "0") int page) {
         int numberOfRecords = 10;
@@ -95,7 +100,6 @@ public class TariffsAdminController {
         Pageable pageable = new PageRequest(page, numberOfRecords, Sort.Direction.ASC, "id");
         Page<TariffByTime> tariffByTimes = tariffByService.getTariffs(pageable);
         model.addAttribute("tariffs", tariffByTimes.getContent());
-        model.addAttribute("pages", tariffByTimes.getTotalPages());
         return "admin/tariffsByTime";
     }
 
@@ -103,8 +107,7 @@ public class TariffsAdminController {
     public
     @ResponseBody
     String updateTariffsByTime(@RequestBody TariffByTime tbt) {
-        //TODO receive and save
-        TariffByTime tariffByTime=tariffByService.findOne(tbt.getId());
+        TariffByTime tariffByTime = tariffByService.findOne(tbt.getId());
         tariffByTime.setFrom(tbt.getFrom());
         tariffByTime.setTo(tbt.getTo());
         tariffByTime.setPrice(tbt.getPrice());
@@ -112,12 +115,11 @@ public class TariffsAdminController {
         return "{\"status\" : \"success\"}";
     }
 
-    @RequestMapping(value = "/byTime/remove", method = RequestMethod.POST, consumes = "application/json")
-    public
+
     @ResponseBody
-    String removeTariffsByTime(@RequestBody TariffByTime tbt) {
-        //TODO receive and remove
-        TariffByTime tariffByTime=tariffByService.findOne(tbt.getId());
+    @RequestMapping(value = "byTime/remove")
+    public String removeTariffsByTime(@RequestBody TariffByTime tbt) {
+        TariffByTime tariffByTime = tariffByService.findOne(tbt.getId());
         tariffByService.removeTariff(tariffByTime.getId());
         return "{\"status\" : \"success\"}";
     }
@@ -126,12 +128,12 @@ public class TariffsAdminController {
     public
     @ResponseBody
     String createTariffsByTime(@RequestBody TariffByTime tbt) {
-        //TODO receive and create
-        TariffByTime newTariff=new TariffByTime();
+        TariffByTime newTariff = new TariffByTime();
         newTariff.setFrom(tbt.getFrom());
         newTariff.setTo(tbt.getTo());
         newTariff.setPrice(tbt.getPrice());
         tariffByService.save(newTariff);
         return "{\"status\" : \"success\"}";
     }
+
 }
