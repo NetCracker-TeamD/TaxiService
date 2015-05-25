@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -93,10 +94,11 @@ public class CurrentOrderController {
     //TODO: змінить це ім'я
     @RequestMapping(value = "/lifeCircleOrder", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
+    //@Transactional
     public String processOrder(@RequestParam(value = "status") String status) throws InfoNotFoundException, ItemNotFoundException {
 
-        Driver driver = driverService.getDriver(driverId);
-        int drvId = driver.getId();
+        //Driver driver = driverService.getDriver(driverId);
+        int drvId = driverId;
         TaxiOrder taxiOrder;
         JsonObject to = new JsonObject();
 
@@ -107,7 +109,7 @@ public class CurrentOrderController {
                 for (Route r : routes) {
                     if (r.getStatus() == RouteStatus.ASSIGNED) {
                         to.addProperty("status", "REFUSED");
-                        initRefuseStatus(r);
+                        initRefuseStatus(r.getId());
                     }
                 }
                 to.addProperty("orderStatus", "refused");
@@ -141,7 +143,7 @@ public class CurrentOrderController {
                     List<Route> routesWithPrice = getChainForDriver(taxiOrderBuf, drvId);
                     Boolean isChain = taxiOrderBuf.getServiceType().isDestinationLocationsChain();
                     if (isChain != null && isChain) {
-                        listPrice = priceCountService.countPriceForLastChainOrder(taxiOrderBuf.getId(), driver.getId());
+                        listPrice = priceCountService.countPriceForLastChainOrder(taxiOrderBuf.getId(), driverId);
                         for (int i = routesWithPrice.size() - 1; i > 0; i--) {
                             Route r = routesWithPrice.get(i);
                             if (r.getStatus() == RouteStatus.COMPLETED) {
@@ -517,7 +519,6 @@ public class CurrentOrderController {
     }
 
     private void initCompleteStatus(Route r) {
-
         Calendar calendar = Calendar.getInstance();
         r.setStatus(RouteStatus.COMPLETED);
         r.setCompletionTime(calendar);
@@ -533,7 +534,8 @@ public class CurrentOrderController {
         }
     }
 
-    private void initRefuseStatus(Route r) {
+    private Route initRefuseStatus(long routeId) {
+        Route r = routeRepository.findOne(routeId);
         Calendar calendar = Calendar.getInstance();
         r.setStatus(RouteStatus.REFUSED);
         r.setStartTime(calendar);
@@ -548,6 +550,7 @@ public class CurrentOrderController {
         } catch (MessagingException e) {
             e.printStackTrace();
         }
+        return r;
     }
 
     // check for compatibility driver and order features
