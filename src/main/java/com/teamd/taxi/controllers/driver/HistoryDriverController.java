@@ -45,12 +45,17 @@ public class HistoryDriverController {
 
     private List<ServiceType> typeList;
 
+
+    private enum Role {
+        ROLE_ADMINISTRATOR, ROLE_DRIVER
+    }
+
     Logger logger = Logger.getLogger(HistoryDriverController.class);
 
     @RequestMapping(value = "/history/{driverId}", method = RequestMethod.GET)
     public String getDriverHistoryById(Model model, @RequestParam Map<String, String> requestParam, @PathVariable int driverId) {
         Driver driver = driverService.getDriver(driverId);
-        setViewHistory(model, requestParam, driver, "ROLE_ADMINISTRATOR");
+        setViewHistory(model, requestParam, driver, Role.ROLE_ADMINISTRATOR);
         return "driver/drv-history";
     }
 
@@ -58,15 +63,17 @@ public class HistoryDriverController {
     public String getCurrentDriverHistory(Model model, @RequestParam Map<String, String> requestParam) {
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication authentication = context.getAuthentication();
+        //TODO: прибрать, цього не треба
         AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_DRIVER"))) {
             Driver driver = driverService.getDriver((int) auth.getId());
-            setViewHistory(model, requestParam, driver, "ROLE_DRIVER");
+            setViewHistory(model, requestParam, driver, Role.ROLE_DRIVER);
             return "driver/drv-history";
         }
         return null;
     }
-    private void setViewHistory(Model model, Map<String, String> requestParam, Driver driver, String role ) {
+
+    private void setViewHistory(Model model, Map<String, String> requestParam, Driver driver, Role role) {
         int page = 0;
         if (requestParam.get("page") != null)
             page = Integer.parseInt(requestParam.get("page")) - 1;
@@ -74,19 +81,16 @@ public class HistoryDriverController {
         int numberOfRows = 7;
         typeList = service.findAll();
         Pageable pageable = new PageRequest(page, numberOfRows, sort);
-        Page<TaxiOrder> orderList = orderService.findTaxiOrderByDriver(
+        Page<TaxiOrder> orderList = orderService.findAll(
                 resolveSpecification(requestParam, driver.getId()),
                 pageable
         );
-        if (orderList == null) {
-            //TODO redirect error page
-        }
         List<TaxiOrder> orders = orderList.getContent();
         setFilteringOFRoutesForDriver(orders, driver.getId());
         model.addAttribute("orderList", orders);
         model.addAttribute("pages", orderList.getTotalPages());
         model.addAttribute("serviceTypes", typeList);
-        model.addAttribute("role", role);
+        model.addAttribute("role", role.name());
         model.addAttribute("driver_id", driver.getId());
     }
 
@@ -96,7 +100,7 @@ public class HistoryDriverController {
         String to_date = params.get("startDate");
         if (to_date != null) {
             try {
-                specs.add(factory.executionDateGreaterThan(getCalendarByStr(to_date+" 00:00")));
+                specs.add(factory.executionDateGreaterThan(getCalendarByStr(to_date + " 00:00")));
             } catch (NumberFormatException exception) {
                 logger.error("error from startDate");
             }
@@ -105,7 +109,7 @@ public class HistoryDriverController {
         String from_date = params.get("endDate");
         if (from_date != null) {
             try {
-                specs.add(factory.executionDateLessThan(getCalendarByStr(from_date+" 23:59")));
+                specs.add(factory.executionDateLessThan(getCalendarByStr(from_date + " 23:59")));
             } catch (NumberFormatException exception) {
                 logger.error("error from endDate");
             }
@@ -161,12 +165,12 @@ public class HistoryDriverController {
     }
 
     private Sort checkSort(String sort) {
-        if (sort == null||sort.equals("newest")) {
-            return new Sort(Sort.Direction.DESC,"executionDate");
-        }else if (sort.equals("oldest")) {
-            return new Sort(Sort.Direction.ASC,"executionDate");
+        if (sort == null || sort.equals("newest")) {
+            return new Sort(Sort.Direction.DESC, "executionDate");
+        } else if (sort.equals("oldest")) {
+            return new Sort(Sort.Direction.ASC, "executionDate");
         } else
-            return new Sort(Sort.Direction.DESC,"executionDate");
+            return new Sort(Sort.Direction.DESC, "executionDate");
     }
 
     private void setFilteringOFRoutesForDriver(List<TaxiOrder> orders, int idDriver) {

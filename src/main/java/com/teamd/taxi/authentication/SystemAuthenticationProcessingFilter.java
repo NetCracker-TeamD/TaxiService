@@ -2,7 +2,6 @@ package com.teamd.taxi.authentication;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teamd.taxi.authentication.driver.DriverUsernamePasswordAuthenticationToken;
 import com.teamd.taxi.authentication.user.UserUsernamePasswordAuthenticationToken;
@@ -26,9 +24,9 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-public class MyAuthenticationProcessingFilter extends UsernamePasswordAuthenticationFilter {
+public class SystemAuthenticationProcessingFilter extends UsernamePasswordAuthenticationFilter {
 
-    private static final Logger logger = Logger.getLogger(MyAuthenticationProcessingFilter.class);
+    private static final Logger logger = Logger.getLogger(SystemAuthenticationProcessingFilter.class);
 
     private boolean postOnly = true;
 

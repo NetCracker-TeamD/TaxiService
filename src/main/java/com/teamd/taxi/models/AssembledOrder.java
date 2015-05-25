@@ -60,7 +60,7 @@ public class AssembledOrder {
 
     private static LinkedList<AssembledRoute> assembleRoutes(TaxiOrder order) {
         LinkedList<AssembledRoute> routes = new LinkedList<>();
-        List<Route> originalRoutes = order.getRoutes();
+        List<Route> originalRoutes = new ArrayList<>(order.getRoutes());
         while (!originalRoutes.isEmpty()) {
             List<Route> assembled = new ArrayList<>();
             Route sample = originalRoutes.remove(0);
