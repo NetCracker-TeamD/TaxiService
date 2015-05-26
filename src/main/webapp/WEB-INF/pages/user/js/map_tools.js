@@ -40,9 +40,9 @@ var MapTools = (function () {
                 console.log('moved marker '+marker_id)
             	var pos = markers[marker_id].gmm.position
             	console.log(pos)
-                getNameForLocation(pos.lat(), pos.lng(), function (locationName) {
+                getNameForLocation(pos.lat(), pos.lng(), function (status, locationName) {
                     for (var i = 0; i < lis.length; i++) {
-                        lis[i](marker_id, locationName)
+                        lis[i](status, marker_id, locationName)
                     }
                 })
             }
@@ -55,11 +55,11 @@ var MapTools = (function () {
                 }
             }
         },
-        onDistanceChanged = function (newDistance) {
+        onDistanceChanged = function (status, newDistance, chain) {
             var lis = listeners.onDistanceChanged
             if ($.isSet(lis)) {
                 for (var i = 0; i < lis.length; i++) {
-                    lis[i](newDistance)
+                    lis[i](status, newDistance, chain)
                 }
             }
         },
@@ -198,16 +198,26 @@ var MapTools = (function () {
                             waypoints: waypoints,//set intermediate points
                             travelMode: google.maps.TravelMode.DRIVING //set trevel type
                         }
-                        //create request to server for obtaining routes
-                        directionsService.route(request, function (result, status) {
-                            //if status is good, we can draw routes(result) on our map
-                            console.log(result)
-                            if (status == google.maps.DirectionsStatus.OK) {
-                                summaryDistance += result.routes[0].legs[0].distance.value
-                                onDistanceChanged(summaryDistance)
-                                renderRoute(result)
-                            }
-                        })
+
+                        var tmp = function(newChain){
+                            var current_chain = newChain;
+                            //create request to server for obtaining routes
+                            directionsService.route(request, function (result, status) {
+                                //if status is good, we can draw routes(result) on our map
+                                //console.log(result)
+                                //console.log(current_chain)
+                                console.log(current_chain)
+                                if (status == google.maps.DirectionsStatus.OK) {
+                                    summaryDistance += result.routes[0].legs[0].distance.value
+                                    onDistanceChanged('success', summaryDistance, current_chain)
+                                    renderRoute(result)
+                                } else { //if (status==google.maps.DirectionsStatus.ZERO_RESULTS) {
+                                    //console.log("zeroooooooooo result")
+                                    onDistanceChanged('error', summaryDistance, current_chain)
+                                }
+                            })
+                        }
+                        tmp(chain)
                     }
                 }
             }
@@ -273,17 +283,19 @@ var MapTools = (function () {
                             var types = place.address_components[i].types
                             for (var j = 0; j < types.length; j++) {
                                 if (types[j] == acceptableAddressLevel) {
-                                    callback(place.formatted_address)
+                                    callback('success', place.formatted_address)
                                     return;
                                 }
                             }
                         }
                         //if address isn`t well detailed
-                        callback(results[0].geometry.location.lat() + ', ' + results[0].geometry.location.lng())
+                        callback('success', results[0].geometry.location.lat() + ', ' + results[0].geometry.location.lng())
                     } else {
                         console.log('No results found');
+                         callback('error', results)
                     }
                 } else {
+                    callback('error', results)
                     console.log('Geocoder failed due to: ' + status);
                 }
             });
@@ -295,12 +307,14 @@ var MapTools = (function () {
                 if (status == google.maps.GeocoderStatus.OK) {
                     var result = results[0]
                     if (result.geometry != undefined) {
-                        callback(result)
+                        callback('success', result)
                     } else {
                         console.log('No results found');
+                        callback('error', results)
                     }
                 } else {
                     console.log('Geocoder failed due to: ' + status);
+                    callback('error', result)
                 }
             });
         },
@@ -345,7 +359,11 @@ var MapTools = (function () {
                 if (autocomplete.getPlace().geometry != undefined) {
                     checkTime()
                     if ($.isSet(callback)) {
-                        callback(input, autocomplete.getPlace())
+                        console.log('finded place ', autocomplete.getPlace())
+                        console.log('finded place autocomplete ', autocomplete)
+                        callback('success', input, autocomplete.getPlace())
+                    } else {
+                        callback('error', input, autocomplete.getPlace())
                     }
                 }
             })
@@ -354,10 +372,19 @@ var MapTools = (function () {
             jqinput.bind("change", function (e) {
                 console.log("field changed, doing name resolving")
                 var address = jqinput.val()
-                getLocationForName(address, function (geometry) {
+                getLocationForName(address, function (status, geometry) {
                     if (checkTime()) {
-                        if ($.isSet(callback)) {
-                            callback(input, geometry)
+                        if (status=='success'){
+                            var pos = geometry.geometry.location
+                            console.log(pos)
+                            if ($.isSet(callback)) {
+                                getNameForLocation(pos.lat(), pos.lng(), function (status, locationName) {
+                                    geometry.formatted_address = locationName
+                                    callback(status, input, geometry)
+                                })
+                            }
+                        } else {
+                            callback('error', input, geometry)
                         }
                     } else {
                         console.log("abouting duo time limit")
@@ -402,7 +429,6 @@ var MapTools = (function () {
         "setMapCenter": setMapCenter,
         "setMapZoom": setMapZoom,
         "modAutocompleteAddressInput": modAutocompleteAddressInput,
-        "removeMarker": removeMarker,
         "addMarker": addMarker,
         "getMarkersAmount": getMarkersAmount,
         "removeMarker": removeMarker,

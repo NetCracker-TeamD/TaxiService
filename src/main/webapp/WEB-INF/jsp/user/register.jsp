@@ -17,19 +17,23 @@
   <div class="form-group"><h2 class="form-signin-heading">Please sign up</h2></div>
   <%@ include file="contacts.jsp"%>
   <div class="form-group"><label>Provide password</label>
-
-    <div class="input-group"><span class="input-group-addon glyphicon glyphicon-lock"></span> <input type="password"
-                                                                                                     class="form-control"
-                                                                                                     name="password"
-                                                                                                     data-type="password"
-                                                                                                     placeholder="Enter your password">
-    </div>
-    <div class="input-group"><span class="input-group-addon glyphicon glyphicon-lock"></span> <input type="password"
-                                                                                                     class="form-control"
-                                                                                                     name="passwordConfirmation"
-                                                                                                     data-type="password2"
-                                                                                                     placeholder="Repeat password">
-    </div>
+      <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon glyphicon glyphicon-lock"></span>
+            <input type="password" class="form-control" name="password"
+                   placeholder="Enter your password" required>
+        </div>
+        <div class="help-block with-errors"></div>
+      </div>
+      <div class="form-group">
+          <div class="input-group">
+              <span class="input-group-addon glyphicon glyphicon-lock"></span>
+              <input type="password" class="form-control" name="passwordConfirmation"
+                     data-match="[name='password']" data-match-error="Passwords are diferent"
+                     placeholder="Repeat password" required>
+          </div>
+          <div class="help-block with-errors"></div>
+      </div>
   </div>
   <button class="btn btn-lg btn-primary btn-block has-spinner" data-action="reg" type="submit"><span class="spinner"><i
           class="glyphicon glyphicon-refresh glyphicon-spin"></i></span>&nbsp;Sign up

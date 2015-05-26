@@ -8,6 +8,8 @@ $(document).ready(function() {
         loginBtn = container.find('[data-action="login"]'),
         tmpStorage = {}
 
+    loginForm.validator()
+
     Templates.unlockAllControls(loginBtn);
 
     Templates.makeNiceSubmitButton({

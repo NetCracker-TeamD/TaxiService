@@ -162,10 +162,21 @@ var Templates = (function () {
                 }
             }
             submitBtn.bind("click", function (e) {
+                if (submitBtn.hasClass('disabled')) {
+                    return;
+                }
                 e.preventDefault()
 
+                var onQueryEnded = function () {
+                    //enable form
+                    unlockAllControls(form)
+                    submitBtn.removeClass("active")
+                    submitBtn.removeAttr("disabled")
+                }
+
                 if ($.isSet(validator)) {
-                    if (!validator()) {
+                    if (validator()!=true) {
+                        onQueryEnded()
                         return;
                     }
                 }
@@ -180,13 +191,8 @@ var Templates = (function () {
                     console.log(form)
                     url = form.attr("action")
                 }
-                var data = form.serialize(),
-                    onQueryEnded = function () {
-                        //enable form
-                        unlockAllControls(form)
-                        submitBtn.removeClass("active")
-                        submitBtn.removeAttr("disabled")
-                    }
+                var data = form.serialize()
+                    
                 var contentType = "application/x-www-form-urlencoded; charset=UTF-8"
                 if (useJSON) {
                     console.log(form)
@@ -386,7 +392,7 @@ var Templates = (function () {
                 uniqNumber++
                 var container = $('<div class="input-group"></div>'),
                     input = $('<input data-number="' + (baseNumber + uniqNumber) + '" name="'
-                    + name + '" data-type="address" type="text" class="form-control">'),
+                    + name + '" data-type="address" type="text" class="form-control" data-custom-validator="true" data-error="Address is incorrect" required>'),
                     dropdown = getDropDownAddress(locationsList, isRemovable)
                 
                 if (hasCarsAmount) {
@@ -401,7 +407,10 @@ var Templates = (function () {
                     container.append(input)
                     container.append(dropdown)
                 }
-                return container;
+                var wrap = $('<div class="form-group"></div>')
+                wrap.append(container)
+                wrap.append('<div class="help-block with-errors"></div>')
+                return wrap;
             }
         })(),
         getFavAddress = (function () {
@@ -431,7 +440,7 @@ var Templates = (function () {
         })()
     getDateTimePicker = function (name, value, config) {
         var picker = $('<div class="input-group date">\
-				<input type="text" class="form-control" id="'+name+'" name="' + name + '" value="' + value + '" />\
+				<input type="text" class="form-control" id="'+name+'" name="' + name + '" value="' + value + '" required/>\
 				<span class="input-group-addon">\
 					<span class="glyphicon glyphicon-calendar"></span>\
 				</span>\
@@ -457,6 +466,7 @@ var Templates = (function () {
                     })
                 pickerWrap.append(picker)
                 container.append(pickerWrap)
+                container.append('<div class="help-block with-errors"></div>')
                 container.bind("click", function (e) {
                     var target = $(e.target),
                         tagName = target[0].tagName.toLowerCase()
@@ -481,6 +491,7 @@ var Templates = (function () {
                     locale: 'en',
                     minDate: new Date()
                 }))
+                container.append('<div class="help-block with-errors"></div>')
             } else {
                 container.attr("class", "") //remove spaceing
                 container.html('<input type="hidden" name="time" value="now">')
@@ -585,24 +596,32 @@ var Templates = (function () {
         },
         getContacts = function () {
             var container = $('<div class="form-group" id="contacts">\
-				<label>Provide contact information</label>\
-                <div class="input-group">\
-                    <span class="input-group-addon glyphicon glyphicon-user"></span>\
-                    <input type="text" class="form-control" name="firstName" data-type="user_name" placeholder="Enter first name">\
-                </div>\
-                <div class="input-group">\
-                    <span class="input-group-addon glyphicon glyphicon-user"></span>\
-                    <input type="text" class="form-control" name="lastName" data-type="user_name" placeholder="Enter last name">\
-                </div>\
-				<div class="input-group">\
-					<span class="input-group-addon glyphicon glyphicon-phone"></span>\
-					<input type="phone" class="form-control" name="phoneNumber" id="phone" data-type="phone" placeholder="Enter your phone number">\
-				</div>\
-				<div class="input-group">\
-					<span class="input-group-addon glyphicon glyphicon-envelope"></span>\
-					<input type="email" name="email" class="form-control" id="email" placeholder="Enter your email">\
-				</div>\
-			</div>')
+  <label>Provide contact information</label>\
+  <div class="form-group">\
+    <div class="input-group"><span class="input-group-addon glyphicon glyphicon-user"></span>\
+      <input type="text" class="form-control" name="firstName" data-type="user_name" placeholder="Enter first name" required>\
+    </div>\
+    <div class="help-block with-errors"></div>\
+  </div>\
+  <div class="form-group">\
+    <div class="input-group"><span class="input-group-addon glyphicon glyphicon-user"></span>\
+      <input type="text" class="form-control" name="lastName" placeholder="Enter last name" required>\
+    </div>\
+    <div class="help-block with-errors"></div>\
+  </div>\
+  <div class="form-group">\
+    <div class="input-group"><span class="input-group-addon glyphicon glyphicon-phone"></span>\
+      <input type="text" data-type="phone" class="form-control" name="phoneNumber" placeholder="Enter your phone number" required>\
+    </div>\
+    <div class="help-block with-errors"></div>\
+  </div>\
+  <div class="form-group">\
+    <div class="input-group"><span class="input-group-addon glyphicon glyphicon-envelope"></span>\
+      <input type="email" name="email" class="form-control" placeholder="Enter your email" required>\
+    </div>\
+    <div class="help-block with-errors"></div>\
+  </div>\
+</div>')
             container.find('[data-type="phone"]').mask("(999) 999-9999")
 
             return container
