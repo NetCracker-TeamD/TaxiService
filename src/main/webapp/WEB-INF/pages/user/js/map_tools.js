@@ -17,6 +17,7 @@ var MapTools = (function () {
         listeners = {},
         acceptableAddressLevel = "street_number", //limit when getNameForLocation returns full address or just location(lat, long)
         renders = [],
+        drawRoutes = true,
         inputUpdateRateLimit = 500, //time between updates of the same input for autocomplete in ms
     /*
      listeners :
@@ -127,9 +128,18 @@ var MapTools = (function () {
                 markers[i].gmm.setOptions({draggable: isMarkersDraggable})
             }
         },
+        enableDrawRoutes = function (enabled) {
+            if (enabled !== true) {
+                enabled = false
+            }
+            drawRoutes = enabled
+        }
     //draw route on map
         calcAndDrawRoute = function () {
             clearRoutes()
+            if (!drawRoutes) {
+                return;
+            }
             //build "tree"
             var chains = [],
                 startMarkers = [],
@@ -269,7 +279,7 @@ var MapTools = (function () {
                             }
                         }
                         //if address isn`t well detailed
-                        callback(results[0].geometry.location.lat() + ', ' + results[0].geometry.location.lgn())
+                        callback(results[0].geometry.location.lat() + ', ' + results[0].geometry.location.lng())
                     } else {
                         console.log('No results found');
                     }
@@ -301,17 +311,19 @@ var MapTools = (function () {
                     center: new google.maps.LatLng(defaults.location.latitude,
                         defaults.location.longitude),
                     zoom: defaults.zoom,
-                    mapTypeId: defaults.mapType,
+                    mapTypeId: defaults.mapType
                 }
-            isMarkersDraggable = false
+            //isMarkersDraggable = false
             geocoder = new google.maps.Geocoder()
-            map = new google.maps.Map(holder, mapOptions)
-            directionsService = new google.maps.DirectionsService()
-            google.maps.event.addListener(map, "click", function (event) {
-                var latitude = event.latLng.lat()
-                var longitude = event.latLng.lng()
-                onPlacePicked(latitude, longitude)
-            })
+            if ($.isSet(holder)) {
+                map = new google.maps.Map(holder, mapOptions)
+                directionsService = new google.maps.DirectionsService()
+                google.maps.event.addListener(map, "click", function (event) {
+                    var latitude = event.latLng.lat()
+                    var longitude = event.latLng.lng()
+                    onPlacePicked(latitude, longitude)
+                })
+            }
         },
     //use only for elemets that alreade are on page
         modAutocompleteAddressInput = function (input, callback) {
@@ -399,6 +411,7 @@ var MapTools = (function () {
         "calcAndDrawRoute": calcAndDrawRoute,
         "clearRoutes": clearRoutes,
         "enableDraggableMarkers": enableDraggableMarkers,
+        "enableDrawRoutes": enableDrawRoutes,
         "getMap": function () {
             return map
         },

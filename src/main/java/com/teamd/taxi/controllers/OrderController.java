@@ -19,14 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -34,6 +33,8 @@ import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import com.teamd.taxi.controllers.user.UserAddressesController;
 
 @Controller
 public class OrderController {
@@ -62,6 +63,9 @@ public class OrderController {
     @Autowired
     private BlackListService blackListService;
 
+    @Autowired
+    private UserAddressesController userAddressesController;
+
     private static final Logger logger = Logger.getLogger(OrderController.class);
 
     @Autowired
@@ -74,6 +78,59 @@ public class OrderController {
             .registerTypeAdapter(Feature.class, new FeatureSerializer())
             .registerTypeAdapter(UserAddress.class, new AddressSerializer())
             .create();
+
+
+    private void addUserAddressesToModel(Model model){
+        if (Utils.isAuthenticated()) {
+            try {
+                model.addAttribute("addressesJSON", userAddressesController.getUserAddresses());
+            } catch (IOException e) {
+                model.addAttribute("addressesJSON", "[]");
+            }
+        } else {
+            model.addAttribute("addressesJSON", "[]");
+        }
+    }
+
+    @RequestMapping("/order")
+    public String order(Model model) {
+        AbstractAuthenticationToken auth = (AbstractAuthenticationToken)
+                SecurityContextHolder.getContext().getAuthentication();
+        logger.info("Auth status: " + auth.getPrincipal()
+                + ", " + auth.getCredentials() + ", " + auth.getAuthorities() + ", " + auth.isAuthenticated());
+        model.addAttribute("servicesJSON", getServices());
+        addUserAddressesToModel(model);
+        return "user/order";
+    }
+
+    @RequestMapping(value = "/order/{id}/{secretKey}", produces = "application/json;charset=UTF-8")
+    public String order(
+            @PathVariable(value = "id") long orderId,
+            @PathVariable(value = "secretKey") String secretKey,
+            Model model)
+    {
+        try {
+            String orderInfo = getOrder(orderId, secretKey);
+            model.addAttribute("orderInfoJSON", orderInfo);
+            model.addAttribute("servicesJSON", getServices());
+            addUserAddressesToModel(model);
+
+            return "/user/order";
+        } catch (ItemNotFoundException e) {
+            return "redirect:/about";
+        } catch (SecretKeyMismatchException e) {
+            //add error handling
+            return "redirect:/about";
+        }
+    }
+
+    @RequestMapping(value = "/order/{id}", produces = "application/json;charset=UTF-8")
+    public String order(
+            @PathVariable(value = "id") long orderId,
+            Model model)
+    {
+        return order(orderId, null, model);
+    }
 
     @RequestMapping(value = "/services", produces = "application/json;charset=UTF-8")
     @ResponseBody
@@ -554,6 +611,7 @@ public class OrderController {
                 break;
             }
         }
+        orderObject.addProperty("orderId", order.getId());
         orderObject.addProperty("updating", updating);
         orderObject.addProperty("executionDate", formatter.format(order.getExecutionDate().getTime()));
         orderObject.addProperty("registrationDate", formatter.format(order.getRegistrationDate().getTime()));

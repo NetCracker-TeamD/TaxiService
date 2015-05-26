@@ -60,12 +60,34 @@ public class IndexAndRegistrationController {
     }
 
     @RequestMapping("/index")
-    public String index() {
+    public String index(Model model) {
         AbstractAuthenticationToken auth = (AbstractAuthenticationToken)
                 SecurityContextHolder.getContext().getAuthentication();
         logger.info("Auth status: " + auth.getPrincipal()
                 + ", " + auth.getCredentials() + ", " + auth.getAuthorities() + ", " + auth.isAuthenticated());
+        //model.addAttribute("user", )
         return "index";
+    }
+
+    @RequestMapping("/about")
+    public String about(Model model) {
+        return "user/about";
+    }
+
+    @RequestMapping("/login")
+    public String login(Model model) {
+        if (Utils.isAuthenticated()) {
+            return "redirect:/order";
+        }
+        return "user/login";
+    }
+
+    @RequestMapping("/register")
+    public String register(Model model) {
+        if (Utils.isAuthenticated()) {
+            return "redirect:/order";
+        }
+        return "user/register";
     }
 
     @RequestMapping(value = "/checkFreeEmail", produces = "application/json;charset=UTF-8")

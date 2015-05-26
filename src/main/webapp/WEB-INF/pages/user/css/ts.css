@@ -122,6 +122,10 @@ Fixes
 	top: 0px;
 }
 
+.input-group-btn .btn{
+    height : 34px;
+}
+
 /*
 Animations
 */

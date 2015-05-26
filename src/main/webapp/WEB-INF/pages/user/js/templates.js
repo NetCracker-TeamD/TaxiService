@@ -8,7 +8,7 @@ var Templates = (function () {
         },
         unlockAllControls = function (holder) {
             if (holder.is(":input")){
-                holder.prop({'readonly': true, 'disabled': true})
+                holder.prop({'readonly': false, 'disabled': false})
             }
             holder.find(":input").prop({'readonly': false, 'disabled': false})
         },
@@ -176,6 +176,8 @@ var Templates = (function () {
                 }
 
                 if (!$.isSet(url)) {
+                    console.log(url)
+                    console.log(form)
                     url = form.attr("action")
                 }
                 var data = form.serialize(),
@@ -206,6 +208,7 @@ var Templates = (function () {
                 submitBtn.addClass("active")
                 submitBtn.attr("disabled", "")
                 //console.log(data)
+                console.log("url is '"+url+"'")
                 if ($.isSet(caller)) {
                     caller(data, function (status, response) {
                         //console.log("status is " + status)
@@ -245,7 +248,7 @@ var Templates = (function () {
                 }
             })
         },
-        getOrderPage = function (orderInfo, userInfo) {//button
+        getOrderPage = function (orderInfo, isUserLogged) {//button
             var container = $('<div class="col-sm-5 col-sm-offset-1">\
                     <form class="form-horizontal" id="orderForm" method="POST" action="/makeOrder">\
                         <div class="form-group">\
@@ -292,7 +295,7 @@ var Templates = (function () {
                 switch (status.toLowerCase()) {
                     case "queued" :
                         statusBlock.append('<button type="button" class="btn btn-primary">Queued</button>')
-                        if (userInfo.isLogged){
+                        if (isUserLogged){
                             buttonsHolder.append('<button type="button" class="btn btn-primary btn-lg" data-action="edit">Edit</button>')
                             buttonsHolder.append('<span>&nbsp;</span>')
                             buttonsHolder.append('<button type="button" class="btn btn-warning btn-lg" data-action="cancel">Cancel order</button>')
