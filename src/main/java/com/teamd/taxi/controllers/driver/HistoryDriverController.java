@@ -81,7 +81,7 @@ public class HistoryDriverController {
         model.addAttribute("orderList", orders);
         model.addAttribute("pages", orderList.getTotalPages());
         model.addAttribute("serviceTypes", typeList);
-        model.addAttribute("driver_id", driver.getId());
+        model.addAttribute("driver", driver);
     }
 
     private Specification<TaxiOrder> resolveSpecification(Map<String, String> params, int idDriver) {

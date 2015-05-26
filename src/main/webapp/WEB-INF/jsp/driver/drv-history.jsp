@@ -30,10 +30,11 @@
     <script src="../../pages/resources/project/js/driver/drv-history.js" type="text/javascript"></script></head>
 <body>
 <sec:authorize access="hasRole('ROLE_ADMINISTRATOR')">
+    nklasnklasd
     <%@include file="../admin/header.jsp"%>
     <div class="jumbotron" style="background-color: #fff; ">
         <div class="container" style="height: 15px;">
-            <h2 style="color:#000;">The history of the taxi driver with ID = ${driver_id}</h2>
+            <h2 style="color:#000;">The history of the orders for driver ${driver.lastName} ${driver.firstName}</h2>
         </div>
     </div>
 </sec:authorize>
