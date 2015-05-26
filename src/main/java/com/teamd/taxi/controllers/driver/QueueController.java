@@ -238,6 +238,7 @@ public class QueueController {
             } else {
                 featurePredicate = cb.isEmpty(root.<List<Feature>>get("features"));
             }
+
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.HOUR, 1); //TODO: move to info table
 
