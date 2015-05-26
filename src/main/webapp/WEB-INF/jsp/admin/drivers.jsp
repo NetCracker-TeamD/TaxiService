@@ -16,42 +16,8 @@
 
 <body>
 <!--common navigation bar for this service -->
-<%@ include file="../../pages/admin/admin-header.html"%>
-<%--<nav class="navbar navbar-inverse navbar-fixed-top">--%>
-    <%--<div class="container">--%>
-        <%--<div class="navbar-header">--%>
-            <%--<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"--%>
-                    <%--aria-expanded="false" aria-controls="navbar">--%>
-                <%--<span class="sr-only">Toggle navigation</span>--%>
-                <%--<span class="icon-bar"></span>--%>
-                <%--<span class="icon-bar"></span>--%>
-                <%--<span class="icon-bar"></span>--%>
-            <%--</button>--%>
-            <%--<a class="navbar-brand" href="#">Smart Taxi</a>--%>
-        <%--</div>--%>
-        <%--<div id="navbar" class="navbar-collapse collapse">--%>
-            <%--<ul class="nav navbar-nav">--%>
-                <%--&lt;%&ndash;<li><a href="#">Users</a></li>&ndash;%&gt;--%>
-                <%--<li><a href="/admin/groups/">Groups</a></li>--%>
-                <%--<li class="active"><a href="/admin/drivers">Drivers</a></li>--%>
-                <%--<li><a href="/admin/cars">Cars</a></li>--%>
-                <%--<li class="dropdown">--%>
-                    <%--<a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Tariffs--%>
-                        <%--<span class="caret"></span></a>--%>
-                    <%--<ul class="dropdown-menu" role="menu">--%>
-                        <%--<li><a href="#">Daily tariff</a></li>--%>
-                        <%--<li><a href="#">Weekly tariff</a></li>--%>
-                        <%--<li><a href="#">The tariff by time</a></li>--%>
-                    <%--</ul>--%>
-                <%--</li>--%>
-                <%--<li><a href="/admin/statistic">Statistic</a></li>--%>
-            <%--</ul>--%>
-            <%--<div class="navbar-form navbar-right">--%>
-                <%--<button type="button" class="btn btn-primary">Sign out</button>--%>
-            <%--</div>--%>
-        <%--</div>--%>
-    <%--</div>--%>
-<%--</nav>--%>
+<%--<%@ include file="../../pages/admin/admin-header.html" %>--%>
+<%@ include file="../../jsp/admin/header.jsp" %>
 
 <div class="modal fade" id="create_driver" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
@@ -77,7 +43,11 @@
                     </div>
                     <div class="form-group">
                         <label for="driver_mail" class="control-label">E-Mail:</label>
-                        <input type="text" class="form-control" id="driver_mail">
+
+                        <div class="input-group">
+                            <div class="input-group-addon">@</div>
+                            <input type="text" class="form-control" id="driver_mail">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="driver_phone" class="control-label">Phone Number:</label>
@@ -117,7 +87,8 @@
                     <hr/>
                     <div class="form-group">
                         <label for="driver_license_serial" class="control-label">License Serial:</label>
-                        <input type="text" class="form-control" id="driver_license_serial">
+                        <input type="text" class="form-control" id="driver_license_serial"
+                               data-toggle="tooltip" data-placement="top" title="License example: A123456">
                     </div>
                     <div class="form-group">
                         <label for="driver_car" class="control-label">Car:</label>
