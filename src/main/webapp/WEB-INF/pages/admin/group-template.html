@@ -203,7 +203,8 @@
         </div>
         <div class="col-lg-10">
 
-            <div id="alert_success" class="alert alert-success alert-dismissible" role="alert" style="margin-top: 25px; display: none">
+            <div id="alert_success" class="alert alert-success alert-dismissible" role="alert"
+                 style="margin-top: 25px; display: none">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
                 <p><strong>Success.</strong> Success messages.</p>
@@ -236,7 +237,7 @@
     <!--</div>-->
     <!--</div>-->
 
-    <div class="row sm-hr">
+    <div class="row  sm-hr">
         <div class="col-md-4" style="padding-right: 0">
             <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#create_group">
                 <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New Group
@@ -267,7 +268,7 @@
     <div class="row">
         <br/>
 
-        <div id="group_list" class="col-md-4">
+        <div id="group_list" class="row col-lg-4">
             <div class="panel panel-default">
                 <div class="panel-heading">Groups</div>
                 <div style="height: 600px; overflow-y: auto;">
@@ -276,7 +277,7 @@
             </div>
         </div>
 
-        <div class="col-md-4" style="height: 600px; overflow-y: auto;">
+        <div class="row col-lg-4" style="height: 600px; overflow-y: auto;">
             <div class="panel panel-info">
                 <div class="panel-heading">Users of Group
                     <button title="Change users manage status" type="button" class="btn btn-info btn-sm"
@@ -293,7 +294,7 @@
             </div>
         </div>
 
-        <div class="col-md-4" style="height: 600px; overflow-y: auto;">
+        <div class="row col-lg-4" style="height: 600px; overflow-y: auto;">
             <div class="panel panel-default">
                 <div class="panel-heading" onclick="makeUsersToAdd(undefined,event)">Add new users</div>
                 <ul class="list-group" id="all_users_list" opened="false" style="display: none;"></ul>
