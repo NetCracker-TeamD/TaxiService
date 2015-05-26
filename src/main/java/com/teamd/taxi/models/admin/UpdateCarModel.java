@@ -22,7 +22,7 @@ public class UpdateCarModel {
     private Integer id;
 
     @NotBlankOrNull(message = "Please enter car class id")
-    @Pattern(regexp = "^[123]$", message = "Car's class id contains invalid characters")
+    @Pattern(regexp = "^[1234]$", message = "Car's class id contains invalid characters")
     private String classId;
 
     @NotBlankOrNull(message = "Please enter car category")

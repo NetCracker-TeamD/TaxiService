@@ -83,6 +83,7 @@
                             <option value="3">Bussines</option>
                             <option value="2">Standard</option>
                             <option value="1">Economy</option>
+                            <option value="4">Cargo</option>
                         </select>
                     </div>
                     <ul class="list-group">
@@ -239,7 +240,7 @@
                     <td>
                         <%=++num%>
                     </td>
-                    <td car-id="${car.carId}">${car.model}</td>
+                    <td car-id="${car.carId}" id="${car.carId}">${car.model}</td>
                     <td>${car.category}</td>
                     <td>
                     ${car.carClass.className}
