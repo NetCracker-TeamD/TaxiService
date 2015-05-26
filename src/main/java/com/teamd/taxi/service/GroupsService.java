@@ -4,6 +4,7 @@ import com.teamd.taxi.entity.GroupList;
 import com.teamd.taxi.entity.GroupListPK;
 import com.teamd.taxi.entity.User;
 import com.teamd.taxi.entity.UserGroup;
+import com.teamd.taxi.exception.ItemNotFoundException;
 import com.teamd.taxi.models.admin.*;
 import com.teamd.taxi.persistence.repository.GroupListRepository;
 import com.teamd.taxi.persistence.repository.GroupsRepository;
@@ -38,10 +39,11 @@ public class GroupsService {
     }
 
     @Transactional
-    public boolean isManager(long userId, int groupId) {
+    public boolean isManager(long userId, int groupId) throws ItemNotFoundException {
         GroupList list = groupListRepository.findOne(new GroupListPK(userId, groupId));
-        if (list == null)
-            return false;
+        if (list == null) {
+            throw new ItemNotFoundException("group[" + groupId + "] not found");
+        }
         return list.isManager();
     }
 

@@ -262,7 +262,7 @@ $(document).ready(function () {
                 }
             });
         } else {
-            alert("Please pick period of time");
+
         }
 
     });

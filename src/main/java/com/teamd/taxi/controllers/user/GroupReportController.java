@@ -1,10 +1,13 @@
 package com.teamd.taxi.controllers.user;
 
+import com.teamd.taxi.authentication.Utils;
 import com.teamd.taxi.entity.GroupList;
 import com.teamd.taxi.entity.User;
 import com.teamd.taxi.entity.UserGroup;
+import com.teamd.taxi.exception.ItemNotFoundException;
 import com.teamd.taxi.persistence.repository.ReportsRepository;
 import com.teamd.taxi.persistence.repository.UserRepository;
+import com.teamd.taxi.service.CustomerUserService;
 import com.teamd.taxi.service.GroupsService;
 import com.teamd.taxi.service.ReportResolver;
 import com.teamd.taxi.service.UserReportService;
@@ -34,12 +37,10 @@ import java.util.*;
 @RequestMapping("/user")
 public class GroupReportController {
 
-    //TODO: insert authorized user
-    long userId = 31;
     long groupId;
 
     @Autowired
-    UserRepository userRepository; //TODO: замінить на CustomerUserService
+    CustomerUserService userService;
 
     @Autowired
     GroupsService groupsService;
@@ -48,30 +49,26 @@ public class GroupReportController {
     UserReportService reportService;
 
     @RequestMapping(value = "/statistic")
-    public String viewStatistic(@RequestParam("group") int groupId) {
+    public String viewStatistic(@RequestParam("group") int groupId, Model model) {
         this.groupId = groupId;
-        if (groupsService.isManager(userId, groupId)) {
-            return "user/statistic";
-        } else {
-            return "user/statistic-error";
+        String message;
+        try {
+            if (groupsService.isManager(Utils.getCurrentUser().getId(), groupId)) {
+                return "user/statistic";
+            }
+            message = "Access to group statistic denied";
+        } catch (ItemNotFoundException ex) {
+            message = "Group not found";
         }
+        model.addAttribute("message", message);
+        return "user/statistic-error";
     }
 
     @RequestMapping("/group")
     @Transactional
     public String viewGroups(Model model) {
-        List<UserGroup> groups = groupsService.getGroupsList();
-        User user = userRepository.findOne(userId);
-        List<GroupList> userGroups = groupsService.getGroupForUser(user);
-        List<UserGroup> result = new ArrayList<>();
-        for (UserGroup group : groups) {
-            for (GroupList userGroup : userGroups) {
-                if (userGroup.getUserGroup().equals(group)) {
-                    result.add(group);
-                }
-            }
-        }
-        model.addAttribute("groups", result);
+        List<UserGroup> groups = reportService.findGroupForUser(Utils.getCurrentUser().getId());
+        model.addAttribute("groups", groups);
         return "user/group_view";
     }
 
