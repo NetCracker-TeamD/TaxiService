@@ -14,7 +14,7 @@
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" href="../../pages/resources/bootstrap/css/datepicker.css">
   <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap.css">
-  <%--<link rel="stylesheet" href="../../pages/resources/project/css/welcome.css">--%>
+  <link rel="stylesheet" href="../../pages/resources/project/css/welcome.css">
   <link rel="stylesheet" href="/pages/resources/project/css/history.css">
   <script src="../pages/resources/jquery/jquery-2.1.3.js"></script>
   <script src="../pages/resources/bootstrap/js/bootstrap.js"></script>
@@ -23,15 +23,21 @@
 </head>
 <sec:authorize access="hasRole('ROLE_CUSTOMER')">
       <!-- TODO nav bar customer-->
+      <div class="jumbotron" style="background:#fff;height: 120px;">
+        <div class="container" >
+          <h2 style="">Change Password</h2>
+        </div>
+      </div>
 </sec:authorize>
 <sec:authorize access="hasRole('ROLE_DRIVER')">
-      <%@include file="../pages/driver/drv-header.html"%>
+      <%@include file="driver/drv-header.jsp"%>
+      <div class="jumbotron" style="height:150px;">
+        <div class="container " style="height:150px;">
+          <h1 style="color:#000; text-align:right;">Change Password</h1>
+        </div>
+      </div>
 </sec:authorize>
-<div class="jumbotron welcome" style="background:#fff;height: 120px;">
-  <div class="container" >
-    <h2 style="">Change Password ${role}</h2>
-  </div>
-</div>
+
 <div class="container">
   <div class="jumbotron">
       <div class="row">
