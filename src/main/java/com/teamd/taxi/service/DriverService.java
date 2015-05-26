@@ -91,10 +91,11 @@ public class DriverService {
 
         driver.setPassword(encoder.encode(password));
         driverRepository.save(driver);
-        //TODO: fix NullPointer
-        Car car = carRepository.findOne(driver.getCar().getCarId());
-        car.setDriver(driver);
-        carRepository.save(car);
+        if (driver.getCar() != null) {
+            Car car = carRepository.findOne(driver.getCar().getCarId());
+            car.setDriver(driver);
+            carRepository.save(car);
+        }
     }
 
     @Transactional

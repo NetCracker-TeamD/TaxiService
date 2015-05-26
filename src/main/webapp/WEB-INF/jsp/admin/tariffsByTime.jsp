@@ -30,7 +30,7 @@
 
 <body>
 
-<%@include file="../../pages/admin/admin-header.html" %>
+<%@ include file="../../jsp/admin/header.jsp" %>
 
 <div class="container" id="main_container">
     <h2 class="sm-hr">Tariffs by time</h2>
