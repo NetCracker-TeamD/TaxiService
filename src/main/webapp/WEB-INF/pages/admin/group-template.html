@@ -265,10 +265,11 @@
             </form>
         </div>
     </div>
+
     <div class="row">
         <br/>
 
-        <div id="group_list" class="row col-lg-4">
+        <div id="group_list" class="col-lg-4">
             <div class="panel panel-default">
                 <div class="panel-heading">Groups</div>
                 <div style="height: 600px; overflow-y: auto;">
@@ -277,18 +278,21 @@
             </div>
         </div>
 
-        <div class="row col-lg-4" style="height: 600px; overflow-y: auto;">
+        <div class="col-lg-4" style="height: 600px; overflow-y: auto;">
             <div class="panel panel-info">
-                <div class="panel-heading">Users of Group
-                    <button title="Change users manage status" type="button" class="btn btn-info btn-sm"
-                            style="margin-left: 150px" onclick="manageStatusToggle()">
-                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-                    </button>
-                    <button title="Remove users from group" type="button" class="btn btn-info btn-sm"
-                            data-toggle="modal"
-                            data-target="#remove_users">
-                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                    </button>
+                <div class="panel-heading">
+                    <div>Users of Group</div>
+                    <div>
+                        <button title="Change users manage status" type="button" class="btn btn-info btn-sm"
+                                onclick="manageStatusToggle()">
+                            <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                        </button>
+                        <button title="Remove users from group" type="button" class="btn btn-info btn-sm"
+                                data-toggle="modal"
+                                data-target="#remove_users">
+                            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                        </button>
+                    </div>
                 </div>
                 <ul class="list-group" id="group_users_list" style="display: none;"></ul>
             </div>
