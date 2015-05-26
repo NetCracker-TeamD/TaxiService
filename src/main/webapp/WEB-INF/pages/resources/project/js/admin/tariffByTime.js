@@ -9,8 +9,10 @@ $(function () {
     });
 });
 $(function () {
-    $('#updateStart').datetimepicker({
-        locale: 'en'
+    $('.form-group #updateStart').each(function(){
+        $(this).datetimepicker({
+            locale: 'en'
+        });
     });
 });
 $(function () {
