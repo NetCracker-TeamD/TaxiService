@@ -14,6 +14,7 @@ import com.teamd.taxi.service.DriverService;
 import com.teamd.taxi.validation.DriverValidateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +52,7 @@ public class DriverAdminController {
     private static final String MESSAGE_DRIVER_SUCCESS_DELETE = "admin.driver.delete.success";
     private static final String MESSAGE_DRIVER_SUCCESS_CREATE = "admin.driver.create.success";
     private static final String MESSAGE_DRIVER_SUCCESS_UPDATE = "admin.driver.update.success";
+    private static final String MESSAGE_DRIVER_HAS_CAR = "admin.driver.delete.hasCar";
 
     @Resource
     private Environment env;
@@ -132,6 +134,8 @@ public class DriverAdminController {
             response.setContent(env.getRequiredProperty(MESSAGE_DRIVER_SUCCESS_DELETE));
         } catch (EmptyResultDataAccessException e) {
             response.setContent(env.getRequiredProperty(MESSAGE_DRIVER_ID_NOT_EXIST));
+        } catch (DataIntegrityViolationException e) {
+            response.setContent(env.getRequiredProperty(MESSAGE_DRIVER_HAS_CAR));
         }
         return response;
     }

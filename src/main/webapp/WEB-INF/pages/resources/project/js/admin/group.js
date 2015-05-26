@@ -434,8 +434,6 @@ function manageStatusToggle() {
         user[$(value).attr('user_id')] = !status;
         dataToSend.users.push(user);
     });
-    dataToSend.users = dataToSend.users.toString();
-    alert(JSON.stringify(dataToSend));
     $.ajax('/admin/groups/update/manage-status', {
         type: 'post',
         dataType: 'json',
@@ -444,15 +442,14 @@ function manageStatusToggle() {
             if (response.result == "success") {
                 showAlertSuccess(response.content);
                 groupUsersList.find('.active').each(function (key, elem) {
-                    $(elem).removeClass('active');
-                    $(elem).slideUp();
+                    var userRow = $(elem);
+                    userRow.removeClass('active');
+                    if (userRow.find('span').is('span')) {
+                        userRow.find('span').remove();
+                    } else {
+                        userRow.prepend('<span title="Manager" class="glyphicon glyphicon-user" aria-hidden="true"></span> ');
+                    }
                 });
-                removeUsersModal.modal('hide');
-                if (freeUsersList.attr('opened') === 'true') {
-                    hideUsersToAdd();
-                    makeUsersToAdd();
-                }
-
             } else {
                 if (response.result == "failure") {
                     var message = '';

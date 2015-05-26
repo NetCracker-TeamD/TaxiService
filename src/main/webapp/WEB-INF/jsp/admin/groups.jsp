@@ -267,7 +267,7 @@
     <div class="row">
         <br/>
 
-        <div id="group_list" class="col-md-4">
+        <div id="group_list" class="col-lg-4">
             <div class="panel panel-default" style="border: none;-webkit-box-shadow: none;box-shadow: none;">
                 <div class="panel-heading">Groups</div>
                 <div style="height: 550px; overflow-y: auto;">
@@ -276,7 +276,7 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-lg-4">
             <div class="panel panel-info">
                 <div class="panel-heading">Users of Group
                     <button title="Change users manage status" type="button" class="btn btn-info btn-sm"
@@ -294,7 +294,7 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-lg-4">
             <div class="panel panel-default">
                 <div class="panel-heading" onclick="makeUsersToAdd(undefined,event)">Add new users</div>
                 <ul class="list-group" id="all_users_list" opened="false"
