@@ -63,14 +63,10 @@ public class HistoryDriverController {
     public String getCurrentDriverHistory(Model model, @RequestParam Map<String, String> requestParam) {
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication authentication = context.getAuthentication();
-        //TODO: прибрать, цього не треба
         AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_DRIVER"))) {
-            Driver driver = driverService.getDriver((int) auth.getId());
-            setViewHistory(model, requestParam, driver, Role.ROLE_DRIVER);
-            return "driver/drv-history";
-        }
-        return null;
+        Driver driver = driverService.getDriver((int) auth.getId());
+        setViewHistory(model, requestParam, driver, Role.ROLE_DRIVER);
+        return "driver/drv-history";
     }
 
     private void setViewHistory(Model model, Map<String, String> requestParam, Driver driver, Role role) {
