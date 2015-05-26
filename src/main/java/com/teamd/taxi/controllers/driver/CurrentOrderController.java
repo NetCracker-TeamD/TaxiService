@@ -70,7 +70,7 @@ public class CurrentOrderController {
 
 
     @RequestMapping(value = "/assign", method = RequestMethod.GET)
-    private String assignOrder( @RequestParam MultiValueMap<String, String> params, Model model) {
+    private String assignOrder(@RequestParam MultiValueMap<String, String> params, Model model) {
 
         Driver driver = driverService.getDriver(driverId);
 
@@ -97,12 +97,12 @@ public class CurrentOrderController {
 
     @RequestMapping(value = "/lifeCircleOrder", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String processOrder(@RequestParam(value = "status") String status){
+    public String processOrder(@RequestParam(value = "status") String status) {
 
         JsonObject to = new JsonObject();
-        Driver driver =  driverService.getDriver(driverId);
+        Driver driver = driverService.getDriver(driverId);
         try {
-            to =  processOrderService.processOrder(status, driver);
+            to = processOrderService.processOrder(status, driver);
         } catch (InfoNotFoundException e) {
             //TODO bootstrap alert
         } catch (ItemNotFoundException e) {
@@ -127,7 +127,7 @@ public class CurrentOrderController {
     public
     @ResponseBody
     String driverCurrentOrder(@RequestParam(value = "source") String source,
-                              @RequestParam(value = "destination") String dest){
+                              @RequestParam(value = "destination") String dest) {
         JsonObject to = new JsonObject();
         Route route = null;
 
@@ -143,7 +143,7 @@ public class CurrentOrderController {
             //TODO alert
         }
 
-        if ( route != null ){
+        if (route != null) {
             to.addProperty("source", route.getSourceAddress());
             to.addProperty("destination", route.getDestinationAddress());
             to.addProperty("status", "ok");

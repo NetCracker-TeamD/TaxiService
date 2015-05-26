@@ -140,9 +140,9 @@ function removeCar(id) {
             if (response.result == "success") {
                 showSuccess(response.content);
                 removeCarModal.modal('hide');
-                $(successModal).attr("reloadPage","false");
+                $(successModal).attr("reloadPage", "false");
 
-                var tr = $("#"+id).closest("tr");
+                var tr = $("#" + id).closest("tr");
                 tr.addClass("deleted-car");
                 var editButton = tr.find("button[title='Edit']");
                 var removeButton = tr.find("button[title='Remove']");
@@ -150,7 +150,7 @@ function removeCar(id) {
                 removeButton.prop("disabled", true);
 
                 tr.hover(function deleteHover() {
-                    tr.css({"background-color" : "rgba(0, 169, 138, 0.8)"});
+                    tr.css({"background-color": "rgba(0, 169, 138, 0.8)"});
                 });
 
             } else {
@@ -315,17 +315,21 @@ function setUpdateDataInHiddenBlock(newData, tr) {
 
     var driverElement = tr.find(':nth-child(9)').eq(0);
     var driverName = "";
-    if(newData['driverId'] !== "-1" && newData['driverId'].trim().length !==0){
-        driverName = driverElement.find("option[value='"+newData['driverId']+"']").text();
+    if (newData['driverId'] !== "-1" && newData['driverId'].trim().length !== 0) {
+        driverName = driverElement.find("option[value='" + newData['driverId'] + "']").text();
     }
-    var driverHTML = "<a href=''>"+driverName+"</a>";
+    var driverHTML = "<a href=''>" + driverName + "</a>";
 
     driverHiddenElement.append(driverHTML);
 }
 
 function containsObject(arrayObject, searchObject) {
-    if(searchObject == null){return false;}
-    if(arrayObject.length == 0) {return false;}
+    if (searchObject == null) {
+        return false;
+    }
+    if (arrayObject.length == 0) {
+        return false;
+    }
     for (var i = 0; i < arrayObject.length; i++) {
         if (arrayObject[i] === searchObject) {
             return true;
@@ -391,7 +395,7 @@ function updateCar(value) {
 
             if (response.result == "success") {
                 trError.hide();
-                $(successModal).attr("reloadPage","false");
+                $(successModal).attr("reloadPage", "false");
                 showSuccessUpdateCar(response.content["message"]);
                 setUpdateDataInHiddenBlock(newData, tr);
                 cancelEdit(value);
@@ -522,10 +526,10 @@ removeCarModal.on('show.bs.modal', function (event) {
 });
 
 successModal.on('hidden.bs.modal', function (event) {
-    if($(successModal).attr("reloadPage") === "true"){
+    if ($(successModal).attr("reloadPage") === "true") {
         location.reload(true);
     }
-    $(successModal).attr("reloadPage","true");
+    $(successModal).attr("reloadPage", "true");
 });
 
 function showSuccess(message) {
@@ -636,7 +640,7 @@ function generationDrivers(selectElement, defaultOptionString, selectedDriver) {
 
     var stringBuffer = null;
 
-    if(arrayMaps.length == 0) {
+    if (arrayMaps.length == 0) {
         if (selectedDriver.length !== 0) {
             stringBuffer = selectedDriver;
             stringBuffer = stringBuffer + '<option value="-1">' + defaultOptionString + endTag;
@@ -647,7 +651,7 @@ function generationDrivers(selectElement, defaultOptionString, selectedDriver) {
             //$(selectionElementID).append(stringBuffer);
             //return;
         }
-    }else {
+    } else {
         for (var i = 0; i < arrayMaps.length; i++) {
             if (stringBuffer == null) {
                 if (selectedDriver.length !== 0) {

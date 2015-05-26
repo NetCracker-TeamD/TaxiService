@@ -25,7 +25,7 @@ public class TaxiOrderSpecificationFactory {
         return new Specification<TaxiOrder>() {
             @Override
             public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                return criteriaBuilder.greaterThan(root.<Calendar>get("executionDate"), calendar);
+                return criteriaBuilder.greaterThan(root.<Calendar>get("registrationDate"), calendar);
             }
         };
     }
@@ -43,7 +43,7 @@ public class TaxiOrderSpecificationFactory {
         return new Specification<TaxiOrder>() {
             @Override
             public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                return criteriaBuilder.greaterThan(root.<Calendar>get("registrationDate"), calendar);
+                return criteriaBuilder.greaterThan(root.<Calendar>get("executionDate"), calendar);
             }
         };
     }
