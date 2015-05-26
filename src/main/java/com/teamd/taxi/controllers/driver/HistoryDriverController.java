@@ -119,7 +119,7 @@ public class HistoryDriverController {
         if (address != null) {
             specs.add(factory.sourceOrDestinationAddressLike(address));
         }
-        specs.add(factory.statusRouteEqual(RouteStatus.COMPLETED));
+        specs.add(factory.statusRouteOr(RouteStatus.COMPLETED, RouteStatus.REFUSED));
         specs.add(factory.driverIdEqual(idDriver));
 
         //join specifications
