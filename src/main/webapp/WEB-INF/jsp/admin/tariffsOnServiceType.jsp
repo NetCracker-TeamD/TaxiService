@@ -19,7 +19,7 @@
 
 <body>
 
-<%@ include file="../../pages/admin/admin-header.html"%>
+<%@ include file="../../jsp/admin/header.jsp" %>
 
 <div class="modal fade centered-modal" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog">

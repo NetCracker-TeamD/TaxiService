@@ -683,3 +683,7 @@ function hideErrorModal(modalId) {
 function selectOrder(order) {
     $("#sort-input").find("[value=" + order + "]").attr("selected", "selected");
 }
+
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+});

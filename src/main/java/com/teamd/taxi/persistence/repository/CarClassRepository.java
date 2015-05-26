@@ -12,5 +12,4 @@ import java.util.*;
  */
 public interface CarClassRepository extends JpaRepository<CarClass, Integer> {
 
-
 }

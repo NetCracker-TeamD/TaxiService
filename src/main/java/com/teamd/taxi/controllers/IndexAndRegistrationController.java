@@ -59,6 +59,12 @@ public class IndexAndRegistrationController {
         );
     }
 
+    @RequestMapping("/")
+    public String redirect() {
+        //TODO: redirect in case of role
+        return "redirect:index";
+    }
+
     @RequestMapping("/index")
     public String index(Model model) {
         AbstractAuthenticationToken auth = (AbstractAuthenticationToken)

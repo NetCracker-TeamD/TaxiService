@@ -7,6 +7,7 @@ import com.teamd.taxi.models.TaxiOrderForm;
 import com.teamd.taxi.persistence.repository.BlackListItemRepository;
 import com.teamd.taxi.persistence.repository.RouteRepository;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
+import com.teamd.taxi.service.email.MailService;
 import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class TaxiOrderService {
     private RouteRepository routeRepository;
 
     @Autowired
-    private BlackListItemRepository blackListItemRepository;
+    private BlackListService blackListService;
 
     @Autowired
     private RandomStringGenerator stringGenerator;
@@ -132,17 +133,15 @@ public class TaxiOrderService {
             String destination = form.getDestination().get(0);
             for (String source : sources) {
                 Route route = new Route(null, RouteStatus.QUEUED, source, destination, false);
-                route.setDistance(
-                        mapService.calculateDistanceInKilometers(
-                                route.getSourceAddress(),
-                                route.getDestinationAddress()
-                        ));
+                route.setDistance(mapService.calculateDistanceInKilometers(source, destination));
                 routes.add(route);
             }
         } else if (serviceType.isDestinationRequired()) {
             String source = form.getSource().get(0);
             String destination = form.getDestination().get(0);
-            routes.add(new Route(null, RouteStatus.QUEUED, source, destination, false));
+            Route route = new Route(null, RouteStatus.QUEUED, source, destination, false);
+            route.setDistance(mapService.calculateDistanceInKilometers(source, destination));
+            routes.add(route);
         } else {
             String source = form.getSource().get(0);
             mapService.checkAddress(source);
@@ -186,6 +185,16 @@ public class TaxiOrderService {
         return order;
     }
 
+    public int countPayed(List<BlackListItem> items) {
+        int payed = 0;
+        for (BlackListItem item : items) {
+            if (item.isPayed()) {
+                payed++;
+            }
+        }
+        return payed;
+    }
+
     @Transactional
     public TaxiOrder createNewTaxiOrder(TaxiOrderForm form, User user)
             throws NotCompatibleException,
@@ -195,8 +204,19 @@ public class TaxiOrderService {
         BlackListItem userItem = null;
         //проверим может ли этот пользователь оформить заказ
         if (user.getUserRole() == UserRole.ROLE_CUSTOMER) {
-            if (blackListItemRepository.countByUser_Id(user.getId()) >= BlackListService.REFUSED_ORDERS_LIMIT) {
+            List<BlackListItem> items = blackListService.findByUserId(user.getId());
+            if (items.size() >= BlackListService.REFUSED_ORDERS_LIMIT) {
                 throw new OrderingBlockedDueRefusedException();
+            }
+            //поиск неоплаченного долга
+            for (BlackListItem item : items) {
+                if (!item.isPayed() && item.getTaxiOrderToPay() == null) {
+                    userItem = item;
+                    break;
+                }
+            }
+            if (userItem != null) {
+                userItem.setMultiplier(countPayed(items) + 1);
             }
         }
         TaxiOrder order = fillOrder(form, user);
@@ -208,10 +228,9 @@ public class TaxiOrderService {
             order.setSecretViewKey(secretKey);
         }
         //проверим нет ли у пользователя долгов
-        else if (userItem != null && !userItem.isPayed() && userItem.getTaxiOrderToPay() != null) {
+        else if (userItem != null) {
             //добавляем эту запись в случае, если у пользователя есть неоплаченный долг
             //и нету заказа, на котором этот долг должен быть погашен
-            userItem.setTaxiOrderToPay(order);
             order.setBlackListItem(userItem);
         }
         //необходимо отдельно сохранить заказ и все маршруты
@@ -221,8 +240,9 @@ public class TaxiOrderService {
         }
         routes = routeRepository.save(routes);
         //отдельно обновляем эту запись
-        if (order.getBlackListItem() != null) {
-            blackListItemRepository.save(userItem);
+        if (userItem != null) {
+            userItem.setTaxiOrderToPay(order);
+            blackListService.save(userItem);
         }
         order.setRoutes(routes);
         return order;
@@ -269,7 +289,7 @@ public class TaxiOrderService {
             order.setBlackListItem(null);
             blackListItem.setPayed(false);
             blackListItem.setTaxiOrderToPay(null);
-            blackListItemRepository.save(blackListItem);
+            blackListService.save(blackListItem);
         }
         orderRepository.save(order);
     }

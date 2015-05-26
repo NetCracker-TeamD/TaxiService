@@ -1,8 +1,11 @@
 package com.teamd.taxi.models;
 
 import com.teamd.taxi.entity.Route;
+import com.teamd.taxi.entity.RouteStatus;
 import com.teamd.taxi.entity.ServiceType;
 import com.teamd.taxi.entity.TaxiOrder;
+
+import static com.teamd.taxi.entity.RouteStatus.*;
 
 import java.util.*;
 
@@ -14,7 +17,7 @@ public class AssembledOrder {
 
     private Float totalPrice;
 
-    private boolean complete;
+    private RouteStatus status;
 
     public AssembledOrder(TaxiOrder order, LinkedList<AssembledRoute> assembledRoutes) {
         this.order = order;
@@ -28,12 +31,36 @@ public class AssembledOrder {
             }
             totalPrice += assembledRoutePrice;
         }
-        complete = true;
         for (AssembledRoute assembledRoute : assembledRoutes) {
             if (assembledRoute.getTotalCars() != assembledRoute.getFinishedCars()) {
-                complete = false;
                 break;
             }
+        }
+        status = QUEUED; //blue
+        Set<RouteStatus> foundStatuses = new HashSet<>();
+        for (AssembledRoute assembledRoute : assembledRoutes) {
+            for (Route route : assembledRoute.getRoutes()) {
+                foundStatuses.add(route.getStatus());
+            }
+        }
+        boolean assigned = foundStatuses.contains(ASSIGNED); //green
+        boolean inProgress = foundStatuses.contains(IN_PROGRESS); //green
+        boolean completed = foundStatuses.contains(COMPLETED); //green
+        boolean updating = foundStatuses.contains(UPDATING); //light-blue
+        boolean canceled = foundStatuses.contains(CANCELED); //yellow
+        boolean refused = foundStatuses.contains(REFUSED); //red
+        if (inProgress || (assigned && (completed || refused || canceled))) {
+            status = IN_PROGRESS;
+        } else if (assigned) {
+            status = ASSIGNED;
+        } else if (completed) {
+            status = COMPLETED;
+        } else if (refused) {
+            status = REFUSED;
+        } else if (canceled) {
+            status = CANCELED;
+        } else if (updating) {
+            status = UPDATING;
         }
     }
 
@@ -56,6 +83,10 @@ public class AssembledOrder {
 
     public Float getTotalPrice() {
         return totalPrice;
+    }
+
+    public RouteStatus getStatus() {
+        return status;
     }
 
     private static LinkedList<AssembledRoute> assembleRoutes(TaxiOrder order) {
@@ -84,10 +115,6 @@ public class AssembledOrder {
         return routes;
     }
 
-    public boolean isComplete() {
-        return complete;
-    }
-
     public LinkedList<AssembledRoute> getAssembledRoutes() {
         return assembledRoutes;
     }
@@ -102,7 +129,6 @@ public class AssembledOrder {
                 "order=" + order +
                 ", assembledRoutes=" + assembledRoutes +
                 ", totalPrice=" + totalPrice +
-                ", complete=" + complete +
                 '}';
     }
 }

@@ -13,8 +13,9 @@ import java.util.List;
  */
 public interface BlackListItemRepository extends JpaRepository<BlackListItem, Integer>, CrudRepository<BlackListItem, Integer> {
 
-    @Query("SELECT it FROM BlackListItem it WHERE it.user.id = ?1")
     List<BlackListItem> findByUserId(long userId);
 
-    Long countByUser_Id(long userId);
+    Integer countByUserIdAndPayedTrue(Long userId);
+
+    Long countByUserId(long userId);
 }
