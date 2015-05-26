@@ -21,34 +21,7 @@
 
 <body>
 <!--common navigation bar for this service -->
-<%@ include file="../../pages/admin/admin-header.html"%>
-<%--<nav class="navbar navbar-inverse navbar-fixed-top">--%>
-    <%--<div class="container">--%>
-        <%--<div class="navbar-header">--%>
-            <%--<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"--%>
-                    <%--aria-expanded="false" aria-controls="navbar">--%>
-                <%--<span class="sr-only">Toggle navigation</span>--%>
-                <%--<span class="icon-bar"></span>--%>
-                <%--<span class="icon-bar"></span>--%>
-                <%--<span class="icon-bar"></span>--%>
-            <%--</button>--%>
-            <%--<a class="navbar-brand" href="#">Smart Taxi</a>--%>
-        <%--</div>--%>
-        <%--<div id="navbar" class="navbar-collapse collapse">--%>
-            <%--<ul class="nav navbar-nav">--%>
-                <%--<li><a href="#">Users</a></li>--%>
-                <%--<li><a href="#">Groups</a></li>--%>
-                <%--<li><a href="drivers.jsp">Drivers</a></li>--%>
-                <%--<li><a href="cars">Cars</a></li>--%>
-                <%--<li><a href="#">Tariffs</a></li>--%>
-                <%--<li><a href="statistic">Reports</a></li>--%>
-            <%--</ul>--%>
-            <%--<div class="navbar-form navbar-right">--%>
-                <%--<button type="button" class="btn btn-primary">Log out</button>--%>
-            <%--</div>--%>
-        <%--</div>--%>
-    <%--</div>--%>
-<%--</nav>--%>
+<%@ include file="../../jsp/admin/header.jsp" %>
 
 <br><br><br>
 

@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 @Component
 public class AdminCarValidator implements Validator {
     private static final Pattern PATTERN_MODEL_NAME = Pattern.compile("[!@%$|*\\\\#/><;^?,=]+");
-    private static final Pattern PATTERN_CLASS_ID = Pattern.compile("^[123]$");
+    private static final Pattern PATTERN_CLASS_ID = Pattern.compile("^[1234]$");
     private static final Pattern PATTERN_CATEGORY = Pattern.compile("^[ABCD]$");
     private static final Pattern PATTERN_CAR_ENABLE = Pattern.compile("^(true|false)$");
     private static final Pattern PATTERN_DRIVER_ID = Pattern.compile("^(-1|\\d+)$");

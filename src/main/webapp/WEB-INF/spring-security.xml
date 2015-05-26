@@ -13,7 +13,7 @@
 
     <http auto-config="false" use-expressions="true" entry-point-ref="loginUrlAuthenticationEntryPoint">
         <csrf disabled="true"/>
-        <!--<access-denied-handler ref="myAccessDeniedHandler"/>-->
+        <access-denied-handler ref="myAccessDeniedHandler"/>
 
         <!--<intercept-url pattern="/auth" access="isAnonymous()"/>-->
         <!--<intercept-url pattern="/method" access="hasRole('ROLE_CUSTOMER')"/>
@@ -32,9 +32,8 @@
                 logout-success-url="/index"/>
     </http>
 
-    <!--<beans:bean id="myAccessDeniedHandler" class="com.teamd.taxi.authentication.MyAccessDeniedHandler">
-        <beans:property name="errorPage" value="/denied"/>
-    </beans:bean>-->
+    <beans:bean id="myAccessDeniedHandler" class="com.teamd.taxi.authentication.SystemAccessDeniedHandler">
+    </beans:bean>
 
     <beans:bean id="loginUrlAuthenticationEntryPoint"
                 class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">

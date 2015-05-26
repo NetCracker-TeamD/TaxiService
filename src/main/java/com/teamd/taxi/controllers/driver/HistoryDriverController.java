@@ -15,7 +15,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -46,16 +45,12 @@ public class HistoryDriverController {
     private List<ServiceType> typeList;
 
 
-    private enum Role {
-        ROLE_ADMINISTRATOR, ROLE_DRIVER
-    }
-
     Logger logger = Logger.getLogger(HistoryDriverController.class);
 
     @RequestMapping(value = "/history/{driverId}", method = RequestMethod.GET)
     public String getDriverHistoryById(Model model, @RequestParam Map<String, String> requestParam, @PathVariable int driverId) {
         Driver driver = driverService.getDriver(driverId);
-        setViewHistory(model, requestParam, driver, Role.ROLE_ADMINISTRATOR);
+        setViewHistory(model, requestParam, driver);
         return "driver/drv-history";
     }
 
@@ -63,17 +58,13 @@ public class HistoryDriverController {
     public String getCurrentDriverHistory(Model model, @RequestParam Map<String, String> requestParam) {
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication authentication = context.getAuthentication();
-        //TODO: прибрать, цього не треба
         AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_DRIVER"))) {
-            Driver driver = driverService.getDriver((int) auth.getId());
-            setViewHistory(model, requestParam, driver, Role.ROLE_DRIVER);
-            return "driver/drv-history";
-        }
-        return null;
+        Driver driver = driverService.getDriver((int) auth.getId());
+        setViewHistory(model, requestParam, driver);
+        return "driver/drv-history";
     }
 
-    private void setViewHistory(Model model, Map<String, String> requestParam, Driver driver, Role role) {
+    private void setViewHistory(Model model, Map<String, String> requestParam, Driver driver) {
         int page = 0;
         if (requestParam.get("page") != null)
             page = Integer.parseInt(requestParam.get("page")) - 1;
@@ -90,8 +81,7 @@ public class HistoryDriverController {
         model.addAttribute("orderList", orders);
         model.addAttribute("pages", orderList.getTotalPages());
         model.addAttribute("serviceTypes", typeList);
-        model.addAttribute("role", role.name());
-        model.addAttribute("driver_id", driver.getId());
+        model.addAttribute("driver", driver);
     }
 
     private Specification<TaxiOrder> resolveSpecification(Map<String, String> params, int idDriver) {
@@ -129,7 +119,7 @@ public class HistoryDriverController {
         if (address != null) {
             specs.add(factory.sourceOrDestinationAddressLike(address));
         }
-        specs.add(factory.statusRouteEqual(RouteStatus.COMPLETED));
+        specs.add(factory.statusRouteOr(RouteStatus.COMPLETED, RouteStatus.REFUSED));
         specs.add(factory.driverIdEqual(idDriver));
 
         //join specifications

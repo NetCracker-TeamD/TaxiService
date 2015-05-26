@@ -91,6 +91,11 @@ public class DriverService {
 
         driver.setPassword(encoder.encode(password));
         driverRepository.save(driver);
+        if (driver.getCar() != null) {
+            Car car = carRepository.findOne(driver.getCar().getCarId());
+            car.setDriver(driver);
+            carRepository.save(car);
+        }
     }
 
     @Transactional

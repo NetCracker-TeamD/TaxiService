@@ -12,32 +12,24 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li><a href="#">Users</a></li>
-                <li><a href="#">Groups</a></li>
+                <!--<li><a href="#">Users</a></li>-->
+                <li><a href="/admin/groups/">Groups</a></li>
+                <li><a href="/admin/statistic">Statistic</a></li>
                 <li><a href="/admin/drivers">Drivers</a></li>
                 <li><a href="/admin/cars">Cars</a></li>
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Tariffs
                         <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a href="/admin/tariffs_by_time">Tariffs by time</a></li>
-                        <li><a href="/admin/service_tariffs">Service tariffs</a></li>
-                        <li><a href="/admin/feature_tariffs">Feature tariffs</a></li>
-                        <li><a href="/admin/car_tariffs">Class car tariffs</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Reports
-                        <span class="caret"></span></a>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a href="#">Report type 1</a></li>
-                        <li><a href="#">Report type 2</a></li>
-                        <li><a href="#">Report type 3</a></li>
+                        <li><a href="/admin/tariffs/cars">Car tariffs</a></li>
+                        <li><a href="/admin/tariffs/services">Service tariffs</a></li>
+                        <li><a href="/admin/tariffs/features">Feature tariffs</a></li>
+                        <li><a href="/admin/tariffs/byTime">Tariff by time</a></li>
                     </ul>
                 </li>
             </ul>
             <div class="navbar-form navbar-right">
-                <button type="button" class="btn btn-primary">Sign out</button>
+                <a class="btn btn-primary" type="button" href="/logout">Sign out</a>
             </div>
         </div>
     </div>

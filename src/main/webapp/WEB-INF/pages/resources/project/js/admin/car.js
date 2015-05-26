@@ -5,7 +5,7 @@ var checkedInput = '<input type="checkbox" checked="checked" value="true"/>';
 var uncheckedInput = '<input type="checkbox"  value="false"/>';
 var textInput = '<input class="form-control-auto-size" type="text" value="Hello"/>';
 var selectInput = '<select class="form-control-auto-size"></select>';
-var selectClassInput = '<select class="form-control-auto-size"><option value="3">Business</option><option value="2">Standard</option><option value="1">Economy</option></select>';
+var selectClassInput = '<select class="form-control-auto-size"><option value="3">Business</option><option value="2">Standard</option><option value="1">Economy</option><option value="4">Cargo</option></select>';
 var selectCategoryInput = '<select class="form-control-auto-size"><option>A</option><option>B</option><option>C</option><option>D</option></select>';
 var saveButton = '<button title="Save changes" type="button"  data-toggle="modal" data-target="#" data-car-id="" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>';
 var cancelButton = '<button title="Cancel" type="button"  data-toggle="modal" data-target="#" data-car-id="" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span></button>';
@@ -137,10 +137,22 @@ function removeCar(id) {
         dataType: 'json',
         data: {id: id},
         success: function (response) {
-            //alert("Success");
             if (response.result == "success") {
                 showSuccess(response.content);
                 removeCarModal.modal('hide');
+                $(successModal).attr("reloadPage", "false");
+
+                var tr = $("#" + id).closest("tr");
+                tr.addClass("deleted-car");
+                var editButton = tr.find("button[title='Edit']");
+                var removeButton = tr.find("button[title='Remove']");
+                editButton.prop("disabled", true);
+                removeButton.prop("disabled", true);
+
+                tr.hover(function deleteHover() {
+                    tr.css({"background-color": "rgba(0, 169, 138, 0.8)"});
+                });
+
             } else {
                 if (response.result == "failure") {
                     showError(removeCarModal, response.content);
@@ -303,17 +315,21 @@ function setUpdateDataInHiddenBlock(newData, tr) {
 
     var driverElement = tr.find(':nth-child(9)').eq(0);
     var driverName = "";
-    if(newData['driverId'] !== "-1"){
-        driverName = driverElement.find("option[value='"+newData['driverId']+"']").text();
+    if (newData['driverId'] !== "-1" && newData['driverId'].trim().length !== 0) {
+        driverName = driverElement.find("option[value='" + newData['driverId'] + "']").text();
     }
-    var driverHTML = "<a href=''>"+driverName+"</a>";
+    var driverHTML = "<a href=''>" + driverName + "</a>";
 
     driverHiddenElement.append(driverHTML);
 }
 
 function containsObject(arrayObject, searchObject) {
-    if(searchObject == null){return false;}
-    if(arrayObject.length == 0) {return false;}
+    if (searchObject == null) {
+        return false;
+    }
+    if (arrayObject.length == 0) {
+        return false;
+    }
     for (var i = 0; i < arrayObject.length; i++) {
         if (arrayObject[i] === searchObject) {
             return true;
@@ -379,7 +395,7 @@ function updateCar(value) {
 
             if (response.result == "success") {
                 trError.hide();
-                $(successModal).attr("reloadPage","false");
+                $(successModal).attr("reloadPage", "false");
                 showSuccessUpdateCar(response.content["message"]);
                 setUpdateDataInHiddenBlock(newData, tr);
                 cancelEdit(value);
@@ -435,6 +451,7 @@ function createCar() {
         async: false,
         success: function (response) {
             if (response.result == "success") {
+                createCarModal.hide();
                 showSuccess(response.content["message"]);
                 removeCarModal.modal('hide');
             } else {
@@ -509,9 +526,10 @@ removeCarModal.on('show.bs.modal', function (event) {
 });
 
 successModal.on('hidden.bs.modal', function (event) {
-    if($(successModal).attr("reloadPage") === "true"){
+    if ($(successModal).attr("reloadPage") === "true") {
         location.reload(true);
     }
+    $(successModal).attr("reloadPage", "true");
 });
 
 function showSuccess(message) {
@@ -617,23 +635,37 @@ function generationDrivers(selectElement, defaultOptionString, selectedDriver) {
     var endTag = '</option>';
 
 
-    $(selectionElementID + ' ' + 'option').remove();
+    //$(selectionElementID + ' ' + 'option').remove();
+    $(selectionElementID).html("");
 
     var stringBuffer = null;
 
-    for (var i = 0; i < arrayMaps.length; i++) {
-        if (stringBuffer == null) {
-            if (selectedDriver.length !== 0) {
-                stringBuffer = selectedDriver;
-                stringBuffer = stringBuffer + '<option value="-1">' + defaultOptionString + endTag + '<option value=' + arrayMaps[0]['id'] + '>';
-            } else {
-                stringBuffer = '<option value="-1">' + defaultOptionString + endTag + '<option value=' + arrayMaps[0]['id'] + '>';
-            }
+    if (arrayMaps.length == 0) {
+        if (selectedDriver.length !== 0) {
+            stringBuffer = selectedDriver;
+            stringBuffer = stringBuffer + '<option value="-1">' + defaultOptionString + endTag;
         } else {
-            stringBuffer = stringBuffer + '<option value=' + arrayMaps[i]['id'] + '>';
+            stringBuffer = '<option value="-1">' + defaultOptionString + endTag;
+            //$(selectionElementID).attr("loadByChange", "true");
+            //$(selectionElementID).attr("load", "true");
+            //$(selectionElementID).append(stringBuffer);
+            //return;
         }
-        stringBuffer = stringBuffer + ' ' + arrayMaps[i]['last_name'] + ' ' + arrayMaps[i]['first_name'];
-        stringBuffer = stringBuffer + endTag;
+    } else {
+        for (var i = 0; i < arrayMaps.length; i++) {
+            if (stringBuffer == null) {
+                if (selectedDriver.length !== 0) {
+                    stringBuffer = selectedDriver;
+                    stringBuffer = stringBuffer + '<option value="-1">' + defaultOptionString + endTag + '<option value=' + arrayMaps[0]['id'] + '>';
+                } else {
+                    stringBuffer = '<option value="-1">' + defaultOptionString + endTag + '<option value=' + arrayMaps[0]['id'] + '>';
+                }
+            } else {
+                stringBuffer = stringBuffer + '<option value=' + arrayMaps[i]['id'] + '>';
+            }
+            stringBuffer = stringBuffer + ' ' + arrayMaps[i]['last_name'] + ' ' + arrayMaps[i]['first_name'];
+            stringBuffer = stringBuffer + endTag;
+        }
     }
 
     $(selectionElementID).append(stringBuffer);

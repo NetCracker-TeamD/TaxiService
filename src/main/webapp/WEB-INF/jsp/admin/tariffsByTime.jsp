@@ -33,7 +33,7 @@
 
 <body>
 
-<%@include file="../../pages/admin/admin-header.html" %>
+<%@ include file="../../jsp/admin/header.jsp" %>
 
 
 <div class="container" id="main_container">

@@ -25,7 +25,7 @@ public class TaxiOrderSpecificationFactory {
         return new Specification<TaxiOrder>() {
             @Override
             public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                return criteriaBuilder.greaterThan(root.<Calendar>get("executionDate"), calendar);
+                return criteriaBuilder.greaterThan(root.<Calendar>get("registrationDate"), calendar);
             }
         };
     }
@@ -43,7 +43,7 @@ public class TaxiOrderSpecificationFactory {
         return new Specification<TaxiOrder>() {
             @Override
             public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                return criteriaBuilder.greaterThan(root.<Calendar>get("registrationDate"), calendar);
+                return criteriaBuilder.greaterThan(root.<Calendar>get("executionDate"), calendar);
             }
         };
     }
@@ -70,13 +70,15 @@ public class TaxiOrderSpecificationFactory {
         };
     }
 
-    public Specification<TaxiOrder> statusRouteEqual(final RouteStatus routeStatus) {
+    public Specification<TaxiOrder> statusRouteOr(final RouteStatus routeStatus1,final RouteStatus routeStatus2) {
         return new Specification<TaxiOrder>() {
             @Override
             public Predicate toPredicate(Root<TaxiOrder> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
                 query.distinct(true);
                 Join<TaxiOrder, Route> routeJoin = root.join("routes", JoinType.INNER);
-                return cb.equal(routeJoin.get("status"), routeStatus);
+                Predicate predicate1 = cb.equal(routeJoin.get("status"), routeStatus1);
+                Predicate predicate2 = cb.equal(routeJoin.get("status"), routeStatus2);
+                return cb.or(predicate1,predicate2);
             }
         };
     }

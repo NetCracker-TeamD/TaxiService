@@ -5,6 +5,7 @@ import com.teamd.taxi.entity.Driver;
 import com.teamd.taxi.entity.User;
 import com.teamd.taxi.service.CustomerUserService;
 import com.teamd.taxi.service.DriverService;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,7 +33,6 @@ public class ChangePasswordController {
 
     @Autowired
     private CustomerUserService userService;
-
     @RequestMapping(value = "/changePassword", method = RequestMethod.POST)
     public String viewPageChangePassword(Model map, @RequestParam Map<String, String> requestParams) {
         String oldPass = requestParams.get("oldpass");
@@ -43,7 +43,7 @@ public class ChangePasswordController {
         AuthenticatedUser auth = (AuthenticatedUser) authentication.getPrincipal();
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_DRIVER"))) {
             Driver driver = driverService.getDriver((int) auth.getId());
-            if (newpass != null && repass != null /*&& newpass.length() > 5 */ && newpass.equals(repass)
+            if (newpass != null && repass != null && newpass.equals(repass)
                     && encoder.matches(oldPass, driver.getPassword())) {
                 driver.setPassword(encoder.encode(newpass));
                 driverService.save(driver);
@@ -53,10 +53,11 @@ public class ChangePasswordController {
             }
         } else if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CUSTOMER"))) {
             User user = userService.findById(auth.getId());
-            if (newpass != null && repass != null /*&& newpass.length() > 5 */ && newpass.equals(repass)
+            if (newpass != null && repass != null && newpass.equals(repass)
                     && encoder.matches(oldPass, user.getUserPassword())) {
                 user.setUserPassword(encoder.encode(newpass));
                 userService.save(user);
+                map.addAttribute("role", "customer");
                 map.addAttribute("info", "Password successfully changed");
             } else {
                 map.addAttribute("error", "Incorrect password");
@@ -66,7 +67,14 @@ public class ChangePasswordController {
     }
 
     @RequestMapping(value = "/changePassword", method = RequestMethod.GET)
-    public String viewPageChangePassword() {
+    public String viewPageChangePassword(Model map) {
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication = context.getAuthentication();
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_DRIVER"))) {
+            map.addAttribute("role", "driver");
+        }else if(authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CUSTOMER"))){
+            map.addAttribute("role", "customer");
+        }
         return "changePassword";
     }
 

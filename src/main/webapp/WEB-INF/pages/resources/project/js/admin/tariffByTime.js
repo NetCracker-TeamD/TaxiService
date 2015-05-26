@@ -154,7 +154,7 @@ $(document).ready(function () {
                 "to": to_datetime
             };
             console.log(data);
-            var url = window.location.pathname + "/create_test";
+            var url = window.location.pathname + "/create";
             $.ajax({
                 url: url,
                 type: 'POST',

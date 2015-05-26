@@ -21,42 +21,7 @@
 
 <body>
 <!--common navigation bar for this service -->
-<%@ include file="../../pages/admin/admin-header.html"%>
-<%--<nav class="navbar navbar-inverse navbar-fixed-top">--%>
-    <%--<div class="container">--%>
-        <%--<div class="navbar-header">--%>
-            <%--<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"--%>
-                    <%--aria-expanded="false" aria-controls="navbar">--%>
-                <%--<span class="sr-only">Toggle navigation</span>--%>
-                <%--<span class="icon-bar"></span>--%>
-                <%--<span class="icon-bar"></span>--%>
-                <%--<span class="icon-bar"></span>--%>
-            <%--</button>--%>
-            <%--<a class="navbar-brand" href="#">Smart Taxi</a>--%>
-        <%--</div>--%>
-        <%--<div id="navbar" class="navbar-collapse collapse">--%>
-            <%--<ul class="nav navbar-nav">--%>
-                <%--<li><a href="#">Users</a></li>--%>
-                <%--<li class="active"><a href="">Groups</a></li>--%>
-                <%--<li><a href="/admin/drivers">Drivers</a></li>--%>
-                <%--<li><a href="/admin/cars">Cars</a></li>--%>
-                <%--<li><a href="">Tariffs</a></li>--%>
-                <%--<li class="dropdown">--%>
-                    <%--<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Reports--%>
-                        <%--<span class="caret"></span></a>--%>
-                    <%--<ul class="dropdown-menu" role="menu">--%>
-                        <%--<li><a href="#">Report type 1</a></li>--%>
-                        <%--<li><a href="#">Report type 2</a></li>--%>
-                        <%--<li><a href="#">Report type 3</a></li>--%>
-                    <%--</ul>--%>
-                <%--</li>--%>
-            <%--</ul>--%>
-            <%--<div class="navbar-form navbar-right">--%>
-                <%--<button type="button" class="btn btn-primary">Sign out</button>--%>
-            <%--</div>--%>
-        <%--</div>--%>
-    <%--</div>--%>
-<%--</nav>--%>
+<%@ include file="../../jsp/admin/header.jsp" %>
 
 <div class="modal fade" id="create_group" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
@@ -267,7 +232,7 @@
     <div class="row">
         <br/>
 
-        <div id="group_list" class="col-md-4">
+        <div id="group_list" class="col-lg-4">
             <div class="panel panel-default" style="border: none;-webkit-box-shadow: none;box-shadow: none;">
                 <div class="panel-heading">Groups</div>
                 <div style="height: 550px; overflow-y: auto;">
@@ -276,7 +241,7 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-lg-4">
             <div class="panel panel-info">
                 <div class="panel-heading">Users of Group
                     <button title="Change users manage status" type="button" class="btn btn-info btn-sm"
@@ -294,7 +259,7 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-lg-4">
             <div class="panel panel-default">
                 <div class="panel-heading" onclick="makeUsersToAdd(undefined,event)">Add new users</div>
                 <ul class="list-group" id="all_users_list" opened="false"

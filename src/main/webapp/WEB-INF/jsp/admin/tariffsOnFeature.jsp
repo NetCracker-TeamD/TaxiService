@@ -19,7 +19,7 @@
 </head>
 
 <body>
-<%@include file="../../pages/admin/admin-header.html"%>
+<%@ include file="../../jsp/admin/header.jsp" %>
 
 <div class="modal fade centered-modal" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog">
@@ -66,7 +66,10 @@
           </td>
           <td>
             <a href="#editModal" role="button"
-               class="btn btn-default btn_edit" data-toggle="modal">Edit</a>
+               class="btn btn-default btn_edit" data-toggle="modal">
+              <span
+                      class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+            </a>
             <div class="modal fade editModal" itabindex="-1" role="dialog">
               <div class="modal-dialog">
                 <div class="modal-content">

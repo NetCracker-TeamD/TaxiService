@@ -15,13 +15,11 @@
   <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
   <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
   <script src="../../pages/resources/project/js/admin/tariffsOnServiceType.js"></script>
-
-
 </head>
 
 <body>
 
-<%@ include file="../../pages/admin/admin-header.html"%>
+<%@ include file="../../jsp/admin/header.jsp" %>
 
 <div class="modal fade centered-modal" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog">
@@ -42,7 +40,7 @@
 </div>
 
 <div class="container" id="main_container">
-  <h2 class="sm-hr">Tariffs by time</h2>
+  <h2 class="sm-hr">Tariffs on service type</h2>
   <div class="table-responsive">
     <div class="alert alert-success hide"></div>
     <table class="table table-striped table-hover">
@@ -72,7 +70,8 @@
           <td>${tariff.minPrice} </td>
           <td>
             <a href="#editModal" role="button"
-               class="btn btn-default btn_edit" data-toggle="modal">Edit</a>
+               class="btn btn-default btn_edit" data-toggle="modal"><span
+                    class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
             <div class="modal fade editModal" itabindex="-1" role="dialog">
               <div class="modal-dialog">
                 <div class="modal-content">
@@ -81,14 +80,20 @@
                     <h4 class="modal-title">${tariff.name}</h4>
                   </div>
                   <div class="modal-body">
-                    <div class="form-group">
-                      <label>Price by time(UAH)</label>
-                      <input value="${tariff.priceByTime} " class="form-control" name="priceByTime" type="text">
-                    </div>
-                    <div class="form-group">
-                      <label>Price by distance(UAH)</label>
-                      <input value="${tariff.priceByDistance} " class="form-control" name="priceByDistance" type="text">
-                    </div>
+                    <c:choose>
+                      <c:when test="${tariff.priceByTime!=null}">
+                        <div class="form-group">
+                          <label>Price by time(UAH)</label>
+                          <input value="${tariff.priceByTime} " class="form-control" name="priceByTime" type="text">
+                        </div>
+                      </c:when>
+                      <c:when test="${tariff.priceByDistance!=null}">
+                        <div class="form-group">
+                          <label>Price by distance(UAH)</label>
+                          <input value="${tariff.priceByDistance} " class="form-control" name="priceByDistance" type="text">
+                        </div>
+                      </c:when>
+                    </c:choose>
                     <div class="form-group">
                       <label>Minimal price(UAH)</label>
                       <input value="${tariff.minPrice} " class="form-control" name="minPrice" type="text">
@@ -113,7 +118,6 @@
     <p>&#169 TeamD 2015</p>
   </footer>
 </div>
-<script type="application/javascript" src="/pages/resources/project/js/admin/serviceTariffs.js"></script>
 </body>
 
 </html>
