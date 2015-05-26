@@ -1,9 +1,5 @@
-<%@ page import="com.teamd.taxi.entity.Route" %>
-<%@ page import="java.util.Calendar" %>
-<%@ page import="org.apache.log4j.Logger" %>
-<%@ page import="com.teamd.taxi.entity.TaxiOrder" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-         pageEncoding="UTF-8" %>
+         pageEncoding="UTF-8" errorPage="error-page.jsp" %>
 <%@ taglib prefix="fmt"
            uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="c"
