@@ -41,7 +41,7 @@
         <beans:constructor-arg value="/index"/>
     </beans:bean>
 
-    <beans:bean id="authenticationFilter" class="com.teamd.taxi.authentication.MyAuthenticationProcessingFilter">
+    <beans:bean id="authenticationFilter" class="com.teamd.taxi.authentication.SystemAuthenticationProcessingFilter">
         <beans:property name="authenticationManager" ref="authenticationManager"/>
         <beans:property name="filterProcessesUrl" value="/checkLogin"/>
         <beans:property name="usernameParameter" value="username"/>

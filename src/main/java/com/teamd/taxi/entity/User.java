@@ -47,6 +47,9 @@ public class User implements Serializable {
     private Boolean confirmed;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    private List<BlackListItem> blackListItems;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     private List<GroupList> groups;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
@@ -124,6 +127,14 @@ public class User implements Serializable {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public List<BlackListItem> getBlackListItems() {
+        return blackListItems;
+    }
+
+    public void setBlackListItems(List<BlackListItem> blackListItems) {
+        this.blackListItems = blackListItems;
     }
 
     public String getConfirmationCode() {

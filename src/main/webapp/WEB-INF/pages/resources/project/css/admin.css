@@ -51,6 +51,7 @@
 .hide-driver-info:hover {
     background-color:#b4b8b4;
 }
+
 .hide-driver-info {
     margin-top: 15px;
     margin-right: -7px;
@@ -86,6 +87,23 @@
 .left-collapse-border{
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
+}
+
+.gr-col {
+    position: relative;
+    min-height: 1px;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+@media (min-width: 992px) {
+    .gr-col, {
+        float: left;
+    }
+
+    .gr-col {
+        width: 33.33333333%;
+    }
 }
 
 tr.deleted-car{

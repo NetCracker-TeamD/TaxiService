@@ -32,60 +32,47 @@ $(function () {
 
 $(document).ready(function () {
 
-    var selText;
-    var nowTemp = new Date();
-    var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
-    $(".dropdown-menu li a").click(function () {
-        selText = $(this).text();
-        $(this).parents('.btn-group').find('.dropdown-toggle').html(selText + ' <span class="caret"></span>');
-        console.log("Tariff type " + selText);
-        switch (selText) {
-            case "Daily tariff":
-                now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
+    $(function () {
+        $('.form-group #updateStart').each(function(){
+            $(this).datetimepicker({
+                locale: 'en'
+            });
+        });
+    });
 
-                break;
-            case "Weekly tariff":
-                now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0);
-                break;
-            case "The tariff by time":
-                now = new Date(0, 0, 0, nowTemp.getHours(), nowTemp.getMinutes(), 0);
-                break;
+    $("#update").click(function(type){
+        alert()
+        if (type=='DAY_OF_YEAR'){
+            $('#updateStart').datetimepicker.setFormat('MMM, dd');
+        }else if (type='TIME_OF_DAY'){
+            $('#updateStart').datetimepicker.setFormat('hh:mm:ss');
+        }else{
+            $('#updateStart').datetimepicker.setFormat('EEEE');
         }
     });
 
-    /*
-     var checkin = $('.from_date').datepicker({
-     format: 'dd/mm/yyyy',
-     onRender: function (date) {
-     return date.valueOf() > now.valueOf() ? 'disabled' : '';
-     }
-     }).on('changeDate', function (ev) {
-     if (ev.date.valueOf() > checkout.date.valueOf()) {
-     var newDate = new Date(ev.date)
-     newDate.setDate(newDate.getDate() + 1);
-     checkout.setValue(newDate);
-     }
-     checkin.hide();
-     $('#to_date')[0].focus();
-     }).data('datepicker');
-     var checkout = $('.to_date').datepicker({
-     format: 'dd/mm/yyyy',
-     onRender: function (date) {
-     return date.valueOf() > now.valueOf() ? 'disabled' : '';
-     }
-     }).on('changeDate', function (ev) {
-     checkout.hide();
-     }).data('datepicker');
-
-     */
+    $(function () {
+        $('.form-group #updateEnd').each(function(){
+            $(this).datetimepicker({
+                locale: 'en'
+            });
+        });
+    });
     $('.btn_edit').click(function () {
         $(this).parent().find(".editModal").modal();
         $(this).parent().find(".save_edit").click(function () {
-            //TODO receive data and send to server
-            /*var price_coef=$(this).parents().eq(2).find("input[name=price_coef]").val();
-             var idle_price_coef=$(this).parents().eq(2).find("input[name=idle_price_coef]").val();
-             var id=$(this).parents().eq(2).find("input[name=tariff_id]").val();
-             var data={"id": id, "idlePriceCoefficient":idle_price_coef, "priceCoefficient":price_coef};*/
+            var tariffType = $("#tariff_type_update").val();
+            var price_coef = $("#price_coef_update").val();
+            var id = $(this).parents().eq(2).find("input[name=tariff_id]").val();
+            var from_datetime = $("#from_date_update").val();
+            var to_datetime = $("#to_date_update").val();
+            var data = {
+                "id": id,
+                "tariffType": tariffType,
+                "priceCoefficient": price_coef,
+                "from": from_datetime,
+                "to": to_datetime
+            };
             var url = window.location.pathname + "/update";
             $.ajax({
                 url: url,
@@ -105,12 +92,20 @@ $(document).ready(function () {
     $('.btn_remove').click(function () {
         $(this).parent().find(".removeModal").modal();
         $(this).parent().find(".remove_rec").click(function () {
-            //TODO receive data and send to server
-            /*var price_coef=$(this).parents().eq(2).find("input[name=price_coef]").val();
-             var idle_price_coef=$(this).parents().eq(2).find("input[name=idle_price_coef]").val();
-             var id=$(this).parents().eq(2).find("input[name=tariff_id]").val();
-             var data={"id": id, "idlePriceCoefficient":idle_price_coef, "priceCoefficient":price_coef};*/
+            var id = $(this).parents().eq(2).find("input[name=tariff_id]").val();
+            var tariffType = $(this).parents().eq(2).find("input[name=tariff_type]").val();
+            var price_coef = $(this).parents().eq(2).find("input[name=tariff_price]").val();
+            var from_datetime = $(this).parents().eq(2).find("input[name=tariff_from]").val();
+            var to_datetime = $(this).parents().eq(2).find("input[name=tariff_to]").val();
+            console.log(id);
             var url = window.location.pathname + "/remove";
+            var data = {
+                "id": id,
+                "tariffType": tariffType,
+                "priceCoefficient": price_coef,
+                "from": from_datetime,
+                "to": to_datetime
+            };
             $.ajax({
                 url: url,
                 type: 'POST',
@@ -129,25 +124,20 @@ $(document).ready(function () {
     $('.btn_create').click(function () {
         $(this).parent().find(".createModel").modal();
         $(this).parent().find(".create_rec").click(function () {
-            //TODO receive data and send to server
+            var tariffType = $("#pick_tariff_type").val();
             var price_coef_create = $("#price_coef_create").val();
-            var tariff_type;
-            if (selText=='The tariff by time'){
-                tariff_type='TIME_OF_DAY' ;
-            }else if(selText=='Weekly tariff'){
-                tariff_type='DAY_OF_WEEK';
-            }else{
-                tariff_type='DAY_OF_YEAR';
-            }
             var from_datetime = $('#from_create').val();
             var to_datetime = $('#to_create').val();
+            var from_date = new Date(from_datetime);
+            var to_date = new Date(to_datetime);
+            console.log(from_datetime);
+            console.log(from_date);
             var data = {
-                "tariffType": tariff_type,
+                "tariffType": tariffType,
                 "priceCoefficient": price_coef_create,
                 "from": from_datetime,
                 "to": to_datetime
             };
-            console.log(data);
             var url = window.location.pathname + "/create";
             $.ajax({
                 url: url,

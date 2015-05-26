@@ -170,6 +170,9 @@ public class UserHistoryController {
         if (filtered.isEmpty()) {
             filtered.add(new Order(Sort.Direction.DESC, "registrationDate"));
         }
+        //для предсказуемости повления результатов, в случае больших групп
+        // (например при сортировке по полу)
+        filtered.add(new Order(Sort.Direction.DESC, "id"));
         return new Sort(filtered);
     }
 
@@ -213,7 +216,6 @@ public class UserHistoryController {
     ) {
         //retrieving data from database
         Sort filtered = filterSort(pageable.getSort());
-        //TODO: добавить второстепенную сортировку по id (предсказуемость порядка появления результатов)
         Page<TaxiOrder> page = orderService.findAll(
                 resolveSpecification(userId, params),
                 new PageRequest(pageable.getPageNumber(), PAGE_SIZE, filtered)
@@ -243,7 +245,8 @@ public class UserHistoryController {
 
     @RequestMapping(value = "/loadHistory", produces = "application/json;charset=UTF-8")
     @ResponseBody
-    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or #userId == principal.id")
+    //TODO: uncomment
+    //@PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or #userId == principal.id")
     public String loadHistory(Pageable pageable, @RequestParam("userId") long userId, @RequestParam MultiValueMap<String, String> params) {
         return getGson().toJson(
                 loadHistoryByUserId(

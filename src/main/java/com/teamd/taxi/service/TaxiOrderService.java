@@ -2,13 +2,10 @@ package com.teamd.taxi.service;
 
 import com.google.maps.errors.NotFoundException;
 import com.teamd.taxi.entity.*;
-import com.teamd.taxi.exception.MapServiceNotAvailableException;
-import com.teamd.taxi.exception.NotCompatibleException;
-import com.teamd.taxi.exception.OrderUpdatingException;
-import com.teamd.taxi.exception.PropertyNotFoundException;
+import com.teamd.taxi.exception.*;
 import com.teamd.taxi.models.TaxiOrderForm;
+import com.teamd.taxi.persistence.repository.BlackListItemRepository;
 import com.teamd.taxi.persistence.repository.RouteRepository;
-import com.teamd.taxi.persistence.repository.ServiceTypeRepository;
 import com.teamd.taxi.persistence.repository.TaxiOrderRepository;
 import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
@@ -36,7 +33,7 @@ public class TaxiOrderService {
     private RouteRepository routeRepository;
 
     @Autowired
-    private ServiceTypeRepository serviceTypeRepository;
+    private BlackListItemRepository blackListItemRepository;
 
     @Autowired
     private RandomStringGenerator stringGenerator;
@@ -47,32 +44,6 @@ public class TaxiOrderService {
     private static final int KEY_LENGTH = 20;
 
     private static final Logger logger = Logger.getLogger(TaxiOrderService.class);
-
-    @Transactional
-    public Page<TaxiOrder> findTaxiOrderByUser(long id, Pageable pageable) {
-        if (orderRepository == null) {
-            logger.error("orderRepository is null");
-        }
-        Page<TaxiOrder> to = orderRepository.findByUserId(id, pageable);
-        for (TaxiOrder order : to.getContent()) {
-            Hibernate.initialize(order.getFeatures());
-            Hibernate.initialize(order.getRoutes());
-        }
-        return to;
-    }
-
-    @Transactional
-    public Page<TaxiOrder> findTaxiOrderByDriver(Specification<TaxiOrder> specs, Pageable pageable) {
-        if (orderRepository == null) {
-            logger.error("orderRepository is null");
-        }
-        Page<TaxiOrder> to = orderRepository.findAll(specs, pageable);
-        for (TaxiOrder order : to.getContent()) {
-            Hibernate.initialize(order.getFeatures());
-            Hibernate.initialize(order.getRoutes());
-        }
-        return to;
-    }
 
     @Transactional
     public Page<TaxiOrder> findAll(Pageable pageable) {
@@ -102,8 +73,6 @@ public class TaxiOrderService {
             Hibernate.initialize(order.getFeatures());
             Hibernate.initialize(order.getRoutes());
             Hibernate.initialize(order.getServiceType());
-        } else {
-            System.out.println(" ORDER IS NULL =  0 " + order);
         }
         return order;
     }
@@ -222,7 +191,14 @@ public class TaxiOrderService {
             throws NotCompatibleException,
             MapServiceNotAvailableException,
             PropertyNotFoundException,
-            NotFoundException {
+            NotFoundException, OrderingBlockedDueRefusedException {
+        BlackListItem userItem = null;
+        //проверим может ли этот пользователь оформить заказ
+        if (user.getUserRole() == UserRole.ROLE_CUSTOMER) {
+            if (blackListItemRepository.countByUser_Id(user.getId()) >= BlackListService.REFUSED_ORDERS_LIMIT) {
+                throw new OrderingBlockedDueRefusedException();
+            }
+        }
         TaxiOrder order = fillOrder(form, user);
         List<Route> routes = order.getRoutes();
         order.setRoutes(null);
@@ -231,12 +207,23 @@ public class TaxiOrderService {
             String secretKey = stringGenerator.generateString(KEY_LENGTH);
             order.setSecretViewKey(secretKey);
         }
+        //проверим нет ли у пользователя долгов
+        else if (userItem != null && !userItem.isPayed() && userItem.getTaxiOrderToPay() != null) {
+            //добавляем эту запись в случае, если у пользователя есть неоплаченный долг
+            //и нету заказа, на котором этот долг должен быть погашен
+            userItem.setTaxiOrderToPay(order);
+            order.setBlackListItem(userItem);
+        }
         //необходимо отдельно сохранить заказ и все маршруты
         order = orderRepository.save(order);
         for (Route route : routes) {
             route.setOrder(order);
         }
         routes = routeRepository.save(routes);
+        //отдельно обновляем эту запись
+        if (order.getBlackListItem() != null) {
+            blackListItemRepository.save(userItem);
+        }
         order.setRoutes(routes);
         return order;
     }
@@ -276,6 +263,13 @@ public class TaxiOrderService {
                 throw new OrderUpdatingException("not cancelable", orderId);
             }
             route.setStatus(RouteStatus.CANCELED);
+        }
+        BlackListItem blackListItem = order.getBlackListItem();
+        if (blackListItem != null) {
+            order.setBlackListItem(null);
+            blackListItem.setPayed(false);
+            blackListItem.setTaxiOrderToPay(null);
+            blackListItemRepository.save(blackListItem);
         }
         orderRepository.save(order);
     }
@@ -337,15 +331,10 @@ public class TaxiOrderService {
         if (orders.isEmpty()) {
             return null;
         }
-        //TODO: прибрать це
         TaxiOrder order = orders.get(0);
-        System.out.println("READ FEATURES  ");
         Hibernate.initialize(order.getFeatures());
-        System.out.println("READ ROUTES  ");
         Hibernate.initialize(order.getRoutes());
-        System.out.println("READ TYPE  ");
         Hibernate.initialize(order.getServiceType());
-        System.out.println("READ COMPLETE  ");
         return order;
     }
 

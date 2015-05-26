@@ -73,6 +73,9 @@ public class TaxiOrder implements Serializable {
     @ManyToOne(optional = true)
     private CarClass carClass;
 
+    @OneToOne(mappedBy = "taxiOrderToPay")
+    private BlackListItem blackListItem;
+
     public TaxiOrder() {
     }
 
@@ -189,6 +192,14 @@ public class TaxiOrder implements Serializable {
 
     public void setSecretViewKey(String key) {
         this.secretViewKey = key;
+    }
+
+    public BlackListItem getBlackListItem() {
+        return blackListItem;
+    }
+
+    public void setBlackListItem(BlackListItem blackListItem) {
+        this.blackListItem = blackListItem;
     }
 
     @Override

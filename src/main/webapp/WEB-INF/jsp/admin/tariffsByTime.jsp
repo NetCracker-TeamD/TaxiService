@@ -50,14 +50,12 @@
 
                         <form>
                             <div class="well carousel-search hidden-sm">
-                                <div class="btn-group" id="tariffType"><a
-                                        class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown"
-                                        href="#">Select tariff type<span class="caret"></span></a>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="#">Daily tariff</a></li>
-                                        <li><a href="#">Weekly tariff</a></li>
-                                        <li><a href="#">The tariff by time</a></li>
-                                    </ul>
+                                <div class="btn-group" id="tariffType">
+                                    <select id="pick_tariff_type">
+                                        <option value="DAY_OF_YEAR">Daily tariff</option>
+                                        <option value="DAY_OF_WEEK">Weekly tariff</option>
+                                        <option value="TIME_OF_DAY">Tariff by time</option>
+                                    </select>
                                 </div>
                                 <br><br>
 
@@ -141,10 +139,12 @@
                     <c:choose>
                         <c:when test="${tariff.tariffType=='DAY_OF_YEAR'}">
                             <td>
-                                <fmt:formatDate value="${tariff.from.time}" pattern="MM-dd HH:mm"/>
+                                <fmt:setLocale value="en_US" scope="session"/>
+                                <fmt:formatDate value="${tariff.from.time}" pattern="MMM, dd"/>
                             </td>
                             <td>
-                                <fmt:formatDate value="${tariff.to.time}" pattern="MM-dd HH:mm"/>
+                                <fmt:setLocale value="en_US" scope="session"/>
+                                <fmt:formatDate value="${tariff.to.time}" pattern="MMM, dd"/>
                             </td>
                             <td>
                                 Daily tariff
@@ -152,10 +152,10 @@
                         </c:when>
                         <c:when test="${tariff.tariffType=='TIME_OF_DAY'}">
                             <td>
-                                <fmt:formatDate value="${tariff.from.time}" pattern="HH:mm"/>
+                                <fmt:formatDate value="${tariff.from.time}" type="time"/>
                             </td>
                             <td>
-                                <fmt:formatDate value="${tariff.to.time}" pattern="HH:mm"/>
+                                <fmt:formatDate value="${tariff.to.time}" type="time"/>
                             </td>
                             <td>
                                 The tariff by time
@@ -163,10 +163,13 @@
                         </c:when>
                         <c:when test="${tariff.tariffType=='DAY_OF_WEEK'}">
                             <td>
-                                <fmt:formatDate value="${tariff.from.time}" pattern="MM-dd HH:mm"/>
+                                <fmt:setLocale value="en_US" scope="session"/>
+                                <fmt:formatDate value="${tariff.from.time}" pattern="EEEE"/>
                             </td>
                             <td>
-                                <fmt:formatDate value="${tariff.to.time}" pattern="MM-dd HH:mm"/>
+                                <fmt:setLocale value="en_US" scope="session"/>
+                                <fmt:formatDate value="${tariff.to.time}" pattern="EEEE"/>
+
                             </td>
                             <td>
                                 Weekly tariff
@@ -175,7 +178,7 @@
                     </c:choose>
                     <td>${tariff.price}</td>
                     <td>
-                        <a href="#editModal" role="button"
+                        <a role="button"
                            class="btn btn-default btn_edit" data-toggle="editModal"><span
                                 class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
 
@@ -184,41 +187,42 @@
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <button class="close" type="button" data-dismiss="modal">x</button>
-                                        <h4 class="modal-title">${tariff.tariffType}</h4>
+                                        <h4 class="modal-title" id="update">${tariff.tariffType}</h4>
                                     </div>
                                     <div class="modal-body">
                                         <form>
                                             <div class="well carousel-search hidden-sm">
-                                                <div class="btn-group" id="tariffTypeEdit"><a
-                                                        class="btn btn-default dropdown-toggle btn-select"
-                                                        data-toggle="dropdown" href="#">${tariff.tariffType}<span
-                                                        class="caret"></span></a>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a href="#">Daily tariff</a></li>
-                                                        <li><a href="#">Weekly tariff</a></li>
-                                                        <li><a href="#">The tariff by time</a></li>
+                                                <div class="btn-group" id="tariffTypeEdit">
+                                                    <a class="btn btn-default dropdown-toggle btn-select"
+                                                       data-toggle="dropdown" id="tariff_type_update">
+                                                            ${tariff.tariffType} <span class="caret"></span>
+                                                    </a>
+                                                    <ul class="dropdown-menu"> 
+                                                        <li><a>Daily tariff</a></li>
+                                                        <li><a>Weekly tariff</a></li>
+                                                        <li><a>The tariff by time</a></li>
                                                     </ul>
+                                                     
                                                 </div>
                                                 <br>
 
                                                 <div class="btn-group input-daterange form-group">
                                                     <div class="col-lg-5" style="padding-left: 0px">
-                                                        <label for="updateStart" class="control-label">Start of
-                                                            period </label>
+                                                        <label for="updateStart"
+                                                               class="control-label">Start of period </label>
+
                                                         <div class="container">
                                                             <div class="row">
-                                                                <div class='col-sm-5' style="padding-left: 0px">
+                                                                <div class='col-sm-5 style="padding-left: 0px'>
                                                                     <div class="form-group">
                                                                         <div class='input-group date' id='updateStart'>
-                                                                            <input type='text' class="form-control "
-                                                                                   id="from_date_edit"
+                                                                            <input type='text' class="form-control"
                                                                                    value="${tariff.from.time}"
-                                                                                   name="startDate"
-                                                                                   placeholder="Select start date"/>
-
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
+                                                                                   id="from_date_update"
+                                                                                   name="startDate"/>
+                                                                             <span class="input-group-addon">
+                                                                                     <span class="glyphicon glyphicon-calendar"></span>
+                                                                             </span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -229,7 +233,7 @@
 
                                                     <div class="col-lg-5" style="padding-left: 0px">
                                                         <label for="updateEnd" class="control-label">End of
-                                                            period</label>
+                                                            period </label>
 
                                                         <div class="container">
                                                             <div class="row">
@@ -237,110 +241,12 @@
                                                                     <div class="form-group">
                                                                         <div class='input-group date' id='updateEnd'>
                                                                             <input type='text' class="form-control"
-                                                                                   id="to_date_edit"
                                                                                    value="${tariff.to.time}"
                                                                                    name="endDate"
-                                                                                   placeholder="Select end date"/>
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <br><br><br><br>
-
-                                                    <div class="form-group">
-                                                        <label for="price_coef_remove" class="control-label">Price
-                                                            coefficient</label>
-                                                        <input value="${tariff.price}" id="price_coef_edit"
-                                                               class="form-control" name="price_coefitient"
-                                                               type="text"/>
-                                                    </div>
-
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <input type="hidden" name="tariff_id" value="${tariff.id}">
-                                        <button class="btn btn-default" type="button" data-dismiss="modal">Close
-                                        </button>
-                                        <button class="btn btn-primary save_edit" data-dismiss="modal" type="button">
-                                            Save
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <a role="button"
-                           class="btn btn-default btn_remove" data-toggle="removeModal"><span
-                                class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
-
-                        <div class="modal fade removeModal" itabindex="-1" role="dialog">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button class="close" type="button" data-dismiss="modal">x</button>
-                                        <h4 class="modal-title">${tariff.tariffType}</h4>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form>
-                                            <div class="well carousel-search hidden-sm">
-                                                <div class="btn-group" id="tariffTypeRemove">
-                                                    <label for="tariff_type_remove" class="control-label">Tariff
-                                                        type </label>
-                                                    <input value="${tariff.tariffType}" class="form-control" type="text"
-                                                           id="tariff_type_remove" name="tariffType" readonly>
-                                                </div>
-                                                <br>
-
-                                                <div class="btn-group input-daterange form-group">
-                                                    <div class="col-lg-5" style="padding-left: 0px">
-                                                        <label for="deleteStart"
-                                                               class="control-label">Start of period </label>
-                                                        <!-- <input value="${tariff.from.time}" id="from_date_remove"
-                                                               class="form-control" type="text" name="startDate"
-                                                               readonly>-->
-                                                        <div class="container">
-                                                            <div class="row">
-                                                                <div class='col-sm-5 style="padding-left: 0px'>
-                                                                    <div class="form-group">
-                                                                        <div class='input-group date' id='deleteStart'>
-                                                                            <input type='text' class="form-control"
-                                                                                   value="${tariff.from.time}"
-                                                                                   id="from_date_remove"
-                                                                                   name="startDate" readonly/>
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <br><br><br><br>
-
-                                                    <div class="col-lg-5" style="padding-left: 0px">
-                                                        <label for="deleteEnd" class="control-label">End of
-                                                            period </label>
-
-                                                        <div class="container">
-                                                            <div class="row">
-                                                                <div class='col-sm-5'>
-                                                                    <div class="form-group">
-                                                                        <div class='input-group date' id='deleteEnd'>
-                                                                            <input type='text' class="form-control"
-                                                                                   value="${tariff.to.time}"
-                                                                                   name="endDate"
-                                                                                   id="to_date_remove" readonly/>
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
+                                                                                   id="to_date_update"/>
+                                                                            <span class="input-group-addon">
+                                                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                                            </span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -350,17 +256,44 @@
                                                 </div>
 
                                                 <div class="form-group">
-                                                    <label for="price_coef_remove" class="control-label">Price
+                                                    <label for="price_coef_update" class="control-label">Price
                                                         coefficient</label>
-                                                    <input value="${tariff.price}" id="price_coef_remove"
+                                                    <input value="${tariff.price}" id="price_coef_update"
                                                            class="form-control" name="price_coefitient" type="text"
-                                                           readonly>
+                                                            />
                                                 </div>
                                             </div>
                                         </form>
                                     </div>
                                     <div class="modal-footer">
                                         <input type="hidden" name="tariff_id" value="${tariff.id}">
+                                        <button class="btn btn-default" type="button" data-dismiss="modal">Close
+                                        </button>
+                                        <button class="btn btn-primary update_rec" data-dismiss="modal" type="button">
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <a role="button"
+                           class="btn btn-default btn_remove" data-toggle="removeModal"><span
+                                class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+                        <div class="modal fade removeModal" itabindex="-1" role="dialog">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-body">
+                                        <div class="well carousel-search hidden-sm">
+                                                <h3 align="center">Are you sure?</h3>
+
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <input type="hidden" name="tariff_type" value="${tariff.tariffType}">
+                                        <input type="hidden" name="tariff_id" value="${tariff.id}">
+                                        <input type="hidden" name="tariff_price" value="${tariff.price}">
+                                        <input type="hidden" name="tariff_from" value="${tariff.from.time}">
+                                        <input type="hidden" name="tariff_to" value="${tariff.to.time}">
                                         <button class="btn btn-default" type="button" data-dismiss="modal">Close
                                         </button>
                                         <button class="btn btn-primary remove_rec" data-dismiss="modal" type="button">
