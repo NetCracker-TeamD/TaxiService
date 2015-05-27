@@ -131,7 +131,7 @@
                                             <div>
                                                 <input type="text" style="margin-top: 5px" class="form-control"
                                                        value="${route.sourceAddress}" name="source" readonly>
-                                                <c:if test="{route.order.serviceType.destinationRequired}">
+                                                <c:if test="${route.order.serviceType.destinationRequired}">
                                                     <input type="text" style="margin-top: 5px" class="form-control"
                                                            value="${route.destinationAddress}" name="dest" readonly>
                                                 </c:if>
