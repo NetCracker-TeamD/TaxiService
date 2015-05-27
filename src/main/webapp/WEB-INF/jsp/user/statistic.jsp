@@ -84,12 +84,23 @@
     <div class="alert alert-danger inform hide"></div>
     <table class="table">
         <thead>
+        <tr>
+            <td>Start time</td>
+            <td>End time</td>
+            <td>Manage</td>
+            <td></td>
+        </tr>
+        </thead>
+        <tbody>
         <form action="statistic/exportNewOrders">
             <td>
-                Pick start date<input type="text" id="datepicker1" name="startDate">
+                <span class="glyphicon glyphicon glyphicon-calendar"></span>
+                <input type="text" id="datepicker1" name="startDate">
+
             </td>
             <td>
-                Pick end date<input type="text" id="datepicker" name="endDate">
+                <span class="glyphicon glyphicon glyphicon-calendar"></span>
+                <input type="text" id="datepicker" name="endDate">
             </td>
             <td>
                 <input type="submit" value="Export to Excel" class="btn btn-primary" id="btn_export">
@@ -101,7 +112,7 @@
         </td>
         <td>
         </td>
-        </thead>
+        </tbody>
     </table>
 
 

@@ -26,13 +26,14 @@
             <sec:authorize access="hasRole('ROLE_CUSTOMER')">
                 <li><a href="/user/history">View order history</a></li>
                 <li><a href="/user/account">Edit account</a></li>
+                <li><a href="/user/group">Statistic</a></li>
             </sec:authorize>
         </ul>
         <ul class="nav navbar-nav navbar-right">
             <sec:authorize access="isAnonymous()">
-                <li${fn:endsWith(page, '/login') ? ' class="active"' : ''}><a href="/login"><span
+                <li><a href="/login"><span
                         class="glyphicon glyphicon-log-in"></span>&nbsp;Sign In</a></li>
-                <li${fn:endsWith(page, '/register') ? ' class="active"' : ''}><a href="/register"><span
+                <li><a href="/register"><span
                         class="glyphicon glyphicon-user"></span>&nbsp;Sign Up</a></li>
             </sec:authorize>
             <sec:authorize access="isAuthenticated()">
@@ -42,7 +43,21 @@
     </div>
     <script>
         $(function () {
-            window.location.pathname;
+            /*console.log('dododod');*/
+            var path = window.location.pathname;
+            /*console.log(path);*/
+            var links = $('a', $('#navbar'));
+            for (var i in links) {
+                /*console.log(links[i]);*/
+                var href = $(links[i]).attr('href');
+                /*console.log(href);*/
+                if (path.indexOf(href) != -1) {
+                    $(links[i]).parent().addClass('active');
+                    /*console.log('match');
+                     console.log(links[i]);*/
+                    break;
+                }
+            }
         });
     </script>
 </nav>
