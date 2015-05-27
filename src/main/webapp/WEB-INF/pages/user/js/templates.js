@@ -195,10 +195,10 @@ var Templates = (function () {
                     
                 var contentType = "application/x-www-form-urlencoded; charset=UTF-8"
                 if (useJSON) {
-                    console.log(form)
-                    console.log(form.serializeObject())
-                    console.log(form.serializeArray())
-                    console.log(form.serialize())
+                    //console.log(form)
+                    //console.log(form.serializeObject())
+                    //console.log(form.serializeArray())
+                    //console.log(form.serialize())
                     data = JSON.stringify(form.serializeObject())
                     console.log(data)
                     contentType = "application/json; charset=utf-8"
@@ -423,9 +423,9 @@ var Templates = (function () {
                 uniqNumber++
                 var container = $('<div class="input-group fav-address"></div>'),
                     nameInput = $('<div class="input-group"><input data-number="' + (baseNumber + uniqNumber) + '" name="'
-                    + inputNamePrefix + '_name" data-type="address-name" type="text" class="form-control" placeholder="Enter short name"></div>'),
+                    + inputNamePrefix + '_name" data-type="address-name" type="text" class="form-control" placeholder="Enter short name" required></div>'),
                     addressInput = $('<div class="input-group"><input data-number="' + (baseNumber + uniqNumber) + '" name="'
-                    + inputNamePrefix + '_address" data-type="address" type="text" class="form-control"></div>'),
+                    + inputNamePrefix + '_address" data-type="address" type="text" class="form-control" data-custom-validator="true" data-error="Address is incorrect" required></div>'),
                     removeBtn = $('<div class="input-group-btn"><button class="btn btn-danger" type="button" data-action="remove">\
                     <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>\
                 </button></div>')
@@ -433,12 +433,15 @@ var Templates = (function () {
                 nameInput.append(removeBtn)
                 container.append(nameInput)
                 container.append(addressInput)
+                var wraper = $('<div class="form-group"></div>')
+                wraper.append(container)
+                wraper.append('<div class="help-block with-errors"></div>')
 
-
-                return container;
+                return wraper;
             }
         })()
     getDateTimePicker = function (name, value, config) {
+        config.defaultDate = new Date()
         var picker = $('<div class="input-group date">\
 				<input type="text" class="form-control" id="'+name+'" name="' + name + '" value="' + value + '" required/>\
 				<span class="input-group-addon">\
@@ -446,6 +449,16 @@ var Templates = (function () {
 				</span>\
 			</div>')
         picker.datetimepicker(config)
+        var input = picker.find('input')
+        var def_val = input.val()
+        console.log(def_val)
+        input.on("blur", function(e){
+            console.log('change')
+            if (input.val().length<2){
+                input.val(def_val)
+                input.parent().validator('validate')
+            }
+        })
         return picker
     },
         getTime = function (isNow, isCustom) {

@@ -6,10 +6,10 @@ var MapTools = (function () {
         defaults = {
             "location": {
                 "latitude": 50.4020355,
-                "longitude": 30.5326905,
+                "longitude": 30.5326905
             },
             "zoom": 10,
-            "mapType": google.maps.MapTypeId.ROADMAP,
+            "mapType": google.maps.MapTypeId.ROADMAP
         },
         markers = {},// key:{ key:1234, type: <start|intermediate|destination>, gmm:google.Maps.Marker }
         isMarkersDraggable = false,
@@ -17,6 +17,7 @@ var MapTools = (function () {
         listeners = {},
         acceptableAddressLevel = "street_number", //limit when getNameForLocation returns full address or just location(lat, long)
         renders = [],
+        summaryDistance = 0,
         drawRoutes = true,
         inputUpdateRateLimit = 500, //time between updates of the same input for autocomplete in ms
     /*
@@ -56,6 +57,7 @@ var MapTools = (function () {
             }
         },
         onDistanceChanged = function (status, newDistance, chain) {
+            summaryDistance = newDistance;
             var lis = listeners.onDistanceChanged
             if ($.isSet(lis)) {
                 for (var i = 0; i < lis.length; i++) {
@@ -328,6 +330,7 @@ var MapTools = (function () {
                     mapTypeId: defaults.mapType
                 }
             //isMarkersDraggable = false
+            summaryDistance = 0
             geocoder = new google.maps.Geocoder()
             if ($.isSet(holder)) {
                 map = new google.maps.Map(holder, mapOptions)
@@ -438,6 +441,9 @@ var MapTools = (function () {
         "clearRoutes": clearRoutes,
         "enableDraggableMarkers": enableDraggableMarkers,
         "enableDrawRoutes": enableDrawRoutes,
+        "getSummaryDistance" : function(){
+            return summaryDistance = 0
+        },
         "getMap": function () {
             return map
         },

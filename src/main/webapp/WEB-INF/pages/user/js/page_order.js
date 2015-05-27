@@ -3,7 +3,7 @@
  */
 var getOrderPage = function (orderInfo, isUserLogged) {
     console.log(orderInfo)
-    var container = $('<div class="col-sm-5 col-sm-offset-1">\
+    var container = $('<div class="col-sm-6">\
                     <form class="form-horizontal" id="orderForm" method="POST" action="/makeOrder">\
                         <div class="form-group">\
                             <label for="serviceType">Choose service type</label>\
@@ -118,7 +118,7 @@ var showOrderPage = function(){
                     btn = target.closest("button")
                 }
                 if (btn.attr('data-action')=="remove"){
-                    var container = target.closest('.input-group'),
+                    var container = target.closest('.form-group'),
                         input = container.find('input'),
                         markerId = input.attr("data-number")
                     MapTools.removeMarker(markerId)
@@ -305,6 +305,9 @@ var showOrderPage = function(){
         MapTools.markersFitWindow()
         holder.html("")
         holder.append(Templates.getWhiteLoader)
+
+
+
         var loadOrder = $.isSet(orderInfo)
         //create DOM))
         console.log("CreateDom called")
@@ -475,10 +478,7 @@ var showOrderPage = function(){
             Templates.lockAllControls($(orderDetails))
         }
         //bind events
-        var lists =  holder.find('[data-type="dropdown-address-list"]')
-
-        lists.bind("click", addressesClick)
-        addresses.bind("click", addressesClick)
+        $('#addressesContainer').bind("click", addressesClick)
     }
 
     var
@@ -656,17 +656,10 @@ var showOrderPage = function(){
             },
 
             success : function(response){
-                //console.log("response")
-                //console.log(response)
-                var trackLink = response.trackLink,
-                //: "/viewOrder?trackNum=10651&secretKey=null"
-                    trackNumber = $.getURLParam(trackLink, "trackNum"),
-                    secretKey = $.getURLParam(trackLink, "secretKey")
-                if (secretKey == "null") {
-                    secretKey = null
-                }
-                trackLink = "/order/"+trackNumber+($.isSet(secretKey)? "/"+secretKey : "")
-                //console.log(trackNumber, secretKey)
+                console.log("response")
+                console.log(response)
+                var trackLink = response.trackLink
+
                 var watchIt = function(){
                     console.log("go to track link")
                     window.location = trackLink
@@ -713,6 +706,27 @@ var showOrderPage = function(){
     //fill page
     page.html('')
     page.append(container)
+
+    var calcPrice = function(){
+        var data = JSON.stringify(orderForm.serializeObject())
+        console.log(data)
+        $.ajax({
+            url : '/countPrice',
+            method : 'POST',
+            data : data,
+            contentType : "application/json; charset=utf-8",
+            success : function(response){
+                console.log('success')
+                console.log(response)
+            },
+            error : function(response){
+                console.log('error')
+                console.log(response)
+            }
+        })
+        //priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
+        //priceHolder.show()
+    }
 
     if (!loadOrder || (loadOrder && order.status=="updating")) {
         MapTools.enableDraggableMarkers(true)
@@ -830,8 +844,9 @@ var showOrderPage = function(){
         var priceHolder = container.find('[data-type="price-holder"]'),
             priceValue = priceHolder.find('[data-type="price-value"]')
         //console.log(newDistance)
-        priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
-        priceHolder.show()
+        //priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
+        //priceHolder.show()
+        calcPrice();
         if (status == "error"){
             for (var i = 1; i <markerIds.length; i++) {
                 var

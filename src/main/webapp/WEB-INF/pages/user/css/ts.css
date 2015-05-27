@@ -3,19 +3,9 @@ html, body {
     /*background-color : #eee;*/
 }
 
-body {
-
-}
-
-.navbar-brand {
-    color: #ffce00 !important;
-    font-size: 1.8em;
-    font-weight: bold;
-}
-
 .container {
-    height: 100%;
-    width: 100%;
+    /*height: 100%;
+    width: 100%;*/
 }
 
 .google-map-canvas {
@@ -79,7 +69,10 @@ a {
 /*
 Fixes
 */
-
+#orderForm [data-type="address-group"] .form-group .input-group .input-group:first-child {
+    float: left;
+    margin-right: 15px;
+}
 #orderForm.form-horizontal .form-group {
     margin-right: 0px;
     margin-left: 0px;
