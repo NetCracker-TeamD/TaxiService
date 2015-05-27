@@ -238,7 +238,6 @@ public class ProcessOrderService {
                 it.remove();
             }
         }
-        System.out.println("SIZE = "+routes.size());
         String[] addresses;
         if (taxiOrder.getServiceType().isDestinationRequired()){
             addresses = new String[routes.size() + 1];
@@ -250,9 +249,7 @@ public class ProcessOrderService {
             addresses = new String[1];
             addresses[0] = routes.get(0).getSourceAddress();
         }
-        for ( int i = 0; i < addresses.length; i ++){
-            System.out.println("ADDRESS  "+addresses[i]);
-        }
+
         return addresses;
     }
 

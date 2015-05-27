@@ -206,21 +206,6 @@
             </div>
         </div>
     </div>
-
-    <div class="modal fade" id="errorNewRoute" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog modal-lg panel-warning" style="width: 500px;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-                    <h4 class="modal-title" id="errorLabel">Error</h4>
-                </div>
-                <div class="modal-body">
-                    <p id="errorMessage"><p>
-                </div>
-            </div>
-        </div>
-    </div>
     <footer>
         <p>&#169 TeamD 2015</p>
     </footer>
