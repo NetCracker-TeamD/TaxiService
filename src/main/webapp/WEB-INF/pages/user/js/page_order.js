@@ -305,6 +305,9 @@ var showOrderPage = function(){
         MapTools.markersFitWindow()
         holder.html("")
         holder.append(Templates.getWhiteLoader)
+
+
+
         var loadOrder = $.isSet(orderInfo)
         //create DOM))
         console.log("CreateDom called")
@@ -711,6 +714,27 @@ var showOrderPage = function(){
     page.html('')
     page.append(container)
 
+    var calcPrice = function(){
+        var data = JSON.stringify(orderForm.serializeObject())
+        console.log(data)
+        $.ajax({
+            url : '/countPrice',
+            method : 'POST',
+            data : data,
+            contentType : "application/json; charset=utf-8",
+            success : function(response){
+                console.log('success')
+                console.log(response)
+            },
+            error : function(response){
+                console.log('error')
+                console.log(response)
+            }
+        })
+        //priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
+        //priceHolder.show()
+    }
+
     if (!loadOrder || (loadOrder && order.status=="updating")) {
         MapTools.enableDraggableMarkers(true)
     } else {
@@ -827,8 +851,9 @@ var showOrderPage = function(){
         var priceHolder = container.find('[data-type="price-holder"]'),
             priceValue = priceHolder.find('[data-type="price-value"]')
         //console.log(newDistance)
-        priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
-        priceHolder.show()
+        //priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
+        //priceHolder.show()
+        calcPrice();
         if (status == "error"){
             for (var i = 1; i <markerIds.length; i++) {
                 var

@@ -195,10 +195,10 @@ var Templates = (function () {
                     
                 var contentType = "application/x-www-form-urlencoded; charset=UTF-8"
                 if (useJSON) {
-                    console.log(form)
-                    console.log(form.serializeObject())
-                    console.log(form.serializeArray())
-                    console.log(form.serialize())
+                    //console.log(form)
+                    //console.log(form.serializeObject())
+                    //console.log(form.serializeArray())
+                    //console.log(form.serialize())
                     data = JSON.stringify(form.serializeObject())
                     console.log(data)
                     contentType = "application/json; charset=utf-8"
