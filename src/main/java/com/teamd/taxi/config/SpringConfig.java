@@ -121,6 +121,7 @@ public class SpringConfig extends SpringDataWebConfiguration {
         return resolver;
     }
 
+
     @Bean
     public MailService mailService() {
         Properties props = new Properties();
@@ -128,7 +129,7 @@ public class SpringConfig extends SpringDataWebConfiguration {
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtp.port", "587");
-        return new MailService("teamdnetcracker@gmail.com", "NetCrackerTeamD", props);
+        return new MailService("netcrackerdteam@gmail.com", "netcracker2015", props);
     }
 
     @Bean

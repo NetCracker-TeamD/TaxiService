@@ -13,7 +13,7 @@
 <html>
 <%@ include file="header.jsp"%>
 <div class="container content">
-<form id="reg-form" class="form-signin" method="post" action="/register">
+<form id="reg-form" class="form-signin" method="post" action="/signup">
   <div class="form-group"><h2 class="form-signin-heading">Please sign up</h2></div>
   <%@ include file="contacts.jsp"%>
   <div class="form-group"><label>Provide password</label>

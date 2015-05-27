@@ -25,7 +25,6 @@
     <script src="../../pages/resources/project/js/driver/drv-history.js" type="text/javascript"></script></head>
 <body>
 <sec:authorize access="hasRole('ROLE_ADMINISTRATOR')">
-    nklasnklasd
     <%@include file="../admin/header.jsp"%>
     <div class="jumbotron" style="background-color: #fff; ">
         <div class="container" style="height: 15px;">

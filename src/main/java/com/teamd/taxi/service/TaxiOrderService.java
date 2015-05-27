@@ -1,6 +1,7 @@
 package com.teamd.taxi.service;
 
 import com.google.maps.errors.NotFoundException;
+import com.teamd.taxi.controllers.OrderController;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
 import com.teamd.taxi.models.TaxiOrderForm;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -363,4 +365,16 @@ public class TaxiOrderService {
         return order;
     }
 
+    public String generateLink(TaxiOrder order) {
+        String link;
+        User user = order.getCustomer();
+        if (user.getUserRole() == UserRole.ROLE_CUSTOMER) {
+            link = MvcUriComponentsBuilder.fromMethodName(OrderController.class, "order", order.getId(), null)
+                    .toUriString();
+        } else {
+            link = MvcUriComponentsBuilder.fromMethodName(OrderController.class, "order", order.getId(), order.getSecretViewKey(), null)
+                    .toUriString();
+        }
+        return link;
+    }
 }

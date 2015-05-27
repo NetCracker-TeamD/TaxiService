@@ -170,7 +170,8 @@ public class HistoryDriverController {
             Iterator<Route> i = routes.iterator();
             while (i.hasNext()) {
                 Route r = i.next();
-                if (r.getDriver().getId() != idDriver) {
+                Driver routeDriver = r.getDriver();
+                if (routeDriver == null || routeDriver.getId() != idDriver) {
                     i.remove();
                 }
             }

@@ -378,14 +378,7 @@ public class OrderController {
             return new MapResponse().put("status", "blockedDueToRefuses");
         }
         //создаем ссылку на заказ
-        String link;
-        if (user.getUserRole() == UserRole.ROLE_CUSTOMER) {
-            link = MvcUriComponentsBuilder.fromMethodName(OrderController.class, "order", order.getId(), null)
-                    .toUriString();
-        } else {
-            link = MvcUriComponentsBuilder.fromMethodName(OrderController.class, "order", order.getId(), order.getSecretViewKey(), null)
-                    .toUriString();
-        }
+        String link = taxiOrderService.generateLink(order);
         System.out.println("link = " + link);
         String userEmail = user.getEmail();
         if (userEmail != null) {

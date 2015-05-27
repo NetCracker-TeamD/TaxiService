@@ -474,7 +474,8 @@ public class ProcessOrderService {
         }
         System.out.println(" /n ASSIGNED STATUS FINISH");
 
-        Object[] objs = {taxiOrder.getExecutionDate(), routes.get(0).getSourceAddress()};
+        String link = taxiOrderService.generateLink(routes.get(0).getOrder());
+        Object[] objs = {taxiOrder.getExecutionDate(), routes.get(0).getSourceAddress(), link};
         notifyClientAboutOrderStatusChange(routes.get(0), Notification.ASSIGNED, objs);
     }
 
@@ -485,7 +486,8 @@ public class ProcessOrderService {
         routeService.updateRouteInProgress(RouteStatus.IN_PROGRESS, calendar, r.getId());
         System.out.println(" /n IN PROGRESS STATUS FINISH");
 
-        Object[] objs = {r.getSourceAddress()};
+        String link = taxiOrderService.generateLink(r.getOrder());
+        Object[] objs = {r.getSourceAddress(), link};
         notifyClientAboutOrderStatusChange(r, Notification.IN_PROGRESS, objs);
     }
 
@@ -496,7 +498,8 @@ public class ProcessOrderService {
         routeService.updateRouteCompleted(RouteStatus.COMPLETED, calendar, r.getId());
         System.out.println(" /n COMPLETE STATUS FINISH");
 
-        Object[] objs = {r.getSourceAddress(), r.getCompletionTime()};
+        String link = taxiOrderService.generateLink(r.getOrder());
+        Object[] objs = {r.getSourceAddress(), r.getCompletionTime(), link};
         notifyClientAboutOrderStatusChange(r, Notification.COMPLETED, objs);
     }
 
@@ -506,7 +509,9 @@ public class ProcessOrderService {
         routeService.updateRouteRefused(RouteStatus.REFUSED, calendar, r.getId());
         System.out.println(" /n REFUSE STATUS FINISH");
 
-        Object[] objs = {r.getSourceAddress()};
+
+        String link = taxiOrderService.generateLink(r.getOrder());
+        Object[] objs = {r.getSourceAddress(),link};
         notifyClientAboutOrderStatusChange(r, Notification.REFUSED, objs);
     }
 

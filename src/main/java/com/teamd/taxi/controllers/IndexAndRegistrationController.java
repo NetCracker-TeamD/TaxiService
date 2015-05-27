@@ -106,7 +106,7 @@ public class IndexAndRegistrationController {
         return "{\"isEmailFree\":" + userService.isEmailFree(email) + "}";
     }
 
-    @RequestMapping(value = "/register", produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/signup", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public Map<String, Object> registerNewCustomer(
             @Valid RegistrationForm form, BindingResult errors) throws MessagingException {

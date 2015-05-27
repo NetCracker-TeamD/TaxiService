@@ -32,7 +32,11 @@ public class MailService {
     }
 
     public void sendNotification(String to, Notification pattern, Object... args) throws MessagingException {
-        sendMessage("Taxi service system notification", pattern.getBody(args), "teamdnetcracker@gmail.com", to);
+        try {
+            sendMessage("Taxi service system notification", pattern.getBody(args), "netcrackerdteam@gmail.com", to);
+        } catch (MessagingException ex) {
+            System.err.println(ex);
+        }
     }
 
     public void sendMessageForAll(String subject, String body, String from, List<String> recipients) throws AddressException, MessagingException {
