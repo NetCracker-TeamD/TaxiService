@@ -40,8 +40,9 @@ public class UserAccountController {
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(User.class, new UserSerializer())
             .create();
+
     @RequestMapping("/account")
-    public String account(Model model){
+    public String account(Model model) {
         if (!Utils.isAuthenticated()) {
             return "redirect:/login";
         }
@@ -68,6 +69,12 @@ public class UserAccountController {
                     .put("errors", Utils.convertToMap(env, bindingResult));
         }
         User currentUser = userService.findById(Utils.getCurrentUser().getId());
+        //check email
+        String email = accountForm.getEmail();
+        if (!email.equals(currentUser.getEmail()) && !userService.isEmailFree(email)) {
+            return new MapResponse().put("error", "emailIsNotFree");
+        }
+        //set other params and save
         currentUser.setFirstName(accountForm.getFirstName());
         currentUser.setLastName(accountForm.getLastName());
         currentUser.setEmail(accountForm.getEmail());
