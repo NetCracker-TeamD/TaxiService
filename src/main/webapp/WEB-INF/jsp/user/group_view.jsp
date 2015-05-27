@@ -24,11 +24,11 @@
 <body>
 <%@ include file="header.jsp" %>
 
-<div class="form-group"><h2 class="form-signin-heading">Statistic</h2>
 
-</div>
 <div class="container">
+
     <div class="jumbotron">
+        <h2 class="text-center" >Statistic</h2>
         <div class="panel panel-default">
             <div class="panel-body">
                 <div class="row">

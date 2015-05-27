@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/pages/resources/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="/pages/resources/jquery/css/jquery-ui.css">
     <link rel="stylesheet" href="/pages/resources/project/css/admin.css">
+    <link rel="stylesheet" href="/pages/user/css/ts.css">
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="/pages/resources/jquery/jquery-ui.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
@@ -44,45 +45,17 @@
             <td>{{:totalPrice}}</td>
             <td><button type="button" class="btn {{:~getButtonClass(status)}}">{{:~normalize(status)}}</button></td>
         </tr>
+
+
+
+
+
     </script>
 </head>
 
 <body>
 <!--common navigation bar for this service -->
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">Smart Taxi</a>
-        </div>
-
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
-                <li><a href="#">Queue</a></li>
-                <li><a href="#">History</a></li>
-            </ul>
-            <div class="navbar-form navbar-right">
-                <div class="form-group">
-                    <input type="text" placeholder="Email" class="form-control">
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="Password" class="form-control">
-                </div>
-                <button type="button" class="btn btn-success">Sign in</button>
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#t_and_c_m">Sign up
-                </button>
-            </div>
-        </div>
-        <!--/.navbar-collapse -->
-    </div>
-</nav>
+<jsp:include page="header.jsp"/>
 
 <div class="container" id="main_container">
     <div style="margin-top: 10px" class="panel panel-default">

@@ -20,8 +20,8 @@
     <link rel="stylesheet" href="/pages/resources/jquery/css/jquery-ui.css">
 </head>
 <body>
+
 <%@ include file="header.jsp" %>
-<div class="form-group"><h2 class="form-signin-heading">Statistic</h2></div>
 
 <div align="center" class="container">
     <ul id="my-menu">
