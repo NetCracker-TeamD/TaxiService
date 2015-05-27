@@ -170,7 +170,7 @@ public class ProcessOrderService {
             routeService.setTotalPrice(totalPrice, r.getId());
         }
         System.out.println("Total Price : "+totalPrice);
-        return totalPrice;
+        return (float)Math.round(totalPrice*100)/100;
     }
 
     @Transactional

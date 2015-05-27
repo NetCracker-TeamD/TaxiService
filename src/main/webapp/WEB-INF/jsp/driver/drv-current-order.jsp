@@ -47,9 +47,9 @@
 <!--common navigation bar for this service -->
 <%@ include file="../../pages/driver/drv-header.html" %>
 
-<div class="jumbotron welcome">
-    <div class="container">
-        <h2 style="color: rgb(19, 23, 95);">Current order</h2>
+<div class="jumbotron" style="height:150px;">
+    <div class="container" style="height:150px;">
+        <h1 style="color:#000; text-align:right;">Current order</h1>
     </div>
 </div>
 <div class="container">

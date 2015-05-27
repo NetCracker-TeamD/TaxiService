@@ -470,7 +470,7 @@ function changeStatus(status) {
                     //    type: BootstrapDialog.TYPE_SUCCESS,
                     //    message: "Total services price : "+response.totalPrice
                     //});
-                    $('#finishOrder').text("Total services price : "+response.totalPrice);
+                    $('#finishOrder').text("Total services price : "+response.totalPrice+" UAH");
                     $('#resultWindow').modal('show');
 
                 } else if (response.orderStatus == 'refused') {
