@@ -15,7 +15,7 @@ public class InfoService {
     @Autowired
     InfoRepository infoRepository;
 
-    public Info getIdleFreeTime(String name){
+    public Info findByName(String name){
         return infoRepository.findOne(name);
     }
 }

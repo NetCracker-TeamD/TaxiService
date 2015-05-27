@@ -169,7 +169,7 @@ public class CurrentOrderController {
         Driver driver = driverService.getDriver(driverId);
         TaxiOrder taxiOrder;
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) {
-            long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 3000;
+            long idleFreeTime = Long.valueOf(infoService.findByName("idle_free_time").getValue()) * 3000;
             long executeOrderDate = taxiOrder.getExecutionDate().getTimeInMillis();
 
             if (taxiOrder.getServiceType().isDestinationLocationsChain() != null && taxiOrder.getServiceType().isDestinationLocationsChain()) {

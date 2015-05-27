@@ -51,20 +51,18 @@
                                                 </td>
                                                 <td>${group.name}</td>
                                                 <td><fmt:formatNumber
-                                                        value="${(1-group.discount)*100}"
+                                                        value="${(group.discount)*100}"
                                                         maxFractionDigits="0"/>
                                                 </td>
                                             </tr>
                                             </c:forEach>
                                         </tbody>
                                     </table>
-                                    <input type="submit" value="Apply" class="btn btn-default">
+                                    <input type="submit" value="Apply" class="btn btn-default text-center">
                                     </form>
                                 </c:when>
                                 <c:otherwise><h2 align="center">You don't belong to any group</h2></c:otherwise>
                             </c:choose>
-
-
                         </div>
                     </div>
                 </div>
