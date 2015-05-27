@@ -48,9 +48,9 @@
       <tr>
         <th>#</th>
         <th>Name</th>
-        <th>PriceByTime(UAH)</th>
-        <th>PriceByDistance(UAH)</th>
-        <th>MinimalPrice(UAH)</th>
+        <th>Price by time(UAH/hour)</th>
+        <th>Price by distance(UAH/km)</th>
+        <th>Minimal Price(UAH)</th>
         <th>Manage</th>
       </tr>
       </thead>
