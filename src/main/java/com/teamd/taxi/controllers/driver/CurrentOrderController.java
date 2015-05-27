@@ -53,7 +53,7 @@ public class CurrentOrderController {
     @RequestMapping(value = "/order", method = RequestMethod.GET)
     private String viewQueue(Model model) {
         boolean isActiveOrder = true;
-        int driverId = (int)Utils.getCurrentUser().getId();
+        int driverId = (int) Utils.getCurrentUser().getId();
         Driver driver = driverService.getDriver(driverId);
         int drvId = driver.getId();
         TaxiOrder taxiOrder;
@@ -69,9 +69,9 @@ public class CurrentOrderController {
 
 
     @RequestMapping(value = "/assign", method = RequestMethod.GET)
-    private String assignOrder( @RequestParam MultiValueMap<String, String> params, Model model) {
+    private String assignOrder(@RequestParam MultiValueMap<String, String> params, Model model) {
 
-        int driverId = (int)Utils.getCurrentUser().getId();
+        int driverId = (int) Utils.getCurrentUser().getId();
         Driver driver = driverService.getDriver(driverId);
 
         try {
@@ -97,13 +97,13 @@ public class CurrentOrderController {
 
     @RequestMapping(value = "/lifeCircleOrder", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String processOrder(@RequestParam(value = "status") String status){
+    public String processOrder(@RequestParam(value = "status") String status) {
 
         JsonObject to = new JsonObject();
-        int driverId = (int)Utils.getCurrentUser().getId();
-        Driver driver =  driverService.getDriver(driverId);
+        int driverId = (int) Utils.getCurrentUser().getId();
+        Driver driver = driverService.getDriver(driverId);
         try {
-            to =  processOrderService.processOrder(status, driver);
+            to = processOrderService.processOrder(status, driver);
         } catch (InfoNotFoundException e) {
             return "driver/drv-error-page";
         } catch (ItemNotFoundException e) {
@@ -117,7 +117,7 @@ public class CurrentOrderController {
     @ResponseBody
     String[] loadAddress() {
 
-        int driverId = (int)Utils.getCurrentUser().getId();
+        int driverId = (int) Utils.getCurrentUser().getId();
         Driver driver = driverService.getDriver(driverId);
         TaxiOrder taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
         String[] addresses = new String[0];
@@ -130,10 +130,10 @@ public class CurrentOrderController {
     @RequestMapping(value = "/setNewRoute", produces = "application/json;charset=UTF-8")
     public
     @ResponseBody
-    String driverCurrentOrder(@RequestParam(value = "destination") String destination){
+    String driverCurrentOrder(@RequestParam(value = "destination") String destination) {
         JsonObject to = new JsonObject();
         Route route = null;
-        int driverId = (int)Utils.getCurrentUser().getId();
+        int driverId = (int) Utils.getCurrentUser().getId();
 
         try {
             route = processOrderService.newRoute(destination, driverId);
@@ -147,7 +147,7 @@ public class CurrentOrderController {
             to.addProperty("errorMessage", "New route not supported for order");
         }
 
-        if ( route != null ){
+        if (route != null) {
             to.addProperty("source", route.getSourceAddress());
             to.addProperty("destination", route.getDestinationAddress());
             to.addProperty("status", "ok");
@@ -165,7 +165,7 @@ public class CurrentOrderController {
     String loadExecuteDate() {
 
         JsonObject to = new JsonObject();
-        int driverId = (int)Utils.getCurrentUser().getId();
+        int driverId = (int) Utils.getCurrentUser().getId();
         Driver driver = driverService.getDriver(driverId);
         TaxiOrder taxiOrder;
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) {
@@ -194,7 +194,7 @@ public class CurrentOrderController {
             } else {
                 to.addProperty("currentOrderState", "driverInProgress");
                 for (Route r : taxiOrder.getRoutes()) {
-                    if ( (r.getDriver()!=null) && (r.getDriver().getId() == driver.getId()) && (r.getStatus() == RouteStatus.ASSIGNED)) {
+                    if ((r.getDriver() != null) && (r.getDriver().getId() == driver.getId()) && (r.getStatus() == RouteStatus.ASSIGNED)) {
                         to.addProperty("currentOrderState", "driverGoesToClient");
                     }
                 }

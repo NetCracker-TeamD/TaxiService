@@ -38,6 +38,13 @@
         }
         $.views.helpers({format: formatDistance});
 
+        function formatDestination(destination) {
+            if( destination == null){
+                return "No distance"
+            }
+        }
+        $.views.helpers({format: formatDestination});
+
     </script>
     <script id="orderItemTemplate" type="text/x-jsrender">
     <div class="panel-info panel-group order-container" style="margin: 0px">
@@ -77,7 +84,7 @@
                         {{for assembledRoutes }}
                             <tr class="info">
                                 <td class="col-sm-3">{{:sourceAddress}}</td>
-                                <td class="col-sm-3">{{:destinationAddress}}</td>
+                                <td class="col-sm-3">{{:~format(destinationAddress)}}</td>
                                 <td class="col-sm-2">{{:totalCars}}</td>
                                 <td class="col-sm-2">{{:~format(totalDistance)}}</td>
                                 <td class="col-sm-2">
