@@ -23,8 +23,8 @@ $(document).ready(function () {
             return data;
         },
         displayDataCallback: function (status, data, details) {
-            console.log(data);
-            console.log(details);
+            //console.log(data);
+            //console.log(details);
             var container = $("#orders-container");
             if (status === 'ok') {
                 container.html(
@@ -36,7 +36,8 @@ $(document).ready(function () {
                     })
                 );
             } else if (status == 'notFound') {
-                container.html('<h2>Items not found</h2>')
+                container.html('<div class="alert alert-warning alert-dismissible" role="alert" style="margin: 0px;">'+
+                '<strong>Warning!</strong> Items not found </div>');
             }
         }
     });

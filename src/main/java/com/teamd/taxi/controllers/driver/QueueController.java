@@ -1,6 +1,7 @@
 package com.teamd.taxi.controllers.driver;
 
 import com.google.gson.*;
+import com.teamd.taxi.authentication.Utils;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
@@ -63,8 +64,6 @@ public class QueueController {
     @Autowired
     private TaxiOrderSpecificationFactory taxiOrderSpecificationFactory;
 
-    private static int currentDriverID = 6;
-
     private static final Logger log = Logger.getLogger(QueueController.class);
 
 
@@ -72,7 +71,8 @@ public class QueueController {
     @ResponseBody
     public String loadQueue(Pageable pageable, @RequestParam MultiValueMap<String, String> params) {
         log.info("Received params: " + params);
-        Driver driver = driverService.getDriver(currentDriverID);
+        int driverID = (int) Utils.getCurrentUser().getId();
+        Driver driver = driverService.getDriver(driverID);
         pageable = new PageRequest(pageable.getPageNumber(), PAGE_SIZE, Sort.Direction.DESC, "executionDate");
         //вибрані сервіси з TRUE значенням інші з FALSE
         Map<ServiceType, Boolean> selectedTypes = getSelectedTypes(params);
@@ -142,8 +142,8 @@ public class QueueController {
         pageable = new PageRequest(pageable.getPageNumber(), PAGE_SIZE);
         //вибрані сервіси з TRUE значенням інші з FALSE
         Map<ServiceType, Boolean> selectedTypes = getSelectedTypes(params);
-
-        Driver driver = driverService.getDriver(currentDriverID);
+        int driverID = (int) Utils.getCurrentUser().getId();
+        Driver driver = driverService.getDriver(driverID);
         TaxiOrder taxiOrder;
         log.info("PARAMETER " + taxiOrderService.findCurrentOrderByDriverId(driver.getId()));
         if (!driver.isAtWork() || ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null)) {
@@ -177,7 +177,6 @@ public class QueueController {
         Car car = driver.getCar();
         List<Feature> merged = new ArrayList<>(driver.getFeatures());
         merged.addAll(car.getFeatures());
-        System.out.print("/nFEATURE = ");
         for (Feature f : car.getFeatures()) {
             System.out.print(f.getId() + " __ ");
         }
