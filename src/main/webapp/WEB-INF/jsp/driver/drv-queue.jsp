@@ -33,7 +33,7 @@
             try {
                 return number.toFixed(2);
             } catch(e) {
-                return "-";
+                return "No destination";
             }
         }
         $.views.helpers({format: formatDistance});
