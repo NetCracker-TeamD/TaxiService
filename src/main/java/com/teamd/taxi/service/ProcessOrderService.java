@@ -6,7 +6,6 @@ import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
-import com.teamd.taxi.persistence.repository.BlackListItemRepository;
 import com.teamd.taxi.service.email.MailService;
 import com.teamd.taxi.service.email.Notification;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +40,6 @@ public class ProcessOrderService {
     @Autowired
     private TaxiOrderService taxiOrderService;
 
-    @Autowired
-    private BlackListItemRepository blackListItemRepository;
-
     @Transactional
     public TaxiOrder getOrder(MultiValueMap<String, String> params, Driver driver) throws
             DriverHasActiveOrderException,
@@ -60,10 +56,10 @@ public class ProcessOrderService {
 
         try {
             List<String> s;
-            if ((s = params.get("id")) != null) {
-                id = Long.valueOf(s.get(0));
-            } else throw new TaxiOrderNotExist();
-        } catch (NumberFormatException e) {
+            if( (s = params.get("id")) != null) {
+                id = Long.valueOf( s.get(0));
+            }else throw new TaxiOrderNotExist();
+        }catch (NumberFormatException e){
             throw new InvalidURLParamException();
         }
 
@@ -79,7 +75,6 @@ public class ProcessOrderService {
         return taxiOrder;
 
     }
-
     @Transactional
     public JsonObject processOrder(String status, Driver driver) throws InfoNotFoundException, ItemNotFoundException {
 
@@ -98,23 +93,10 @@ public class ProcessOrderService {
                         initRefuseStatus(r);
                     }
                 }
-                User user = taxiOrder.getCustomer();
-                if (user.getUserRole() != UserRole.ROLE_ANONYMOUS) {
-                    BlackListItem item = taxiOrder.getBlackListItem();
-                    if (item != null) {
-                        item.setTaxiOrderToPay(null);
-                        item.setMultiplier(null);
-                        blackListItemRepository.save(item);
-                    }
-                    BlackListItem newItem = new BlackListItem();
-                    newItem.setUser(user);
-                    newItem.setPayed(false);
-                    blackListItemRepository.save(newItem);
-                }
                 to.addProperty("orderStatus", "refused");
             } else if (status.equals("complete")) {/// wtite for complete
                 for (Route r : routes) {
-                    if ((r.getDriver().getId() == driverId) && (r.getStatus() == RouteStatus.IN_PROGRESS)) {
+                    if ((r.getStatus() == RouteStatus.IN_PROGRESS)) {
                         initCompleteStatus(r);
                         r.setStatus(RouteStatus.COMPLETED);
                         Calendar calendar = Calendar.getInstance();
@@ -122,21 +104,6 @@ public class ProcessOrderService {
                         to.addProperty("status", "COMPLETED");
                         to.addProperty("id", r.getId());
                         break;
-                    }
-                    boolean allComplete = true;
-                    for (Route route : taxiOrder.getRoutes()) {
-                        if (route.getStatus() != RouteStatus.COMPLETED
-                                && route.getStatus() != RouteStatus.REFUSED) {
-                            allComplete = false;
-                            break;
-                        }
-                    }
-                    if (allComplete) {
-                        BlackListItem orderBlackList = taxiOrder.getBlackListItem();
-                        if (orderBlackList != null) {
-                            orderBlackList.setPayed(true);
-                            blackListItemRepository.save(orderBlackList);
-                        }
                     }
                 }
                 //перевіряєм чи ланцюжок замовлення виконаниний повністю, всі повиггі бути COMPLETED
@@ -153,13 +120,13 @@ public class ProcessOrderService {
                         break;
                     }
                 }
-                if (allComplete) {
+                if(allComplete){
                     Float totalPrice = setPrice(taxiOrderId, driverId);
                     to.addProperty("totalPrice", totalPrice);
                 }
             } else if (status.equals("inProgress")) {
                 for (Route r : routes) {
-                    if ((r.getDriver().getId() == driverId) && (r.getStatus() == RouteStatus.ASSIGNED)) {
+                    if ((r.getStatus() == RouteStatus.ASSIGNED)) {
                         initInProgressStatus(r);
                         to.addProperty("status", "IN PROGRESS");
                         to.addProperty("id", r.getId());
@@ -179,32 +146,31 @@ public class ProcessOrderService {
         List<Float> listPrice;
         TaxiOrder taxiOrder = taxiOrderService.findOneById(taxiOrderId);
         List<Route> routes = getChainForDriver(taxiOrder, driverId);
-        System.out.println("SIZE = " + taxiOrder.getRoutes());
+        System.out.println("SIZE = "+taxiOrder.getRoutes());
         Boolean isChain = taxiOrder.getServiceType().isDestinationLocationsChain();
         if (isChain != null && isChain) {
             listPrice = priceCountService.countPriceForLastChainOrder(taxiOrderId, driverId);
-            System.out.println("List Price  : " + listPrice);
+            System.out.println("List Price  : "+listPrice);
             for (int i = 0; i < routes.size(); i++) {
                 Route r = routes.get(i);
                 Float price = listPrice.get(i);
                 totalPrice += price;
                 r.setTotalPrice(price);
-                System.out.println("Driver : " + r.getDriver().getId() +
-                        " Route status : " + r.getStatus() +
-                        " Route price : " + r.getTotalPrice());
+                System.out.println("Driver : "+r.getDriver().getId()+
+                        " Route status : "+r.getStatus()+
+                        " Route price : "+r.getTotalPrice());
                 routeService.saveRoute(r);
             }
         } else {
             long routeId = routes.get(routes.size() - 1).getId();
             Route r = routeService.getRouteById(routeId);
-            System.out.println("ROUTE ID = = " + routeId + " SOURCE = " + r.getSourceAddress() + " DEST = " + r.getDestinationAddress() + " COMPL TIME : " + r.getStatus());
+            System.out.println("ROUTE ID = = "+routeId+" SOURCE = "+r.getSourceAddress()+ " DEST = " +r.getDestinationAddress()+" COMPL TIME : "+r.getStatus());
             totalPrice = priceCountService.countPriceForSingleRouteOrder(routeId);
             r.setTotalPrice(totalPrice);
             routeService.setTotalPrice(totalPrice, r.getId());
         }
-        System.out.println("Total Price : " + totalPrice);
-        totalPrice = Math.round(totalPrice*100)/100;
-        return totalPrice;
+        System.out.println("Total Price : "+totalPrice);
+        return (float)Math.round(totalPrice*100)/100;
     }
 
     @Transactional
@@ -216,10 +182,10 @@ public class ProcessOrderService {
             if (isChain != null && isChain) {
                 AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
                 List<AssembledRoute> assembledRoutes = assembledOrder.getAssembledRoutes();
-                if (assembledRoutes.get(0).getRoutes().size() == 1) {
+                if (assembledRoutes.get(0).getRoutes().size() == 1){
                     Float distance;
                     List<Route> routes = getChainForDriver(taxiOrder, driverId);
-                    String source = routes.get(routes.size() - 1).getDestinationAddress();
+                    String source = routes.get(routes.size()-1).getDestinationAddress();
                     if ((distance = mapService.calculateDistanceInKilometers(source, dest)) != null) {
                         int routePosition = assembledOrder.getAssembledRoutes().size() + 1;
                         Route route = new Route();
@@ -234,10 +200,10 @@ public class ProcessOrderService {
                         route.setChainPosition(routePosition);
                         routeService.saveRoute(route);
                         return route;
-                    } else {
+                    }else{
                         return null;
                     }
-                } else {
+                }else{
                     throw new NewRouteNotSupportForOrderException();
                 }
             } else {
@@ -273,13 +239,13 @@ public class ProcessOrderService {
             }
         }
         String[] addresses;
-        if (taxiOrder.getServiceType().isDestinationRequired()) {
+        if (taxiOrder.getServiceType().isDestinationRequired()){
             addresses = new String[routes.size() + 1];
             addresses[0] = routes.get(0).getSourceAddress();
             for (int i = 0; i < routes.size(); i++) {
                 addresses[i + 1] = routes.get(i).getDestinationAddress();
             }
-        } else {
+        }else{
             addresses = new String[1];
             addresses[0] = routes.get(0).getSourceAddress();
         }
@@ -310,30 +276,31 @@ public class ProcessOrderService {
                             routes.add(route);
                         }
                     }
-                    System.out.println("Chain Driver : " + routes.get(routes.size() - 1).getDriver().getId() +
-                            " Route status : " + routes.get(routes.size() - 1).getStatus() +
-                            " Service type : " + taxiOrder.getServiceType().getName() +
-                            " Source : " + routes.get(routes.size() - 1).getSourceAddress());
-                    result.add(routes.get(routes.size() - 1));
+                    System.out.println("Chain Driver : "+routes.get(routes.size()-1).getDriver().getId()+
+                            " Route status : "+routes.get(routes.size()-1).getStatus()+
+                            " Service type : "+taxiOrder.getServiceType().getName()+
+                            " Source : "+routes.get(routes.size()-1).getSourceAddress());
+                    result.add(routes.get(routes.size()-1));
 
                 }
                 System.out.println(result);
                 return result;
             } else {
                 // Convey corp emps, guest delivery
-                if (serviceType.isMultipleSourceLocations()) {
+                if(serviceType.isMultipleSourceLocations()){
+
                     for (int j = 0; j < assembledRoutes.size(); j++) {
                         for (Route route : assembledRoutes.get(j).getRoutes()) {
                             Driver routeDriver = route.getDriver();
                             if ((routeDriver != null) && (driverId == routeDriver.getId())) {
-                                System.out.println("Driver : " + route.getDriver().getId() +
-                                        " Route status : " + route.getStatus() +
-                                        " Service type : " + taxiOrder.getServiceType().getName());
+                                System.out.println("Driver : "+route.getDriver().getId()+
+                                        " Route status : "+route.getStatus()+
+                                        " Service type : "+taxiOrder.getServiceType().getName());
                                 routes.add(route);
                             }
                         }
                     }
-                    Collections.sort(routes, new Comparator<Route>() {
+                    Collections.sort(routes, new Comparator<Route>(){
                         @Override
                         public int compare(Route r1, Route r2) {
                             Calendar s1 = r1.getStartTime();
@@ -346,12 +313,11 @@ public class ProcessOrderService {
                             return s1.compareTo(s2);
                         }
                     });
-                    System.out.println(routes);
-                    if (!routes.isEmpty()) {
-                        result.add(routes.get(routes.size() - 1));
+                    if(!routes.isEmpty()){
+                        result.add(routes.get(routes.size()-1));
                     }
                     return result;
-                } else {
+                }else{
                     // Meet my guest, Cargo Taxi,
                     // sober, foodstuff
                     routes = new ArrayList<>();
@@ -361,11 +327,11 @@ public class ProcessOrderService {
                             routes.add(route);
                         }
                     }
-                    System.out.println("Driver : " + routes.get(routes.size() - 1).getDriver().getId() +
-                            " Route status : " + routes.get(routes.size() - 1).getStatus() +
-                            " Service type : " + taxiOrder.getServiceType().getName());
-                    if (!routes.isEmpty()) {
-                        result.add(routes.get(routes.size() - 1));
+                    System.out.println("Driver : "+routes.get(routes.size()-1).getDriver().getId()+
+                            " Route status : "+routes.get(routes.size()-1).getStatus()+
+                            " Service type : "+taxiOrder.getServiceType().getName());
+                    if(!routes.isEmpty()){
+                        result.add(routes.get(routes.size()-1));
                     }
                     return result;
                 }
@@ -379,11 +345,11 @@ public class ProcessOrderService {
                     routes.add(route);
                 }
             }
-            System.out.println("Driver : " + routes.get(routes.size() - 1).getDriver().getId() +
-                    " Route status : " + routes.get(routes.size() - 1).getStatus() +
-                    " Service type : " + taxiOrder.getServiceType().getName());
-            if (!routes.isEmpty()) {
-                result.add(routes.get(routes.size() - 1));
+            System.out.println("Driver : "+routes.get(routes.size()-1).getDriver().getId()+
+                    " Route status : "+routes.get(routes.size()-1).getStatus()+
+                    " Service type : "+taxiOrder.getServiceType().getName());
+            if(!routes.isEmpty()){
+                result.add(routes.get(routes.size()-1));
             }
             return result;
         }
@@ -410,13 +376,13 @@ public class ProcessOrderService {
                 List<String> sourceL;
                 List<String> destL;
                 String source, dest;
-                if ((sourceL = params.get("source")) != null) {
+                if( (sourceL = params.get("source")) != null ){
                     source = sourceL.get(0);
-                } else
+                }else
                     throw new InvalidURLParamException();
-                if ((destL = params.get("dest")) != null) {
+                if ( (destL = params.get("dest")) != null){
                     dest = destL.get(0);
-                } else
+                }else
                     throw new InvalidURLParamException();
 
                 if (source != null && dest != null) {
@@ -437,9 +403,9 @@ public class ProcessOrderService {
             List<Route> freeRoutes = getFreeRouteForOrder(taxiOrder);
             String source;
             List<String> sList;
-            if ((sList = params.get("source")) != null) {
+            if( (sList = params.get("source")) != null ){
                 source = sList.get(0);
-            } else
+            }else
                 throw new InvalidURLParamException();
 
             if (source != null) {
@@ -544,7 +510,7 @@ public class ProcessOrderService {
         notifyClientAboutOrderStatusChange(r, Notification.REFUSED, objs);
     }
 
-    private void notifyClientAboutOrderStatusChange(Route r, Notification routeStatus, Object... objs) {
+    private void notifyClientAboutOrderStatusChange(Route r, Notification routeStatus, Object... objs){
         TaxiOrder taxiOrder = r.getOrder();
         User user = taxiOrder.getCustomer();
         try {

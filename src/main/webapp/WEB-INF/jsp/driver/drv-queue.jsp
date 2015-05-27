@@ -106,13 +106,12 @@
 </head>
 <body>
 
-<%@ include file="../../pages/driver/drv-header.html"%>
-<div class="jumbotron welcome">
-    <div class="container">
-        <h2 style="color: rgb(19, 23, 95);">Queue</h2>
+<%@ include file="drv-header.jsp"%>
+<div class="jumbotron" style="height:150px;">
+    <div class="container" style="height:150px;">
+        <h1 style="color:#000; text-align:right;">Queue</h1>
     </div>
 </div>
-
 <div class="container">
     <c:if test="${activeOrder}">
         <div class="alert alert-warning alert-dismissible" id="haveActiveOrder" style="margin: 0px;" role="alert">
