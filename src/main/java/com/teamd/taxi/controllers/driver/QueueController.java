@@ -239,7 +239,7 @@ public class QueueController {
             }
 
             Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.HOUR, 1); //TODO: move to info table
+            calendar.add(Calendar.HOUR, 1);
 
             Predicate retValue = cb.and(
                     featurePredicate,

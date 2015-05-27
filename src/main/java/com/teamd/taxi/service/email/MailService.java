@@ -28,7 +28,7 @@ public class MailService {
         msg.setContent(body, "text/html; charset=UTF-8");
         msg.setFrom(new InternetAddress(from));
         msg.addRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-        //Transport.send(msg);// TODO: uncomment
+        Transport.send(msg);
     }
 
     public void sendNotification(String to, Notification pattern, Object... args) throws MessagingException {

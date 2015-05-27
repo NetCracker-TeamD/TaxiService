@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import org.springframework.data.jpa.domain.Specifications;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
@@ -244,8 +245,7 @@ public class UserHistoryController {
 
     @RequestMapping(value = "/loadHistory", produces = "application/json;charset=UTF-8")
     @ResponseBody
-    //TODO: uncomment
-    //@PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or #userId == principal.id")
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or #userId == principal.id")
     public String loadHistory(Pageable pageable, @RequestParam("userId") long userId, @RequestParam MultiValueMap<String, String> params) {
         return getGson().toJson(
                 loadHistoryByUserId(

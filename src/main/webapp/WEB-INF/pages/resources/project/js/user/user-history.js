@@ -66,6 +66,9 @@ $(function () {
                         }
                     })
                 );
+                $(".clickable-row").click(function () {
+                    window.document.location = $(this).data("href");
+                });
                 info.html('');
             } else if (status == 'notFound') {
                 container.html('');
