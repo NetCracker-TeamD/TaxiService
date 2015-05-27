@@ -74,7 +74,7 @@ public class GroupsService {
     public void createGroupWithCreateGroupModel(CreateGroupModel createGroupModel) {
         UserGroup userGroup = new UserGroup();
         userGroup.setName(createGroupModel.getName());
-        userGroup.setDiscount(Float.parseFloat(createGroupModel.getDiscount()));
+        userGroup.setDiscount(Float.parseFloat(createGroupModel.getDiscount())/100.0f);
         userGroup.setGroups(null);
         groupsRepository.save(userGroup);
     }
