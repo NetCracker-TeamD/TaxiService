@@ -82,7 +82,10 @@ a {
 /*
 Fixes
 */
-
+#orderForm [data-type="address-group"] .form-group .input-group .input-group:first-child {
+    float: left;
+    margin-right: 15px;
+}
 #orderForm.form-horizontal .form-group {
     margin-right: 0px;
     margin-left: 0px;

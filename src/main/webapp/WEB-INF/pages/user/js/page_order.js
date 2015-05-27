@@ -3,7 +3,7 @@
  */
 var getOrderPage = function (orderInfo, isUserLogged) {
     console.log(orderInfo)
-    var container = $('<div class="col-sm-5 col-sm-offset-1">\
+    var container = $('<div class="col-sm-6">\
                     <form class="form-horizontal" id="orderForm" method="POST" action="/makeOrder">\
                         <div class="form-group">\
                             <label for="serviceType">Choose service type</label>\
