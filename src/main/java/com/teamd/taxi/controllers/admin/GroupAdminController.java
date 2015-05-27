@@ -68,7 +68,8 @@ public class GroupAdminController {
             group = new HashMap<>();
             group.put("id", userGroup.getGroupId().toString());
             group.put("name", userGroup.getName());
-            group.put("discount", userGroup.getDiscount().toString());
+            Float discount = userGroup.getDiscount()*100;
+            group.put("discount", discount.toString());
 
             listResponse.add(group);
             group = null;

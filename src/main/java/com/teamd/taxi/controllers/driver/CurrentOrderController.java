@@ -3,6 +3,7 @@ package com.teamd.taxi.controllers.driver;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.maps.errors.NotFoundException;
+import com.teamd.taxi.authentication.Utils;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
 import com.teamd.taxi.models.AssembledOrder;
@@ -49,12 +50,10 @@ public class CurrentOrderController {
     private ProcessOrderService processOrderService;
 
 
-    //TODO: hardcode) must take from session
-    private int driverId = 6;
-
     @RequestMapping(value = "/order", method = RequestMethod.GET)
     private String viewQueue(Model model) {
         boolean isActiveOrder = true;
+        int driverId = (int)Utils.getCurrentUser().getId();
         Driver driver = driverService.getDriver(driverId);
         int drvId = driver.getId();
         TaxiOrder taxiOrder;
@@ -70,8 +69,9 @@ public class CurrentOrderController {
 
 
     @RequestMapping(value = "/assign", method = RequestMethod.GET)
-    private String assignOrder(@RequestParam MultiValueMap<String, String> params, Model model) {
+    private String assignOrder( @RequestParam MultiValueMap<String, String> params, Model model) {
 
+        int driverId = (int)Utils.getCurrentUser().getId();
         Driver driver = driverService.getDriver(driverId);
 
         try {
@@ -97,16 +97,17 @@ public class CurrentOrderController {
 
     @RequestMapping(value = "/lifeCircleOrder", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String processOrder(@RequestParam(value = "status") String status) {
+    public String processOrder(@RequestParam(value = "status") String status){
 
         JsonObject to = new JsonObject();
-        Driver driver = driverService.getDriver(driverId);
+        int driverId = (int)Utils.getCurrentUser().getId();
+        Driver driver =  driverService.getDriver(driverId);
         try {
-            to = processOrderService.processOrder(status, driver);
+            to =  processOrderService.processOrder(status, driver);
         } catch (InfoNotFoundException e) {
-            //TODO bootstrap alert
+            return "driver/drv-error-page";
         } catch (ItemNotFoundException e) {
-            //TODO bootstrap alert
+            return "driver/drv-error-page";
         }
         return new Gson().toJson(to);
     }
@@ -116,34 +117,37 @@ public class CurrentOrderController {
     @ResponseBody
     String[] loadAddress() {
 
+        int driverId = (int)Utils.getCurrentUser().getId();
         Driver driver = driverService.getDriver(driverId);
         TaxiOrder taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
-        String[] addresses = processOrderService.loadAddress(taxiOrder, driver.getId());
-
+        String[] addresses = new String[0];
+        if (taxiOrder != null) {
+            addresses = processOrderService.loadAddress(taxiOrder, driver.getId());
+        }
         return addresses;
     }
 
     @RequestMapping(value = "/setNewRoute", produces = "application/json;charset=UTF-8")
     public
     @ResponseBody
-    String driverCurrentOrder(@RequestParam(value = "source") String source,
-                              @RequestParam(value = "destination") String dest) {
+    String driverCurrentOrder(@RequestParam(value = "destination") String destination){
         JsonObject to = new JsonObject();
         Route route = null;
+        int driverId = (int)Utils.getCurrentUser().getId();
 
         try {
-            route = processOrderService.newRoute(source, dest, driverId);
+            route = processOrderService.newRoute(destination, driverId);
         } catch (NotFoundException e) {
-            //TODO alert
+            to.addProperty("errorMessage", "Wrong address. Please try again");
         } catch (MapServiceNotAvailableException e) {
-            //TODO alert
+            to.addProperty("errorMessage", "Map service not available now");
         } catch (TaxiOrderNotExist taxiOrderNotExist) {
-            //TODO alert
+            to.addProperty("errorMessage", "Taxi order not exist");
         } catch (NewRouteNotSupportForOrderException e) {
-            //TODO alert
+            to.addProperty("errorMessage", "New route not supported for order");
         }
 
-        if (route != null) {
+        if ( route != null ){
             to.addProperty("source", route.getSourceAddress());
             to.addProperty("destination", route.getDestinationAddress());
             to.addProperty("status", "ok");
@@ -161,9 +165,9 @@ public class CurrentOrderController {
     String loadExecuteDate() {
 
         JsonObject to = new JsonObject();
+        int driverId = (int)Utils.getCurrentUser().getId();
         Driver driver = driverService.getDriver(driverId);
         TaxiOrder taxiOrder;
-
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId())) != null) {
             long idleFreeTime = Long.valueOf(infoService.getIdleFreeTime("idle_free_time").getValue()) * 3000;
             long executeOrderDate = taxiOrder.getExecutionDate().getTimeInMillis();
@@ -172,7 +176,6 @@ public class CurrentOrderController {
                 taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driver.getId());
                 AssembledOrder assembledOrder = AssembledOrder.assembleOrder(taxiOrder);
                 List<AssembledRoute> assRoutes = assembledOrder.getAssembledRoutes();
-                System.out.println("AssRoutes.get(0).getRoutes().size()  " + assRoutes.get(0).getRoutes().size());
                 if (assRoutes.get(0).getRoutes().size() == 1)
                     to.addProperty("newAddress", "enable");
                 if (isChainOrderBegin(assRoutes, driver.getId())) {
@@ -188,11 +191,10 @@ public class CurrentOrderController {
                     }
                 }
                 to.addProperty("breakTime", idleFreeTime);
-
             } else {
                 to.addProperty("currentOrderState", "driverInProgress");
                 for (Route r : taxiOrder.getRoutes()) {
-                    if ((r.getDriver().getId() == driver.getId()) && (r.getStatus() == RouteStatus.ASSIGNED)) {
+                    if ( (r.getDriver()!=null) && (r.getDriver().getId() == driver.getId()) && (r.getStatus() == RouteStatus.ASSIGNED)) {
                         to.addProperty("currentOrderState", "driverGoesToClient");
                     }
                 }
@@ -202,9 +204,9 @@ public class CurrentOrderController {
         } else {
             to.addProperty("currentOrderState", "noCurrentOrder");
         }
-
         return new Gson().toJson(to);
     }
+
 
     private boolean isChainOrderBegin(List<AssembledRoute> assRoutes, int driverId) {
         for (Route r : assRoutes.get(0).getRoutes()) {

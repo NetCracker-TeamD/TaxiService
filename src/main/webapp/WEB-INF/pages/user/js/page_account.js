@@ -38,6 +38,14 @@ $(document).ready(function() {
     formAddresses.append($('<button class="btn btn-primary pull-right" data-action="save"\
                 data-form-id="addresses" type="submit">Save</button>'))
 
+    formContacts = $('#contacts')
+    formContacts.find('[name="firstName"]').val(userInfo.firstName)
+    formContacts.find('[name="lastName"]').val(userInfo.lastName)
+    formContacts.find('[name="phoneNumber"]').val(userInfo.phoneNumber)
+    formContacts.find('[name="phoneNumber"]').mask("(999) 999-9999")
+    formContacts.find('[name="email"]').val(userInfo.email)
+    formContacts.validator()
+
     var favAddressesClick = function(e){
         var target = $(e.target),
             tagName = target[0].tagName.toLowerCase()
@@ -171,8 +179,23 @@ $(document).ready(function() {
                 button : btn,
                 success : function(response){
                     //contact info saved
+                    console.log(response)
+                    if ($.isSet(response.errors)){
+                        for (var key in response.errors){
+                            var error = response.errors[key],
+                                input = formContacts.find('[name="'+key+'"]')
+                            if (input.length>0){
+                                var holder = input.closest('.form-group').addClass('has-error')
+                                holder.find('.help-block.with-errors')
+                                    .html('<ul class="list-unstyled"><li>'+error+'</li></ul>')
+                            }
+                        }
+                    } else {
+
+                    }
                 },
                 error : function(response){
+                    console.log(response)
                     BootstrapDialog.show({
                         type: BootstrapDialog.TYPE_DANGER,
                         title: "Server error",
@@ -200,7 +223,6 @@ $(document).ready(function() {
 
     MapTools.addListener("onGeolocationAllowed",function(pos){
         MapTools.getNameForLocation(pos.latitude, pos.longitude, function(address){
-            DataTools.setUserLocation("Your location", address, true)
             fav_locations.unshift({
                 name : "Your location",
                 address : address,

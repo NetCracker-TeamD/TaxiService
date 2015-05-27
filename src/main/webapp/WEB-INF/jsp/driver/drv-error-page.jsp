@@ -5,6 +5,9 @@
   Time: 21:54
   To change this template use File | Settings | File Templates.
 --%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <html>
 <head>
@@ -18,13 +21,15 @@
 
 <div class="jumbotron welcome">
     <div class="container">
-        <h2 style="color: rgb(19, 23, 95);">Current order</h2>
+        <h2 style="color: rgb(19, 23, 95);">Error</h2>
     </div>
 </div>
 
 <div class="container">
     <div class="jumbotron">
-        <h1>${errorMessage}</h1>
+        <div class="alert alert-warning alert-dismissible" role="alert">
+            <h4 style="color: red"><strong>Error </strong> ${errorMessage}</h4>
+        </div>
     </div>
 </div>
 
