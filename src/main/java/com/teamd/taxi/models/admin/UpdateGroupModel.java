@@ -3,6 +3,7 @@ package com.teamd.taxi.models.admin;
 import com.teamd.taxi.entity.UserGroup;
 import com.teamd.taxi.validation.CarModelName;
 import com.teamd.taxi.validation.ExistingGroupId;
+import com.teamd.taxi.validation.GroupProcentBorders;
 import com.teamd.taxi.validation.NotBlankOrNull;
 
 import javax.validation.constraints.NotNull;
@@ -22,7 +23,8 @@ public class UpdateGroupModel {
     private String name;
 
     @NotBlankOrNull(message = "Please enter group discount")
-    @Pattern(regexp = "^[-+]?\\d+(\\.)?(\\d+)?$", message = "Group's discount field contains invalid characters")
+    @Pattern(regexp = "^[+]?\\d+(\\.)?(\\d+)?$", message = "Group's discount field contains invalid characters")
+    @GroupProcentBorders
     private String discount;
 
     public Integer getId() {
@@ -51,7 +53,7 @@ public class UpdateGroupModel {
 
     public UserGroup changeGroup(UserGroup userGroup){
         if(name!=null) userGroup.setName(name);
-        if(discount!=null) userGroup.setDiscount(Float.parseFloat(discount));
+        if(discount!=null) userGroup.setDiscount(Float.parseFloat(discount)/100.0f);
         return userGroup;
     }
 

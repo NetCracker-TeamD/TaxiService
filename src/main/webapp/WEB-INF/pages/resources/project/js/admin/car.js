@@ -106,6 +106,7 @@ function startEditCar(node) {
     driver.find("select").attr("id", "car_driver_edit_" + countButtonStartEditCar);
     driver.find("select").attr("load", "true");
     driver.find("select").attr("loadByChange", "true");
+    driver.find("select").attr("name", "select_drivers");
     driver.find("select").attr("onchange", "changeDriver(this)");
 
     if (driverId.trim().length == 0 || (driverName.trim().length == 0)) {
@@ -140,9 +141,9 @@ function removeCar(id) {
             if (response.result == "success") {
                 showSuccess(response.content);
                 removeCarModal.modal('hide');
-                $(successModal).attr("reloadPage","false");
+                $(successModal).attr("reloadPage", "false");
 
-                var tr = $("#"+id).closest("tr");
+                var tr = $("#" + id).closest("tr");
                 tr.addClass("deleted-car");
                 var editButton = tr.find("button[title='Edit']");
                 var removeButton = tr.find("button[title='Remove']");
@@ -150,8 +151,10 @@ function removeCar(id) {
                 removeButton.prop("disabled", true);
 
                 tr.hover(function deleteHover() {
-                    tr.css({"background-color" : "rgba(0, 169, 138, 0.8)"});
+                    tr.css({"background-color": "rgba(192, 192, 192, 0.8)"});
                 });
+
+                findElementsWithEmptyDropDownAndReloadTheir();
 
             } else {
                 if (response.result == "failure") {
@@ -315,17 +318,22 @@ function setUpdateDataInHiddenBlock(newData, tr) {
 
     var driverElement = tr.find(':nth-child(9)').eq(0);
     var driverName = "";
-    if(newData['driverId'] !== "-1" && newData['driverId'].trim().length !==0){
-        driverName = driverElement.find("option[value='"+newData['driverId']+"']").text();
+    if (newData['driverId'] !== "-1" && newData['driverId'].trim().length !== 0) {
+        driverName = driverElement.find("option[value='" + newData['driverId'] + "']").text();
+        console.log(driverName);
     }
-    var driverHTML = "<a href=''>"+driverName+"</a>";
+    var driverHTML = "<a href=''>" + driverName + "</a>";
 
     driverHiddenElement.append(driverHTML);
 }
 
 function containsObject(arrayObject, searchObject) {
-    if(searchObject == null){return false;}
-    if(arrayObject.length == 0) {return false;}
+    if (searchObject == null) {
+        return false;
+    }
+    if (arrayObject.length == 0) {
+        return false;
+    }
     for (var i = 0; i < arrayObject.length; i++) {
         if (arrayObject[i] === searchObject) {
             return true;
@@ -360,9 +368,13 @@ function updateCar(value) {
     if (newData['enable'] !== oldData['enable']) {
         PostData['enable'] = newData['enable'];
     }
+
+    var isDriverChanged = false;
+
     if (oldData['driverId'].trim().length == 0) oldData['driverId'] = "-1";
     if (oldData['driverId'].trim() !== newData['driverId'].trim()) {
         PostData['driverId'] = newData['driverId'];
+        isDriverChanged = true;
     }
     if (JSON.stringify(newData['features']) !== JSON.stringify(oldData['features'])) {
         PostData['features'] = newData['features'];
@@ -391,10 +403,14 @@ function updateCar(value) {
 
             if (response.result == "success") {
                 trError.hide();
-                $(successModal).attr("reloadPage","false");
+
+                $(successModal).attr("reloadPage", "false");
                 showSuccessUpdateCar(response.content["message"]);
                 setUpdateDataInHiddenBlock(newData, tr);
                 cancelEdit(value);
+                if (isDriverChanged) {
+                    findElementsWithEmptyDropDownAndReloadTheir();
+                }
 
             } else {
                 if (response.result == "failure") {
@@ -418,6 +434,22 @@ function updateCar(value) {
             showError(removeCarModal, "Something went wrong... Try again later");
         }
     });
+}
+
+function findElementsWithEmptyDropDownAndReloadTheir() {
+    var arrayElements = document.getElementsByName("select_drivers");
+    for (var i = 0; i < arrayElements.length; i++) {
+        var selectElement = arrayElements[i];
+
+        $("#" + selectElement.id).attr("loadByChange", true);
+        $("#" + selectElement.id).attr("load", true);
+
+        selectElement.click();
+
+        $("#" + selectElement.id).attr("loadByChange", true);
+        $("#" + selectElement.id).attr("load", true);
+
+    }
 }
 
 function createCar() {
@@ -522,10 +554,10 @@ removeCarModal.on('show.bs.modal', function (event) {
 });
 
 successModal.on('hidden.bs.modal', function (event) {
-    if($(successModal).attr("reloadPage") === "true"){
+    if ($(successModal).attr("reloadPage") === "true") {
         location.reload(true);
     }
-    $(successModal).attr("reloadPage","true");
+    $(successModal).attr("reloadPage", "true");
 });
 
 function showSuccess(message) {
@@ -636,18 +668,16 @@ function generationDrivers(selectElement, defaultOptionString, selectedDriver) {
 
     var stringBuffer = null;
 
-    if(arrayMaps.length == 0) {
+    if (arrayMaps.length == 0) {
         if (selectedDriver.length !== 0) {
             stringBuffer = selectedDriver;
             stringBuffer = stringBuffer + '<option value="-1">' + defaultOptionString + endTag;
         } else {
             stringBuffer = '<option value="-1">' + defaultOptionString + endTag;
-            //$(selectionElementID).attr("loadByChange", "true");
-            //$(selectionElementID).attr("load", "true");
-            //$(selectionElementID).append(stringBuffer);
-            //return;
+            $(selectionElementID).append(stringBuffer);
+            return;
         }
-    }else {
+    } else {
         for (var i = 0; i < arrayMaps.length; i++) {
             if (stringBuffer == null) {
                 if (selectedDriver.length !== 0) {
