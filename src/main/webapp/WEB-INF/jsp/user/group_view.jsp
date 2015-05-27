@@ -19,7 +19,7 @@
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="/pages/resources/jquery/jquery-ui.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
-    <link rel="stylesheet" href="/pages/user/css/ts.css">
+    <link rel="stylesheet" href="/pages/user/css/menu.css">
 </head>
 <body>
 <%@ include file="header.jsp" %>
@@ -51,20 +51,18 @@
                                                 </td>
                                                 <td>${group.name}</td>
                                                 <td><fmt:formatNumber
-                                                        value="${(1-group.discount)*100}"
+                                                        value="${(group.discount)*100}"
                                                         maxFractionDigits="0"/>
                                                 </td>
                                             </tr>
                                             </c:forEach>
                                         </tbody>
                                     </table>
-                                    <input type="submit" value="Apply" class="btn btn-default">
+                                    <input type="submit" value="Apply" class="btn btn-default text-center">
                                     </form>
                                 </c:when>
                                 <c:otherwise><h2 align="center">You don't belong to any group</h2></c:otherwise>
                             </c:choose>
-
-
                         </div>
                     </div>
                 </div>

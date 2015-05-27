@@ -11,6 +11,7 @@
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="/pages/resources/jquery/jquery-ui.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="/pages/user/css/menu.css">
 </head>
 <body>
 <%@ include file="header.jsp" %>
