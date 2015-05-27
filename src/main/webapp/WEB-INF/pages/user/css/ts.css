@@ -83,6 +83,13 @@ a {
 Fixes
 */
 
+#orderForm.form-horizontal .form-group {
+    margin-right: 0px;
+    margin-left: 0px;
+}
+#orderForm .form-group {
+    margin-bottom: 0px;
+}
 
 .input-group.fav-address{
 	width:100%;
@@ -120,6 +127,10 @@ Fixes
 
 .input-group-addon.glyphicon {
 	top: 0px;
+}
+
+.input-group-btn .btn{
+    height : 34px;
 }
 
 /*

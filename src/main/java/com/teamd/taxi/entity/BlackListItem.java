@@ -14,6 +14,9 @@ public class BlackListItem {
     @Column(name = "payed")
     private Boolean payed;
 
+    @Column(name = "multiplier")
+    private Integer multiplier;
+
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     @ManyToOne(optional = false)
     private User user;
@@ -52,6 +55,14 @@ public class BlackListItem {
 
     public void setPayed(Boolean payed) {
         this.payed = payed;
+    }
+
+    public Integer getMultiplier() {
+        return multiplier;
+    }
+
+    public void setMultiplier(Integer multiplier) {
+        this.multiplier = multiplier;
     }
 
     @Override

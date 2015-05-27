@@ -11,10 +11,16 @@
 
 
     <dependencies>
+        <!-- 3.11 doesn`t contain org.apache.poi.hssf.usermodel.HSSFFont-->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>3.11</version>
+            <version>3.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.7</version>
         </dependency>
         <dependency>
             <groupId>jstl</groupId>

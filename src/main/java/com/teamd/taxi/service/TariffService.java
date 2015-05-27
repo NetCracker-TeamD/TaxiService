@@ -1,6 +1,7 @@
 package com.teamd.taxi.service;
 
 import com.teamd.taxi.entity.TariffByTime;
+import com.teamd.taxi.entity.TariffType;
 import com.teamd.taxi.persistence.repository.TariffByTimeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 @Service
 public class TariffService {
@@ -32,4 +34,7 @@ public class TariffService {
         tariffByTimeRepository.delete(id);
     }
 
+    public List<TariffByTime> findTariffsByType(TariffType tariffType) {
+        return tariffByTimeRepository.findByTariffType(tariffType);
+    }
 }

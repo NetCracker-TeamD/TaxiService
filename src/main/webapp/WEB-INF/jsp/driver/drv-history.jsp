@@ -1,15 +1,12 @@
-<%@ page import="com.teamd.taxi.entity.Route" %>
-<%@ page import="java.util.Calendar" %>
-<%@ page import="org.apache.log4j.Logger" %>
-<%@ page import="com.teamd.taxi.entity.TaxiOrder" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-         pageEncoding="UTF-8" %>
+         pageEncoding="UTF-8"  errorPage="../error-page.jsp" %>
 <%@ taglib prefix="fmt"
            uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="c"
            uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="form"
            uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <html lang="en">
 <head>
     <title>History</title>
@@ -28,24 +25,23 @@
     <script src="../../pages/resources/bootstrap/js/bootstrap-datepicker.js"></script>
     <script src="../../pages/resources/project/js/driver/drv-history.js" type="text/javascript"></script></head>
 <body>
-<c:choose>
-    <c:when test="${role == 'ROLE_ADMINISTRATOR'}">
-        <%@ include file="../../pages/admin/admin-header.html"%>
-        <div class="jumbotron" style="background-color: #fff; ">
-            <div class="container" style="height: 15px;">
-                <h2 style="color:#000;">The history of the taxi driver with ID = ${driver_id}</h2>
-            </div>
+<sec:authorize access="hasRole('ROLE_ADMINISTRATOR')">
+    nklasnklasd
+    <%@include file="../admin/header.jsp"%>
+    <div class="jumbotron" style="background-color: #fff; ">
+        <div class="container" style="height: 15px;">
+            <h2 style="color:#000;">The history of the orders for driver ${driver.lastName} ${driver.firstName}</h2>
         </div>
-    </c:when>
-    <c:when test="${role == 'ROLE_DRIVER'}">
-        <%@include file="../../pages/driver/drv-header.html"%>
-        <div class="jumbotron welcome" style="height:150px;">
-            <div class="container" style="height:150px;">
-                <h1 style="color:yellow; text-align:right;">History</h1>
-            </div>
+    </div>
+</sec:authorize>
+<sec:authorize access="hasRole('ROLE_DRIVER')">
+    <%@include file="drv-header.jsp"%>
+    <div class="jumbotron welcome" style="height:150px;">
+        <div class="container" style="height:150px;">
+            <h1 style="color:yellow; text-align:right;">History</h1>
         </div>
-    </c:when>
-</c:choose>
+    </div>
+</sec:authorize>
 <div class="container">
     <div class="jumbotron">
         <div class="panel panel-default">

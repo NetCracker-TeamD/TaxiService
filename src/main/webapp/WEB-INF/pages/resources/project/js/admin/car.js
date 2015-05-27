@@ -141,9 +141,9 @@ function removeCar(id) {
             if (response.result == "success") {
                 showSuccess(response.content);
                 removeCarModal.modal('hide');
-                $(successModal).attr("reloadPage", "false");
+                $(successModal).attr("reloadPage","false");
 
-                var tr = $("#" + id).closest("tr");
+                var tr = $("#"+id).closest("tr");
                 tr.addClass("deleted-car");
                 var editButton = tr.find("button[title='Edit']");
                 var removeButton = tr.find("button[title='Remove']");
@@ -320,20 +320,15 @@ function setUpdateDataInHiddenBlock(newData, tr) {
     var driverName = "";
     if (newData['driverId'] !== "-1" && newData['driverId'].trim().length !== 0) {
         driverName = driverElement.find("option[value='" + newData['driverId'] + "']").text();
-        console.log(driverName);
     }
-    var driverHTML = "<a href=''>" + driverName + "</a>";
+    var driverHTML = "<a href=''>"+driverName+"</a>";
 
     driverHiddenElement.append(driverHTML);
 }
 
 function containsObject(arrayObject, searchObject) {
-    if (searchObject == null) {
-        return false;
-    }
-    if (arrayObject.length == 0) {
-        return false;
-    }
+    if(searchObject == null){return false;}
+    if(arrayObject.length == 0) {return false;}
     for (var i = 0; i < arrayObject.length; i++) {
         if (arrayObject[i] === searchObject) {
             return true;
@@ -554,10 +549,10 @@ removeCarModal.on('show.bs.modal', function (event) {
 });
 
 successModal.on('hidden.bs.modal', function (event) {
-    if ($(successModal).attr("reloadPage") === "true") {
+    if($(successModal).attr("reloadPage") === "true"){
         location.reload(true);
     }
-    $(successModal).attr("reloadPage", "true");
+    $(successModal).attr("reloadPage","true");
 });
 
 function showSuccess(message) {
@@ -668,7 +663,7 @@ function generationDrivers(selectElement, defaultOptionString, selectedDriver) {
 
     var stringBuffer = null;
 
-    if (arrayMaps.length == 0) {
+    if(arrayMaps.length == 0) {
         if (selectedDriver.length !== 0) {
             stringBuffer = selectedDriver;
             stringBuffer = stringBuffer + '<option value="-1">' + defaultOptionString + endTag;

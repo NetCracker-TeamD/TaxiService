@@ -10,12 +10,14 @@ import com.teamd.taxi.service.CustomerUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
 
@@ -29,12 +31,27 @@ public class UserAccountController {
     @Autowired
     private CustomerUserService userService;
 
+    @Autowired
+    private UserAddressesController userAddressesController;
+
     @Resource
     private Environment env;
 
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(User.class, new UserSerializer())
             .create();
+    @RequestMapping("/account")
+    public String account(Model model){
+        if (!Utils.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        try {
+            model.addAttribute("addressesJSON", userAddressesController.getUserAddresses());
+        } catch (IOException e) {
+            model.addAttribute("addressesJSON", "[]");
+        }
+        return "/user/account";
+    }
 
     @RequestMapping(value = "/getAccountData", produces = "application/json;charset=UTF-8")
     @ResponseBody

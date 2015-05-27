@@ -186,19 +186,22 @@ function calcRoute(routesArray) {
     wayp = [];
     var start = routesArray[0];
     var end = routesArray[routesArray.length - 1];
-
-    for (var i = 0; i < routesArray.length; i++) {
+    console.log(start+" first");
+    for (var i = 1; i < routesArray.length-1; i++) {
         wayp.push({location: routesArray[i], stopover: true});
+        console.log(routesArray[i]);
     }
+    console.log(end +" last");
     var request = {
         origin: start,
         destination: end,
         waypoints: wayp,
-        optimizeWaypoints: true,
+        optimizeWaypoints: false,
         travelMode: google.maps.TravelMode.DRIVING
     };
     directionsService.route(request, function (response, status) {
         if (status == google.maps.DirectionsStatus.OK) {
+            console.log(response)
             directionsDisplay.setDirections(response);
             var route = response.routes[0];
         }

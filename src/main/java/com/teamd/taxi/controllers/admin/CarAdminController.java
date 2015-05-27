@@ -180,7 +180,7 @@ public class CarAdminController {
 
     @RequestMapping(value = "/update_car", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public AdminResponseModel<Map<String, String>> updateCar(@RequestBody @Valid UpdateCarModel updateCarModel, BindingResult result){
+    public AdminResponseModel<Map<String, String>> updateCar(@RequestBody @Valid UpdateCarModel updateCarModel, BindingResult result) {
 
         AdminResponseModel<Map<String, String>> response = new AdminResponseModel<>();
 
@@ -195,7 +195,7 @@ public class CarAdminController {
             }
             response.setContent(mapError);
             return response;
-        }else {
+        } else {
 
             carService.updateCar(updateCarModel);
 

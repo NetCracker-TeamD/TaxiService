@@ -1,16 +1,13 @@
-<%@ page import="com.teamd.taxi.entity.Route" %>
-<%@ page import="java.util.Calendar" %>
-<%@ page import="org.apache.log4j.Logger" %>
-<%@ page import="com.teamd.taxi.entity.TaxiOrder" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-         pageEncoding="UTF-8" %>
+         pageEncoding="UTF-8" errorPage="error-page.jsp" %>
 <%@ taglib prefix="fmt"
            uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="c"
            uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="form"
            uri="http://www.springframework.org/tags/form" %>
-<html>
+<%@ taglib prefix="sec"
+           uri="http://www.springframework.org/security/tags" %>
 <head>
   <title>Change Password</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,11 +21,15 @@
   <script src="../pages/resources/bootstrap/js/bootstrap-datepicker.js"></script>
   <script src="../pages/resources/project/js/changePassword.js"></script>
 </head>
-<body>
-  <!--TODO nav bar-->
+<sec:authorize access="hasRole('ROLE_CUSTOMER')">
+      <!-- TODO nav bar customer-->
+</sec:authorize>
+<sec:authorize access="hasRole('ROLE_DRIVER')">
+      <%@include file="../pages/driver/drv-header.html"%>
+</sec:authorize>
 <div class="jumbotron welcome" style="background:#fff;height: 120px;">
   <div class="container" >
-    <h2 style="">Change Password</h2>
+    <h2 style="">Change Password ${role}</h2>
   </div>
 </div>
 <div class="container">
@@ -64,7 +65,6 @@
                     <div class="form-group">
                       <label for="newpass">New Password:</label>
                       <input name="newpass" type="password" class="form-control" id="newpass" placeholder="New Password" autocomplete="off">
-                      <span id="6char" class="glyphicon glyphicon-remove" style="color:#FF0004;"></span> 6 Characters Long<br>
                      </div>
                     <div class="form-group">
                       <label for="repass">Repeat Password:</label>

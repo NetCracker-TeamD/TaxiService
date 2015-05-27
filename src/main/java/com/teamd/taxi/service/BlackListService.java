@@ -23,6 +23,10 @@ public class BlackListService {
     }
 
     public Long countByUserId(long userId) {
-        return blackListItemRepository.countByUser_Id(userId);
+        return blackListItemRepository.countByUserId(userId);
+    }
+
+    public BlackListItem save(BlackListItem item) {
+        return blackListItemRepository.save(item);
     }
 }
