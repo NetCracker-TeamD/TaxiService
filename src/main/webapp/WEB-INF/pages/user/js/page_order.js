@@ -449,6 +449,9 @@ var showOrderPage = function(){
             <div class="help-block with-errors"></div>\
           </div>')
         holder.append(musicStyle)
+        if ($.isSet(orderInfo.musicStyle)){
+            musicStyle.find('input').val(orderInfo.musicStyle)
+        }
         MapTools.clearAllMarkers()
         //console.log(holder.find('input[data-type="address"]'))
         var addresses = holder.find('input[data-type="address"]')
