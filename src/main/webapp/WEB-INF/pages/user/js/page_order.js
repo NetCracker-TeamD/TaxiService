@@ -449,7 +449,7 @@ var showOrderPage = function(){
             <div class="help-block with-errors"></div>\
           </div>')
         holder.append(musicStyle)
-        if ($.isSet(orderInfo.musicStyle)){
+        if (loadOrder && $.isSet(orderInfo.musicStyle)){
             musicStyle.find('input').val(orderInfo.musicStyle)
         }
         MapTools.clearAllMarkers()
@@ -737,6 +737,9 @@ var showOrderPage = function(){
                 var or = response.originalPrice,
                     dis = response.priceWithDiscount,
                     plus = 0
+                if (!$.isSet(dis) || isNaN(dis)){
+                    dis = or
+                }
                 if ($.isSet(response.penaltyPrice)) {
                     plus += response.penaltyPrice;
                 }
