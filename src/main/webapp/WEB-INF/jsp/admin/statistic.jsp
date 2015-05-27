@@ -86,27 +86,42 @@
 </div>
 <div id="report_5" class="container">
     <h2>New orders per period</h2>
+
     <div class="alert alert-danger inform hide"></div>
     <table class="table">
         <thead>
-        <td>
-            <form action="statistic/exportNewOrders">
-                Pick start date<input type="text" id="datepicker1" name="startDate">
-        </td>
-        <td>
-            Pick end date<input type="text" id="datepicker" name="endDate">
-        </td>
-        <td>
-            <input type="submit" value="Export to Excel" class="btn btn-primary" id="btn_export">
-            </form>
-        </td>
+        <tr>
+            <td>Start date</td>
+            <td>End date</td>
+            <td>Manage</td>
+            <td></td>
+        </tr>
+        </thead>
+        <tbody>
+        <form action="statistic/exportNewOrders">
+            <td>
 
+                <span class="glyphicon glyphicon glyphicon-calendar"></span> <input type="text" id="datepicker1"
+                                                                                    name="startDate"
+                                                                                    aria-describedby="basic_addon1">
+
+            </td>
+            <td>
+                <span class="glyphicon glyphicon glyphicon-calendar"></span> <input type="text" id="datepicker"
+                                                                                    name="endDate">
+            </td>
+            <td>
+                <input type="submit" value="Export to Excel" class="btn btn-primary" id="btn_export"
+                       aria-describedby="basic_addon2">
+
+            </td>
+        </form>
         <td>
             <button id="generate" class="btn btn-primary" type="submit">Generate report</button>
         </td>
         <td>
         </td>
-        </thead>
+        </tbody>
     </table>
 
 
