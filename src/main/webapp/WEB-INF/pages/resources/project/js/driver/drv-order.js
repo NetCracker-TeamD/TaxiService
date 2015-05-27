@@ -466,16 +466,20 @@ function changeStatus(status) {
                 $(".start").addClass("disabled");
                 $('#paintWay').addClass("disabled");
                 if (response.orderStatus == 'complete') {
-                    BootstrapDialog.show({
-                        type: BootstrapDialog.TYPE_SUCCESS,
-                        message: "Total services price : "+response.totalPrice
-                    });
+                    //BootstrapDialog.show({
+                    //    type: BootstrapDialog.TYPE_SUCCESS,
+                    //    message: "Total services price : "+response.totalPrice
+                    //});
+                    $('#finishOrder').text("Total services price : "+response.totalPrice);
+                    $('#resultWindow').modal('show');
 
                 } else if (response.orderStatus == 'refused') {
-                    BootstrapDialog.show({
-                        type: BootstrapDialog.TYPE_WARNING,
-                        message: "Order was refuse"
-                    });
+                    //BootstrapDialog.show({
+                    //    type: BootstrapDialog.TYPE_WARNING,
+                    //    message: "Order was refuse"
+                    //});
+                    $('#finishOrder').text("Order was refuse");
+                    $('#resultWindow').modal('show');
                 }
             }
         },

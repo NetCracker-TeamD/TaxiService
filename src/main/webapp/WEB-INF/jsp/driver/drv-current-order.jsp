@@ -131,10 +131,9 @@
                                             <div>
                                                 <input type="text" style="margin-top: 5px" class="form-control"
                                                        value="${route.sourceAddress}" name="source" readonly>
-                                                <c:if test="{route.order.serviceType.destinationRequired}">
-                                                    <input type="text" style="margin-top: 5px" class="form-control"
-                                                           value="${route.destinationAddress}" name="dest" readonly>
-                                                </c:if>
+                                                <input type="text" style="margin-top: 5px" class="form-control"
+                                                       value="${route.destinationAddress}" name="dest" readonly>
+
                                             </div>
                                             <div style="padding-top: 5px; padding-bottom: 10px;">
                                                 <c:choose>
@@ -203,21 +202,6 @@
                         <a class="btn btn-warning" href="queue" id="finish">
                             <i class="glyphicon glyphicon-list"> To queue</i></a>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="errorNewRoute" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog modal-lg panel-warning" style="width: 500px;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-                    <h4 class="modal-title" id="errorLabel">Error</h4>
-                </div>
-                <div class="modal-body">
-                    <p id="errorMessage"><p>
                 </div>
             </div>
         </div>
