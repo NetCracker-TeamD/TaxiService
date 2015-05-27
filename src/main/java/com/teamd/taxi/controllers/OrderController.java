@@ -270,6 +270,11 @@ public class OrderController {
         } else {
             form.setCarsAmount(Arrays.asList(1));
         }
+        //стиль музыки
+        JsonElement musicElement = orderObject.get("musciStyle");
+        if (musicElement != null) {
+            form.setMusicStyle(musicElement.getAsString());
+        }
         //пол водителя
         JsonPrimitive driverSexPrimitive = (JsonPrimitive) getAndCheck(orderObject, "driver_sex");
         form.setDriverSex(driverSexPrimitive.getAsString().toUpperCase());
@@ -396,10 +401,6 @@ public class OrderController {
     }
 
     private void checkAccess(TaxiOrder order, String secretKey, boolean allowAdmin) throws SecretKeyMismatchException {
-        //TODO: убрать это
-        if (true) {
-            return;
-        }
         User customer = order.getCustomer();
         AccessDeniedException accessDeniedException = new AccessDeniedException("not enough rights on[" + order.getId() + "]");
         //заказчик - зарегистрированный пользовательы
@@ -647,6 +648,7 @@ public class OrderController {
         if (driverSex != null) {
             orderObject.addProperty("driverSex", driverSex.name());
         }
+        orderObject.addProperty("musicStyle", order.getMusicStyle());
         orderObject.addProperty("paymentType", order.getPaymentType().name());
         JsonArray features = new JsonArray();
         for (Feature feature : order.getFeatures()) {

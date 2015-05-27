@@ -23,6 +23,16 @@ public class TaxiOrderForm {
     private Calendar execDate;
     private PaymentType paymentType;
 
+    private String musicStyle;
+
+    public String getMusicStyle() {
+        return musicStyle;
+    }
+
+    public void setMusicStyle(String musicStyle) {
+        this.musicStyle = musicStyle;
+    }
+
     public Calendar getExecDate() {
         return execDate;
     }

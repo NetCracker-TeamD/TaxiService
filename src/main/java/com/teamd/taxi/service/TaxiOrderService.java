@@ -93,6 +93,11 @@ public class TaxiOrderService {
             //или указан неверно
             throw new NotCompatibleException();
         }
+        //стиль музыки
+        String musicStyle = form.getMusicStyle();
+        if (musicStyle != null) {
+            order.setMusicStyle(musicStyle);
+        }
         //проверка совместимости фич и сервиса
         List<Feature> orderFeatureList = form.getFeatures();
         if (orderFeatureList != null) {

@@ -245,7 +245,6 @@ public class PriceCountService {
             Info penalty = infoRepository.findOne(REFUSED_ORDER_PENALTY);
             if (penalty != null) {
                 //делим штраф поровну на все маршруты
-                //TODO: замінить на count?
                 price += blackListItem.getMultiplier()
                         * Double.parseDouble(penalty.getValue()) / order.getRoutes().size();
             }
