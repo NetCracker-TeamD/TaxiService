@@ -210,8 +210,9 @@ $(document).ready(function() {
                 form : container.find('#'+formId),
                 button : btn,
                 validator : function(){
-                    orderForm.validator('validate');
-                    return !(container.find('#'+formId).validator('validate').has('.has-error').length>0)
+                    var from = container.find('#'+formId)
+                    from.validator('validate');
+                    return !(from.has('.has-error').length>0)
                 },
                 success : function(response){
                     //contact info saved

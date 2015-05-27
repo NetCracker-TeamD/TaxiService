@@ -20,7 +20,7 @@ var getOrderPage = function (orderInfo, isUserLogged) {
                 <div class="clearfix"></div>\
                 <div class="row text-center">\
                     <div class="col-sm-6 center">\
-                        <h4 data-type="price-holder">The approximate cost of the trip is : <span data-type="price-value"></span>$</h4>\
+                        <h4 data-type="price-holder">The approximate cost of the trip is : <span data-type="price-value"></span></h4>\
                         <div data-type="button-holder">\
                         </div>\
                     </div>\
@@ -316,7 +316,7 @@ var showOrderPage = function(){
             FL = fav_locations
         holder.html("")
         //add contacts
-        if (!isUserLogged){
+        if (!isUserLogged && !loadOrder){
             holder.append(Templates.getContacts())
         }
         //console.log(SD)
@@ -706,26 +706,57 @@ var showOrderPage = function(){
     //fill page
     page.html('')
     page.append(container)
-
+    var prevCalcPriceCall = 0,
+        isCalculating = false;
     var calcPrice = function(){
+        var curentTime =  new Date().getTime()
+        if (isCalculating) {
+            if (curentTime-prevCalcPriceCall<50) {
+                return;
+            }
+            setTimeout(calcPrice, 50)
+        }
+        prevCalcPriceCall = curentTime;
+        isCalculating = true;
         var data = JSON.stringify(orderForm.serializeObject())
         console.log(data)
+        var priceHolder = container.find('[data-type="price-holder"]'),
+            priceValue = priceHolder.find('[data-type="price-value"]')
         $.ajax({
             url : '/countPrice',
             method : 'POST',
             data : data,
             contentType : "application/json; charset=utf-8",
             success : function(response){
+                isCalculating = false;
                 console.log('success')
                 console.log(response)
+                var or = response.originalPrice,
+                    dis = response.priceWithDiscount,
+                    plus = 0
+                if ($.isSet(response.penaltyPrice)) {
+                    plus += response.penaltyPrice;
+                }
+                if ($.isSet(response.featurePrice)) {
+                    plus += response.featurePrice;
+                }
+                or = (or+plus).toFixed(2)
+                dis = (dis+plus).toFixed(2)
+                if (!isNaN(or)) {
+                    priceValue.html(or + " uah." + ((or != dis) ? " With discount : " + dis + " uah." : ""))
+                    priceHolder.show()
+                } else {
+                    priceValue.html("Can`t calculate approximate price")
+                    priceHolder.show()
+                }
             },
             error : function(response){
-                console.log('error')
-                console.log(response)
+                isCalculating = false;
+                priceValue.html("Can`t calculate approximate price")
+                priceHolder.show()
             }
         })
-        //priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
-        //priceHolder.show()
+
     }
 
     if (!loadOrder || (loadOrder && order.status=="updating")) {
@@ -841,12 +872,12 @@ var showOrderPage = function(){
     })
 
     MapTools.addListener("onDistanceChanged", function(status, newDistance, markerIds){
-        var priceHolder = container.find('[data-type="price-holder"]'),
-            priceValue = priceHolder.find('[data-type="price-value"]')
+        //var priceHolder = container.find('[data-type="price-holder"]'),
+        //    priceValue = priceHolder.find('[data-type="price-value"]')
         //console.log(newDistance)
         //priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
         //priceHolder.show()
-        calcPrice();
+        //calcPrice();
         if (status == "error"){
             for (var i = 1; i <markerIds.length; i++) {
                 var
@@ -904,7 +935,9 @@ var showOrderPage = function(){
             Templates.lockAllControls(orderDetails)
         }
     }
-
+    orderDetails.bind('change', function(){
+        calcPrice();
+    })
     serviceTypes.trigger("change")
     $("#orderForm").validator()
     updateLocationsLists()

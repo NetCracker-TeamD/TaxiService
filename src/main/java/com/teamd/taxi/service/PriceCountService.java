@@ -356,8 +356,10 @@ public class PriceCountService {
         //цена за фичи
         List<Feature> features = order.getFeatures();
         float featurePrice = 0;
-        for (Feature feature : features) {
-            featurePrice += feature.getPrice();
+        if (features != null) {
+            for (Feature feature : features) {
+                featurePrice += feature.getPrice();
+            }
         }
         featurePrice *= routes.size();
         price.setFeaturePrice(featurePrice);
