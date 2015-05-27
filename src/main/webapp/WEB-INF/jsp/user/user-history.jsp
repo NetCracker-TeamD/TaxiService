@@ -35,7 +35,7 @@
         };
     </script>
     <script id="orderItemTemplate" type="text/x-jsrender">
-        <tr>
+        <tr class="clickable-row" data-href="/order/{{:order.id}}">
             <td>{{:order.id}}</td>
             <td>{{:order.registrationDate}}</td>
             <td>{{:order.executionDate}}</td>
@@ -46,11 +46,12 @@
             <td><button type="button" class="btn {{:~getButtonClass(status)}}">{{:~normalize(status)}}</button></td>
         </tr>
 
-
-
-
-
     </script>
+    <style>
+        .clickable-row:hover {
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
