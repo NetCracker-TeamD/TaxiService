@@ -145,17 +145,22 @@ function modAutocompleteAddressInput(input, callback) {
     })
 };
 
-function getLocation() {
+var currentLocation;
+
+function getLocation(callback) {
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(codeLatLng);
+        navigator.geolocation.getCurrentPosition(function(response){
+            codeLatLng(response, callback);
+        });
     } else {
         alert("Geolocation is not supported by this browser.");
     }
 }
 
-var infowindowGeo = new google.maps.InfoWindow();
+
+var infowindowGeo;
 var markerGeo;
-function codeLatLng(location) {
+function codeLatLng(location, callback) {
     var lat = location.coords.latitude;
     var lng = location.coords.longitude;
     var latlng = new google.maps.LatLng(lat, lng);
@@ -167,17 +172,22 @@ function codeLatLng(location) {
                 console.log(latlng);
                 markerGeo = new google.maps.Marker({
                     position: latlng,
-                    map: map
+                    map: map,
+                    draggable: true,
+                    animation: google.maps.Animation.DROP
                 });
-                infowindowGeo.setContent(results[0].formatted_address);
-                $('#currentLocation').val(results[0].formatted_address);
+                //infowindowGeo.setContent(results[0].formatted_address);
+                callback(results[0].formatted_address);
+                //$('#currentLocation').val(results[0].formatted_address);
                 console.log(results[0].formatted_address);
-                infowindowGeo.open(map, markerGeo);
+                //infowindowGeo.open(map, markerGeo);
             } else {
                 alert('No results found');
+                callback(null);
             }
         } else {
             alert('Geocoder failed due to: ' + status);
+            callback(null);
         }
     });
 };
@@ -186,12 +196,11 @@ function calcRoute(routesArray) {
     wayp = [];
     var start = routesArray[0];
     var end = routesArray[routesArray.length - 1];
-    console.log(start+" first");
-    for (var i = 1; i < routesArray.length-1; i++) {
+    console.log(start + " first");
+    for (var i = 1; i < routesArray.length - 1; i++) {
         wayp.push({location: routesArray[i], stopover: true});
         console.log(routesArray[i]);
     }
-    console.log(end +" last");
     var request = {
         origin: start,
         destination: end,
@@ -199,9 +208,12 @@ function calcRoute(routesArray) {
         optimizeWaypoints: false,
         travelMode: google.maps.TravelMode.DRIVING
     };
+    //console.log(request)
     directionsService.route(request, function (response, status) {
+        console.log(status)
+        console.log(response)
         if (status == google.maps.DirectionsStatus.OK) {
-            console.log(response)
+
             directionsDisplay.setDirections(response);
             var route = response.routes[0];
         }
@@ -290,12 +302,35 @@ $(document).ready(function () {
     });
 
     $("#curLoc").click(function () {
-        getLocation();
+        getLocation(function(location){
+            $('#currentLocation').val(location);
+        });
     });
-    $('#paintWay').click(function () {
+
+    var printWay = function () {
         routesArray = [];
         loadAddress(function (routesArray) {
+            console.log("routeArray " + routesArray);
             calcRoute(routesArray);
+        });
+    }
+
+    $('#paintWay').click(function () {
+        getLocation(function(location){
+            console.log(location)
+            $('#currentLocation').val(location);
+            routesArray = [];
+            addresses = [];
+            console.log('paintWay');
+            loadAddress(function (routesArray) {
+                addresses[0] = location;
+                console.log(addresses[0]);
+                for (i = 0; i < routesArray.length; i++) {
+                    addresses[i + 1] = routesArray[i];
+                }
+                console.log(addresses);
+                calcRoute(addresses);
+            });
         });
     });
 
@@ -322,6 +357,7 @@ $(document).ready(function () {
 
         var status = 'complete';
         changeStatus(status);
+
     });
     $('#refuseBtn').click(function () {
         $(this).addClass("disabled");
@@ -335,46 +371,42 @@ $(document).ready(function () {
     var routeBtn = $('#newRouteBtn');
 
     routeBtn.click(function () {
-        //routeBtn.addClass("disabled"); TODO block button and field for server response
-        var dest = $('#newAddress').val();
+        routeBtn.addClass('disabled');
+        var destination = $('#newAddress').val();
         $("#newAddress").val("");
+        $.ajax({
+            method: "get",
+            data: {destination: destination},
+            url: "/driver/setNewRoute",
+            success: function (response) {
+                if (response.status == 'ok') {
+                    $('#newRoute').before($('<div ><input type="text" style ="margin-top: 5px" ' +
+                    'class="form-control"  value="' + response.source + '" name="source" readonly>' +
+                    '<input type="text" style ="margin-top: 5px" class="form-control" ' +
+                    'value="' + response.destination + '" name="dest" readonly>' +
+                    '</div>' +
+                    '<div style="padding-top: 5px; padding-bottom: 10px;">' +
+                    '<span id="' + response.id + '" class="label label-info glyphicon glyphicon-list findForRefuse">' +
+                    response.routeStatus + '</span></div>'));
 
-        loadAddress(function (dots) {
-            if (dots != null) {
-                var data = {
-                        source: dots[dots.length - 1],
-                        destination: dest
-                    }
-                console.log(data)
-                $.ajax({
-                    method: "get",
-                    data: data,
-                    url: "/driver/setNewRoute",
-                    success: function (response) {
-                        if (response.status == 'ok') {
-                            $('#newRoute').before($('<div ><input type="text" style ="margin-top: 5px" ' +
-                            'class="form-control"  value="' + response.source + '" name="source" readonly>' +
-                            '<input type="text" style ="margin-top: 5px" class="form-control" ' +
-                            'value="' + response.destination + '" name="dest" readonly>' +
-                            '</div>' +
-                            '<div style="padding-top: 5px; padding-bottom: 10px;">' +
-                            '<span id="' + response.id + '" class="label label-info glyphicon glyphicon-list findForRefuse">' +
-                            response.routeStatus + '</span></div>'));
-                        } else {
-                            //alert("Set New Route : " + response.status);
-                        }
-                    },
-                    error: function (e) {
-                        alert('Error: NewRoute ' + e);
-                    }
-                });
-            } else {
-                //alert('Error: dots null');
+                    printWay();
+                } else if (response.status == 'fail') {
+                    BootstrapDialog.show({
+                        type: BootstrapDialog.TYPE_DANGER,
+                        message: response.errorMessage
+                    });
+                }
+                routeBtn.removeClass('disabled')
+            },
+            error: function (e) {
+                //alert('Error: NewRoute ' + e);
             }
         });
     });
 
+    printWay();
 });
+
 function loadAddress(callback) {
     var dots = [];
     $.ajax({
@@ -386,11 +418,10 @@ function loadAddress(callback) {
             $.each(response, function (index, value) {
                 dots.push(value);
             });
-            //alert(dots[dots.length - 1]);
             callback(dots);
         },
         error: function (e) {
-            alert('Error: ' + e);
+            //alert('Error111: ' + e);
             callback(null);
         }
     });
@@ -426,9 +457,7 @@ function changeStatus(status) {
                     .addClass("glyphicon glyphicon-remove")
                     .html(" " + response.status);
             }
-
             $("#" + response.id).html(" " + response.status);
-
             if (response.orderStatus != 'continue') {
                 $(".completeBtn").addClass('disabled');
                 $("#refuseBtn").addClass("hidden");
@@ -437,17 +466,21 @@ function changeStatus(status) {
                 $(".start").addClass("disabled");
                 $('#paintWay').addClass("disabled");
                 if (response.orderStatus == 'complete') {
-                    $('.resultMessage').text("Total services price : " + response.totalPrice);
-                    $('#resultWindow').modal('show');
+                    BootstrapDialog.show({
+                        type: BootstrapDialog.TYPE_SUCCESS,
+                        message: "Total services price : "+response.totalPrice
+                    });
+
                 } else if (response.orderStatus == 'refused') {
-                    $('.resultMessage').text("Order was refuse ");
-                    $('#resultWindow').modal('show');
+                    BootstrapDialog.show({
+                        type: BootstrapDialog.TYPE_WARNING,
+                        message: "Order was refuse"
+                    });
                 }
             }
-
         },
         error: function (e) {
-            alert('Error: ' + e);
+            //alert('Error: ' + e);
         }
     });
 }

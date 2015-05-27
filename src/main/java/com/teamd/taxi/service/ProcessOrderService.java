@@ -159,7 +159,6 @@ public class ProcessOrderService {
                 System.out.println("Driver : "+r.getDriver().getId()+
                         " Route status : "+r.getStatus()+
                         " Route price : "+r.getTotalPrice());
-
                 routeService.saveRoute(r);
             }
         } else {
@@ -175,7 +174,7 @@ public class ProcessOrderService {
     }
 
     @Transactional
-    public Route newRoute(String source, String dest, int driverId) throws NotFoundException, MapServiceNotAvailableException, TaxiOrderNotExist, NewRouteNotSupportForOrderException {
+    public Route newRoute(String dest, int driverId) throws NotFoundException, MapServiceNotAvailableException, TaxiOrderNotExist, NewRouteNotSupportForOrderException {
 
         TaxiOrder taxiOrder;
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driverId)) != null) {
@@ -185,6 +184,8 @@ public class ProcessOrderService {
                 List<AssembledRoute> assembledRoutes = assembledOrder.getAssembledRoutes();
                 if (assembledRoutes.get(0).getRoutes().size() == 1){
                     Float distance;
+                    List<Route> routes = getChainForDriver(taxiOrder, driverId);
+                    String source = routes.get(routes.size()-1).getDestinationAddress();
                     if ((distance = mapService.calculateDistanceInKilometers(source, dest)) != null) {
                         int routePosition = assembledOrder.getAssembledRoutes().size() + 1;
                         Route route = new Route();
@@ -198,7 +199,6 @@ public class ProcessOrderService {
                         route.setDistance(distance);
                         route.setChainPosition(routePosition);
                         routeService.saveRoute(route);
-
                         return route;
                     }else{
                         return null;
@@ -232,16 +232,14 @@ public class ProcessOrderService {
     public String[] loadAddress(TaxiOrder taxiOrder, int driverId) {
 
         List<Route> routes = getChainForDriver(taxiOrder, driverId);
-        System.out.println("ROUTES "+routes);
         for (Iterator<Route> it = routes.iterator(); it.hasNext(); ) {
             Route route = it.next();
             if ((route.getStatus() == RouteStatus.COMPLETED) || (route.getStatus() == RouteStatus.REFUSED)) {
                 it.remove();
             }
         }
-        System.out.println("ROUTES "+routes);
+        System.out.println("SIZE = "+routes.size());
         String[] addresses;
-
         if (taxiOrder.getServiceType().isDestinationRequired()){
             addresses = new String[routes.size() + 1];
             addresses[0] = routes.get(0).getSourceAddress();
@@ -251,6 +249,9 @@ public class ProcessOrderService {
         }else{
             addresses = new String[1];
             addresses[0] = routes.get(0).getSourceAddress();
+        }
+        for ( int i = 0; i < addresses.length; i ++){
+            System.out.println("ADDRESS  "+addresses[i]);
         }
         return addresses;
     }

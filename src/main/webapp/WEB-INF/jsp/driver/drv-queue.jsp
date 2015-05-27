@@ -104,7 +104,13 @@
         <h2 style="color: rgb(19, 23, 95);">Queue</h2>
     </div>
 </div>
+
 <div class="container">
+    <c:if test="${activeOrder}">
+        <div class="alert alert-warning alert-dismissible" id="haveActiveOrder" style="margin: 0px;" role="alert">
+            <h4><strong>Warning!</strong> You already have active order.</h4>
+        </div>
+    </c:if>
     <div class="jumbotron">
         <div class="row">
             <div class="panel col-md-8" style="padding: 0px;background-color: transparent;">
