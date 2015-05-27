@@ -1,3 +1,5 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -11,8 +13,16 @@
     <title>Taxi-Service</title>
 </head>
 <body>
-
-<%@ include file="../pages/admin/admin-header.html" %>
+<sec:authorize access="hasRole('ROLE_ADMINISTRATOR')">
+    <%@ include file="admin/header.jsp" %>
+</sec:authorize>
+<sec:authorize access="hasRole('ROLE_DRIVER')">
+    <%@include file="driver/drv-header.jsp"%>
+</sec:authorize>
+<sec:authorize access="hasRole('ROLE_CUSTOMER')">
+    <!--TODO nav header customer-->
+</sec:authorize>
+<!--TODO nav header anonymous-->
 <style>
     #center {
         position:fixed;
