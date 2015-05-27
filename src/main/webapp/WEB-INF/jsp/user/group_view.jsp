@@ -19,46 +19,16 @@
     <script src="/pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="/pages/resources/jquery/jquery-ui.js"></script>
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="/pages/user/css/menu.css">
 </head>
 <body>
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">Smart Taxi</a>
-        </div>
-
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li><a href="#">Home</a></li>
-                <li><a href="#">Queue</a></li>
-                <li><a href="#">History</a></li>
-                <li><a href="group" class="active">Statistic</a></li>
-            </ul>
-            <div class="navbar-form navbar-right">
-                <div class="form-group">
-                    <button type="button" class="btn btn-primary">Log out</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</nav>
-
-<div class="jumbotron welcome" style="height:150px;">
-    <div class="container" style="height:150px;">
-        <h1 style="color:yellow; text-align:right;">Groups</h1>
-    </div>
-</div>
+<%@ include file="header.jsp" %>
 
 
 <div class="container">
+
     <div class="jumbotron">
+        <h2 class="text-center" >Statistic</h2>
         <div class="panel panel-default">
             <div class="panel-body">
                 <div class="row">
@@ -76,24 +46,23 @@
                                         <form action="/user/statistic">
                                             <c:forEach items="${groups}" var="group" varStatus="i">
                                             <tr>
-                                                <td><input type="radio" name="group" checked value="${group.groupId}">
+                                                <td><input type="radio" name="group" checked
+                                                           value="${group.groupId}">
                                                 </td>
                                                 <td>${group.name}</td>
                                                 <td><fmt:formatNumber
-                                                        value="${(1-group.discount)*100}"
+                                                        value="${(group.discount)*100}"
                                                         maxFractionDigits="0"/>
                                                 </td>
                                             </tr>
                                             </c:forEach>
                                         </tbody>
                                     </table>
-                                    <input type="submit" value="Apply" class="btn btn-default">
+                                    <input type="submit" value="Apply" class="btn btn-default text-center">
                                     </form>
                                 </c:when>
                                 <c:otherwise><h2 align="center">You don't belong to any group</h2></c:otherwise>
                             </c:choose>
-
-
                         </div>
                     </div>
                 </div>

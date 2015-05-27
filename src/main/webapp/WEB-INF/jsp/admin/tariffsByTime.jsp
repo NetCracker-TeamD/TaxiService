@@ -24,16 +24,21 @@
     <script type="text/javascript" src="/pages/user/frameworks/js/bootstrap-datetimepicker.min.js"></script>
     <script type="text/javascript" src="/pages/user/frameworks/js/bootstrap-dialog.min.js"></script>
     <script type="text/javascript" src="/pages/user/frameworks/js/jquery-validate.bootstrap-tooltip.min.js"></script>
-    <script src="../../pages/resources/project/js/admin/tariffByTime.js"></script>
+    <script src="/pages/resources/jquery/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/pages/resources/jquery/css/jquery-ui.css">
 
+
+    <script src="../../pages/resources/project/js/admin/tariffByTime.js"></script>
 </head>
 
 <body>
 
 <%@ include file="../../jsp/admin/header.jsp" %>
 
+
 <div class="container" id="main_container">
     <h2 class="sm-hr">Tariffs by time</h2>
+
 
     <div class="sm-hr">
         <button type="button" class="btn btn-success btn-sm btn_create" data-toggle="createModel">
@@ -47,60 +52,46 @@
                         <h4 class="modal-title">${tariff.tariffType}</h4>
                     </div>
                     <div class="modal-body">
-
                         <form>
                             <div class="well carousel-search hidden-sm">
-                                <div class="btn-group" id="tariffType">
-                                    <select id="pick_tariff_type">
+                                <div class="alert alert-danger inform hide"></div>
+                                <div class="form-group">
+                                    <label for="pick_tariff_type" class="control-label">Tariff type</label>
+                                    <select class="form-control" id="pick_tariff_type">
                                         <option value="DAY_OF_YEAR">Daily tariff</option>
                                         <option value="DAY_OF_WEEK">Weekly tariff</option>
                                         <option value="TIME_OF_DAY">Tariff by time</option>
                                     </select>
                                 </div>
-                                <br><br>
+                                <div class="form-group">
+                                    <label for="start" class="control-label">Start of period </label>
+                                    <br>
+                                    <input type="text" id="start" name="startDate" class="form-control"/>
+                                    <input type="time" id="start_time" name="startTime" class="form-control"/>
+                                    <select class="form-control" id="pick_day_start">
+                                        <option value="SUNDAY">Sunday</option>
+                                        <option value="MONDAY">Monday</option>
+                                        <option value="TUESDAY">Tuesday</option>
+                                        <option value="WEDNESDAY">Wednesday</option>
+                                        <option value="THURSDAY">Thursday</option>
+                                        <option value="FRIDAY">Friday</option>
+                                        <option value="SATURDAY">Saturday</option>
+                                    </select>
+                                    <br>
+                                    <label for="end" class="control-label">End of period </label>
+                                    <br>
+                                    <input type="text" id="end" name="endDate" class="form-control"/>
+                                    <input type="time" id="end_time" name="startTime" class="form-control"/>
+                                    <select class="form-control" id="pick_day_end">
+                                        <option value="SUNDAY">Sunday</option>
+                                        <option value="MONDAY">Monday</option>
+                                        <option value="TUESDAY">Tuesday</option>
+                                        <option value="WEDNESDAY">Wednesday</option>
+                                        <option value="THURSDAY">Thursday</option>
+                                        <option value="FRIDAY">Friday</option>
+                                        <option value="SATURDAY">Saturday</option>
+                                    </select>
 
-                                <div class="btn-group input-daterange form-group">
-                                    <div class="col-lg-5" style="padding-left: 0px">
-                                        <label for="newStart" class="control-label">Start of period </label>
-
-                                        <div class="container">
-                                            <div class="row">
-                                                <div class='col-sm-5'>
-                                                    <div class="form-group">
-                                                        <div class='input-group date' id='newStart'>
-                                                            <input type='text' class="form-control" id="from_create"/>
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <script>
-
-                                    </script>
-                                    <br><br><br><br>
-
-                                    <div class="col-lg-5" style="padding-left: 0px">
-                                        <label for="newEnd" class="control-label">End of period </label>
-
-                                        <div class="container">
-                                            <div class="row">
-                                                <div class='col-sm-5'>
-                                                    <div class="form-group">
-                                                        <div class='input-group date' id='newEnd'>
-                                                            <input type='text' class="form-control" id="to_create"/>
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="price_coef_create" class="control-label">Price coefficient</label>
@@ -131,7 +122,7 @@
             </tr>
             </thead>
             <tbody>
-            <c:forEach var="tariff" items="${tariffs}">
+            <c:forEach var="tariff" items="${tariffs.content}">
                 <tr>
                     <td>
                             ${tariff.id}
@@ -192,69 +183,6 @@
                                     <div class="modal-body">
                                         <form>
                                             <div class="well carousel-search hidden-sm">
-                                                <div class="btn-group" id="tariffTypeEdit">
-                                                    <a class="btn btn-default dropdown-toggle btn-select"
-                                                       data-toggle="dropdown" id="tariff_type_update">
-                                                            ${tariff.tariffType} <span class="caret"></span>
-                                                    </a>
-                                                    <ul class="dropdown-menu"> 
-                                                        <li><a>Daily tariff</a></li>
-                                                        <li><a>Weekly tariff</a></li>
-                                                        <li><a>The tariff by time</a></li>
-                                                    </ul>
-                                                     
-                                                </div>
-                                                <br>
-
-                                                <div class="btn-group input-daterange form-group">
-                                                    <div class="col-lg-5" style="padding-left: 0px">
-                                                        <label for="updateStart"
-                                                               class="control-label">Start of period </label>
-
-                                                        <div class="container">
-                                                            <div class="row">
-                                                                <div class='col-sm-5 style="padding-left: 0px'>
-                                                                    <div class="form-group">
-                                                                        <div class='input-group date' id='updateStart'>
-                                                                            <input type='text' class="form-control"
-                                                                                   value="${tariff.from.time}"
-                                                                                   id="from_date_update"
-                                                                                   name="startDate"/>
-                                                                             <span class="input-group-addon">
-                                                                                     <span class="glyphicon glyphicon-calendar"></span>
-                                                                             </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <br><br><br><br>
-
-                                                    <div class="col-lg-5" style="padding-left: 0px">
-                                                        <label for="updateEnd" class="control-label">End of
-                                                            period </label>
-
-                                                        <div class="container">
-                                                            <div class="row">
-                                                                <div class='col-sm-5'>
-                                                                    <div class="form-group">
-                                                                        <div class='input-group date' id='updateEnd'>
-                                                                            <input type='text' class="form-control"
-                                                                                   value="${tariff.to.time}"
-                                                                                   name="endDate"
-                                                                                   id="to_date_update"/>
-                                                                            <span class="input-group-addon">
-                                                                                    <span class="glyphicon glyphicon-calendar"></span>
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
                                                 <div class="form-group">
                                                     <label for="price_coef_update" class="control-label">Price
                                                         coefficient</label>
@@ -266,11 +194,16 @@
                                         </form>
                                     </div>
                                     <div class="modal-footer">
-                                        <input type="hidden" name="tariff_id" value="${tariff.id}">
+                                        <input type="hidden" name="tariff_type" id="tariff_update"
+                                               value="${tariff.tariffType}">
+                                        <input type="hidden" name="tariff_id" id="id_update" value="${tariff.id}">
+                                        <input type="hidden" name="tariff_from" id="from_update"
+                                               value="${tariff.from.time}">
+                                        <input type="hidden" name="tariff_to" id="to_update" value="${tariff.to.time}">
                                         <button class="btn btn-default" type="button" data-dismiss="modal">Close
                                         </button>
-                                        <button class="btn btn-primary update_rec" data-dismiss="modal" type="button">
-                                            Remove
+                                        <button class="btn btn-primary save_update" data-dismiss="modal" type="button">
+                                            Save
                                         </button>
                                     </div>
                                 </div>
@@ -279,14 +212,14 @@
                         <a role="button"
                            class="btn btn-default btn_remove" data-toggle="removeModal"><span
                                 class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+
                         <div class="modal fade removeModal" itabindex="-1" role="dialog">
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-body">
-                                        <div class="well carousel-search hidden-sm">
-                                                <h3 align="center">Are you sure?</h3>
 
-                                        </div>
+                                            <h3 class="text-center">Are you sure?</h3>
+
                                     </div>
                                     <div class="modal-footer">
                                         <input type="hidden" name="tariff_type" value="${tariff.tariffType}">
@@ -311,18 +244,10 @@
         <!--Pagination start-->
         <nav align="center">
             <ul class="pagination">
-                <c:forEach begin="1" end="${pages}" var="i">
-                    <c:choose>
-                        <c:when test="${(param.page==null)&&(i==1)}">
-                            <li class="active"><a href="?page=${i}">${i}</a></li>
-                        </c:when>
-                        <c:when test="${param.page==i}">
-                            <li class="active"><a href="?page=${i}">${i}</a></li>
-                        </c:when>
-                        <c:when test="${param.page!=i}">
-                            <li><a href="?page=${i}">${i}</a></li>
-                        </c:when>
-                    </c:choose>
+                <c:forEach begin="1" end="${tariffs.totalPages}" var="i">
+                    <li ${i == tariffs.number + 1 ? "class=\"active\"" : ""}>
+                        <a href="?page=${i}">${i}</a>
+                    </li>
                 </c:forEach>
             </ul>
         </nav>
@@ -334,7 +259,6 @@
         <p>&#169 TeamD 2015</p>
     </footer>
 </div>
-<script type="application/javascript" src="/pages/resources/project/js/admin/tariffByTime.js"></script>
 </body>
 
 </html>

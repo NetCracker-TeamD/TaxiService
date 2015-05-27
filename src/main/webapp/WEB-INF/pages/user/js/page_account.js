@@ -3,6 +3,32 @@
  */
 
 $(document).ready(function() {
+
+    var updateRoutes = function(status, invoker, place) {
+        var invoker = $(invoker)
+        console.log('updated')
+        var triggerValidation = function () {
+            invoker.parent().validator('validate')
+        }
+
+        var id = invoker.attr("data-number")
+        if (status != 'success') {
+            console.log('bad location')
+            //MapTools.removeMarker(id)
+            invoker.removeAttr('valid')
+            triggerValidation()
+            return;
+        }
+        var location = place.geometry.location,
+            type = invoker.attr('name').split('_')[0]
+        invoker.val(place.formatted_address)
+        console.log(location, type)
+        invoker.attr('valid', '')
+        triggerValidation()
+        //MapTools.addMarker(id, location, type)
+        //MapTools.markersFitWindow()
+    }
+
     var locations = []
     var fav_locations = userAddresses
     for (var i=0;i<fav_locations.length;i++){
@@ -24,19 +50,33 @@ $(document).ready(function() {
     for (var key in fav_locations) {
         var location = fav_locations[key]
         if (!location.isUserLocation) {
-            var addressBlock = getFavAddress(fav_locations, locInputName, false, true, 1),
+            var addressBlock = Templates.getFavAddress(fav_locations, locInputName, false, true, 1),
                 address = addressBlock.find('[data-type="address"]'),
                 name = addressBlock.find('[data-type="address-name"]')
             address.val(location.address)
             name.val(location.name)
             name.attr("data-id", location.id)
+
             addressesContainer.append(addressBlock)
         }
     }
     //console.log(groupAddresses)
+    var addresses = addressesContainer.find('input[data-type="address"]')
+    addresses.each(function (i, input) {
+        MapTools.modAutocompleteAddressInput(input, updateRoutes)
+        //$(input).trigger('change')
+    })
     formAddresses.find('div').append(groupAddresses)
     formAddresses.append($('<button class="btn btn-primary pull-right" data-action="save"\
                 data-form-id="addresses" type="submit">Save</button>'))
+    formAddresses.validator()
+    formContacts = $('#contacts')
+    formContacts.find('[name="firstName"]').val(userInfo.firstName)
+    formContacts.find('[name="lastName"]').val(userInfo.lastName)
+    formContacts.find('[name="phoneNumber"]').val(userInfo.phoneNumber)
+    formContacts.find('[name="phoneNumber"]').mask("(999) 999-9999")
+    formContacts.find('[name="email"]').val(userInfo.email)
+    formContacts.validator()
 
     var favAddressesClick = function(e){
         var target = $(e.target),
@@ -65,8 +105,8 @@ $(document).ready(function() {
                 var container = target.closest('.input-group.fav-address'),
                     input = $(container.find('input')[0]),
                     markerId = input.attr("data-number")
-                MapTools.removeMarker(markerId)
-                MapTools.markersFitWindow()
+                //MapTools.removeMarker(markerId)
+                //MapTools.markersFitWindow()
                 container.remove()
                 return;
             } else if (btn.attr('data-action')=="add"){
@@ -77,7 +117,7 @@ $(document).ready(function() {
                 var holder = $(target.parent()).find('[data-type="address-group"]')
                 //console.log(holder)
                 holder.append(newAddressBlock)
-                MapTools.modAutocompleteAddressInput(input, function(){}/*updateRoutes*/)
+                MapTools.modAutocompleteAddressInput(input, updateRoutes)
                 return;
             }
         }
@@ -169,10 +209,30 @@ $(document).ready(function() {
             Templates.makeNiceSubmitButton({
                 form : container.find('#'+formId),
                 button : btn,
+                validator : function(){
+                    var from = container.find('#'+formId)
+                    from.validator('validate');
+                    return !(from.has('.has-error').length>0)
+                },
                 success : function(response){
                     //contact info saved
+                    console.log(response)
+                    if ($.isSet(response.errors)){
+                        for (var key in response.errors){
+                            var error = response.errors[key],
+                                input = formContacts.find('[name="'+key+'"]')
+                            if (input.length>0){
+                                var holder = input.closest('.form-group').addClass('has-error')
+                                holder.find('.help-block.with-errors')
+                                    .html('<ul class="list-unstyled"><li>'+error+'</li></ul>')
+                            }
+                        }
+                    } else {
+
+                    }
                 },
                 error : function(response){
+                    console.log(response)
                     BootstrapDialog.show({
                         type: BootstrapDialog.TYPE_DANGER,
                         title: "Server error",
@@ -199,14 +259,15 @@ $(document).ready(function() {
     }
 
     MapTools.addListener("onGeolocationAllowed",function(pos){
-        MapTools.getNameForLocation(pos.latitude, pos.longitude, function(address){
-            DataTools.setUserLocation("Your location", address, true)
-            fav_locations.unshift({
-                name : "Your location",
-                address : address,
-                isUserLocation : true
-            })
-            updateLocationsLists()
+        MapTools.getNameForLocation(pos.latitude, pos.longitude, function(status, address){
+            if (status == 'success') {
+                fav_locations.unshift({
+                    name: "Your location",
+                    address: address,
+                    isUserLocation: true
+                })
+                updateLocationsLists()
+            }
         })
     })
     MapTools.init()

@@ -120,7 +120,8 @@ $(document).ready(function () {
             period = "WEEK";
         }
         var parameterName = {
-            "period": period
+            "period": period,
+            "group":groupId
         };
         var recursiveDecoded = decodeURIComponent($.param(parameterName));
         var mapping = "statistic/" + "mostProfitableService?" + recursiveDecoded;
@@ -177,7 +178,12 @@ $(document).ready(function () {
         $("#report_4").hide();
         $("#report_6").hide();
         $("#report_5").hide();
-        $.get("statistic/mostPopularCar", function (data) {
+        var parameterName = {
+            "group":groupId
+        };
+        var recursiveDecoded = decodeURIComponent($.param(parameterName));
+        var mapping = "statistic/" + "mostPopularCar?" + recursiveDecoded;
+        $.get(mapping, function (data) {
             if (data.length != 0) {
                 drawTable(data);
             } else {
@@ -196,7 +202,12 @@ $(document).ready(function () {
         $("#report_6").hide();
         $("#report_5").hide();
         $('ul#my-menu li ul').hide("normal");
-        $.get("statistic/mostPopularAdditionalCarOptionsForEachCustomerUser", function (data) {
+        var parameterName = {
+            "group":groupId
+        };
+        var recursiveDecoded = decodeURIComponent($.param(parameterName));
+        var mapping = "statistic/" + "mostPopularAdditionalCarOptionsForEachCustomerUser?" + recursiveDecoded;
+        $.get(mapping, function (data) {
             if (data.length != 0) {
                 drawTable(data);
             } else {
@@ -215,7 +226,12 @@ $(document).ready(function () {
         $("#report_3").hide();
         $("#report_4").show();
         $("#report_6").hide();
-        $.get("statistic/mostPopularAdditionalCarOptionsOverall", function (data) {
+        var parameterName = {
+            "group":groupId
+        };
+        var recursiveDecoded = decodeURIComponent($.param(parameterName));
+        var mapping = "statistic/" + "mostPopularAdditionalCarOptionsOverall?" + recursiveDecoded;
+        $.get(mapping, function (data) {
             if (data.length != 0) {
                 drawTable(data);
             } else {
@@ -244,7 +260,8 @@ $(document).ready(function () {
             var to = $('#datepicker').datepicker({dateFormat: $.datepicker.ATOM}).val();
             var parameterName = {
                 "startDate": from,
-                "endDate": to
+                "endDate": to,
+                "group":groupId
             };
             var recursiveDecoded = decodeURIComponent($.param(parameterName));
             var mapping = "statistic/" + "newOrdersPerPeriod" + "?" + recursiveDecoded;
@@ -265,7 +282,7 @@ $(document).ready(function () {
             });
 
         } else {
-            alert("Please pick period of time");
+
         }
 
     });
@@ -279,7 +296,13 @@ $(document).ready(function () {
         $("#report_3").hide();
         $("#report_4").hide();
         $("#report_6").show();
-        $.get("statistic/serviceProfitabilityByMonth", function (data) {
+        var parameterName = {
+            "group":groupId
+        };
+        var recursiveDecoded = decodeURIComponent($.param(parameterName));
+        var mapping = "statistic/" + "serviceProfitabilityByMonth?" + recursiveDecoded;
+
+        $.get(mapping, function (data) {
             if (data.length != 0) {
                 drawTable(data);
             } else {

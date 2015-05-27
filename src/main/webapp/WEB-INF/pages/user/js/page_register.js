@@ -7,6 +7,8 @@ $(document).ready(function() {
     var container = $(".container.content"),
         form = container.find("#reg-form"),
         submBtn = container.find('[data-action="reg"]')
+    form.find('[data-type="phone"]').mask("(999) 999-9999")
+    form.validator()
 
     Templates.makeNiceSubmitButton({
         form : form,

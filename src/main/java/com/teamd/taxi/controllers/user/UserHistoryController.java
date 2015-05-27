@@ -19,10 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
-import static org.springframework.data.jpa.domain.Specifications.*;
-
 import org.springframework.data.jpa.domain.Specifications;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -130,7 +126,9 @@ public class UserHistoryController {
         if (toVals != null && toVals.size() > 0) {
             try {
                 long toDate = Long.parseLong(toVals.get(0));
-                specs.add(factory.registrationDateLessThan(getCalendarByTime(toDate)));
+                Calendar toCalendar = getCalendarByTime(toDate);
+                System.out.println("To: " + toCalendar.getTime());
+                specs.add(factory.registrationDateLessThan(toCalendar));
             } catch (NumberFormatException exception) {
             }
         }
@@ -139,7 +137,9 @@ public class UserHistoryController {
         if (fromVals != null && fromVals.size() > 0) {
             try {
                 long fromDate = Long.parseLong(fromVals.get(0));
-                specs.add(factory.registrationDateGreaterThan(getCalendarByTime(fromDate)));
+                Calendar fromCalendar = getCalendarByTime(fromDate);
+                System.out.println("From: " + fromCalendar.getTime());
+                specs.add(factory.registrationDateGreaterThan(fromCalendar));
             } catch (NumberFormatException exception) {
             }
         }
@@ -245,8 +245,7 @@ public class UserHistoryController {
 
     @RequestMapping(value = "/loadHistory", produces = "application/json;charset=UTF-8")
     @ResponseBody
-    //TODO: uncomment
-    //@PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or #userId == principal.id")
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or #userId == principal.id")
     public String loadHistory(Pageable pageable, @RequestParam("userId") long userId, @RequestParam MultiValueMap<String, String> params) {
         return getGson().toJson(
                 loadHistoryByUserId(
@@ -261,7 +260,6 @@ public class UserHistoryController {
                 )
         );
     }
-
 
     private void populateModel(Pageable pageable, long userId, MultiValueMap<String, String> params, Model model) {
         Sort sort = filterSort(pageable.getSort());

@@ -19,7 +19,6 @@ public class UserAccountForm {
 
     @NotBlank
     @Email(regexp = "^(.+)@(.+)$")
-    @UniqueUserEmail
     private String email;
 
     public UserAccountForm() {

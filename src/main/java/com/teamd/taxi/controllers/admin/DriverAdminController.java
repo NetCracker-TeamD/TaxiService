@@ -143,6 +143,7 @@ public class DriverAdminController {
     @RequestMapping(value = "/driver-create", method = RequestMethod.POST)
     @ResponseBody
     public AdminResponseModel<String> addDriver(@Valid CreateDriverModel driverModel, BindingResult bindingResult) {
+        System.out.println(driverModel);
         AdminResponseModel<String> response = new AdminResponseModel<>();
         if (bindingResult.hasErrors()) {
             StringBuilder errors = new StringBuilder();

@@ -59,14 +59,24 @@ public class IndexAndRegistrationController {
         );
     }
 
-    @RequestMapping("/index")
-    public String index(Model model) {
-        AbstractAuthenticationToken auth = (AbstractAuthenticationToken)
-                SecurityContextHolder.getContext().getAuthentication();
-        logger.info("Auth status: " + auth.getPrincipal()
-                + ", " + auth.getCredentials() + ", " + auth.getAuthorities() + ", " + auth.isAuthenticated());
-        //model.addAttribute("user", )
-        return "index";
+    @RequestMapping("/")
+    public String redirect() {
+        if (!Utils.isAuthenticated()) {
+            return "redirect:order";
+        }
+        String redirectUrl = "/error";
+        switch (Utils.getCurrentUserRole()) {
+            case "ROLE_CUSTOMER":
+                redirectUrl = "order";
+                break;
+            case "ROLE_ADMINISTRATOR":
+                redirectUrl = "admin/statistic";
+                break;
+            case "ROLE_DRIVER":
+                redirectUrl = "driver/queue";
+                break;
+        }
+        return "redirect:" + redirectUrl;
     }
 
     @RequestMapping("/about")

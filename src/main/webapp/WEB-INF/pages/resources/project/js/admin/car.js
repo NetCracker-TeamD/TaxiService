@@ -106,6 +106,7 @@ function startEditCar(node) {
     driver.find("select").attr("id", "car_driver_edit_" + countButtonStartEditCar);
     driver.find("select").attr("load", "true");
     driver.find("select").attr("loadByChange", "true");
+    driver.find("select").attr("name", "select_drivers");
     driver.find("select").attr("onchange", "changeDriver(this)");
 
     if (driverId.trim().length == 0 || (driverName.trim().length == 0)) {
@@ -150,8 +151,10 @@ function removeCar(id) {
                 removeButton.prop("disabled", true);
 
                 tr.hover(function deleteHover() {
-                    tr.css({"background-color" : "rgba(0, 169, 138, 0.8)"});
+                    tr.css({"background-color": "rgba(192, 192, 192, 0.8)"});
                 });
+
+                findElementsWithEmptyDropDownAndReloadTheir();
 
             } else {
                 if (response.result == "failure") {
@@ -315,8 +318,8 @@ function setUpdateDataInHiddenBlock(newData, tr) {
 
     var driverElement = tr.find(':nth-child(9)').eq(0);
     var driverName = "";
-    if(newData['driverId'] !== "-1" && newData['driverId'].trim().length !==0){
-        driverName = driverElement.find("option[value='"+newData['driverId']+"']").text();
+    if (newData['driverId'] !== "-1" && newData['driverId'].trim().length !== 0) {
+        driverName = driverElement.find("option[value='" + newData['driverId'] + "']").text();
     }
     var driverHTML = "<a href=''>"+driverName+"</a>";
 
@@ -360,9 +363,13 @@ function updateCar(value) {
     if (newData['enable'] !== oldData['enable']) {
         PostData['enable'] = newData['enable'];
     }
+
+    var isDriverChanged = false;
+
     if (oldData['driverId'].trim().length == 0) oldData['driverId'] = "-1";
     if (oldData['driverId'].trim() !== newData['driverId'].trim()) {
         PostData['driverId'] = newData['driverId'];
+        isDriverChanged = true;
     }
     if (JSON.stringify(newData['features']) !== JSON.stringify(oldData['features'])) {
         PostData['features'] = newData['features'];
@@ -391,10 +398,14 @@ function updateCar(value) {
 
             if (response.result == "success") {
                 trError.hide();
-                $(successModal).attr("reloadPage","false");
+
+                $(successModal).attr("reloadPage", "false");
                 showSuccessUpdateCar(response.content["message"]);
                 setUpdateDataInHiddenBlock(newData, tr);
                 cancelEdit(value);
+                if (isDriverChanged) {
+                    findElementsWithEmptyDropDownAndReloadTheir();
+                }
 
             } else {
                 if (response.result == "failure") {
@@ -418,6 +429,22 @@ function updateCar(value) {
             showError(removeCarModal, "Something went wrong... Try again later");
         }
     });
+}
+
+function findElementsWithEmptyDropDownAndReloadTheir() {
+    var arrayElements = document.getElementsByName("select_drivers");
+    for (var i = 0; i < arrayElements.length; i++) {
+        var selectElement = arrayElements[i];
+
+        $("#" + selectElement.id).attr("loadByChange", true);
+        $("#" + selectElement.id).attr("load", true);
+
+        selectElement.click();
+
+        $("#" + selectElement.id).attr("loadByChange", true);
+        $("#" + selectElement.id).attr("load", true);
+
+    }
 }
 
 function createCar() {
@@ -642,12 +669,10 @@ function generationDrivers(selectElement, defaultOptionString, selectedDriver) {
             stringBuffer = stringBuffer + '<option value="-1">' + defaultOptionString + endTag;
         } else {
             stringBuffer = '<option value="-1">' + defaultOptionString + endTag;
-            //$(selectionElementID).attr("loadByChange", "true");
-            //$(selectionElementID).attr("load", "true");
-            //$(selectionElementID).append(stringBuffer);
-            //return;
+            $(selectionElementID).append(stringBuffer);
+            return;
         }
-    }else {
+    } else {
         for (var i = 0; i < arrayMaps.length; i++) {
             if (stringBuffer == null) {
                 if (selectedDriver.length !== 0) {

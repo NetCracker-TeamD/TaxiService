@@ -13,44 +13,15 @@
     <script src="/pages/resources/bootstrap/js/bootstrap.js"></script>
     <script src="/pages/resources/project/js/user/statistic.js"></script>
     <script src="/pages/resources/jquery/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/pages/user/css/menu.css">
+    <script>
+        var groupId = ${groupId};
+    </script>
     <link rel="stylesheet" href="/pages/resources/jquery/css/jquery-ui.css">
 </head>
 <body>
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">Smart Taxi</a>
-        </div>
 
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li><a href="#">Home</a></li>
-                <li><a href="#">Queue</a></li>
-                <li><a href="#">History</a></li>
-                <li><a href="group" class="active">Statistic</a></li>
-            </ul>
-            <div class="navbar-form navbar-right">
-                <div class="form-group">
-                    <button type="button" class="btn btn-primary">Log out</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</nav>
-
-<div class="jumbotron welcome" style="height:150px;">
-    <div class="container" style="height:150px;">
-        <h1 style="color:yellow; text-align:right;">Statistic</h1>
-    </div>
-</div>
-
+<%@ include file="header.jsp" %>
 
 <div align="center" class="container">
     <ul id="my-menu">
@@ -77,6 +48,7 @@
         <input type="radio" name="period" id="week" value="WEEK" class="checkboxes" checked>Week</input><br>
         <input type="radio" name="period" id="month" value="MONTH" class="checkboxes">Month</input><br>
         <input type="radio" name="period" id="decade" value="DECADE" class="checkboxes">Decade</input>
+        <input type="hidden" name="group" value=${groupId}>
 
     </form>
 </div>
@@ -86,6 +58,7 @@
     <h2>Most popular car</h2>
 
     <form action="statistic/exportMostPopularCar">
+        <input type="hidden" name="group" value=${groupId}>
         <input type="submit" value="Export to Excel" class="btn btn-primary">
     </form>
 </div>
@@ -93,6 +66,7 @@
     <h2>Most popular additional car options for each customer user</h2>
 
     <form action="statistic/exportAdditionalOptionsForUser">
+        <input type="hidden" name="group" value=${groupId}>
         <input type="submit" value="Export to Excel" class="btn btn-primary">
     </form>
 </div>
@@ -100,32 +74,45 @@
     <h2>Most popular additional car options overall</h2>
 
     <form action="statistic/exportAdditionalOptions">
+        <input type="hidden" name="group" value=${groupId}>
         <input type="submit" value="Export to Excel" class="btn btn-primary">
     </form>
 </div>
 <div id="report_5" class="container">
     <h2>New orders per period</h2>
+
     <div class="alert alert-danger inform hide"></div>
     <table class="table">
         <thead>
-        <td>
-            <form action="statistic/exportNewOrders">
-                Pick start date<input type="text" id="datepicker1" name="startDate">
-        </td>
-        <td>
-            Pick end date<input type="text" id="datepicker" name="endDate">
-        </td>
-        <td>
-            <input type="submit" value="Export to Excel" class="btn btn-primary" id="btn_export">
-            </form>
-        </td>
+        <tr>
+            <td>Start time</td>
+            <td>End time</td>
+            <td>Manage</td>
+            <td></td>
+        </tr>
+        </thead>
+        <tbody>
+        <form action="statistic/exportNewOrders">
+            <td>
+                <span class="glyphicon glyphicon glyphicon-calendar"></span>
+                <input type="text" id="datepicker1" name="startDate">
 
+            </td>
+            <td>
+                <span class="glyphicon glyphicon glyphicon-calendar"></span>
+                <input type="text" id="datepicker" name="endDate">
+            </td>
+            <td>
+                <input type="submit" value="Export to Excel" class="btn btn-primary" id="btn_export">
+            </td>
+            <input type="hidden" name="group" value=${groupId}>
+        </form>
         <td>
             <button id="generate" class="btn btn-primary" type="submit">Generate report</button>
         </td>
         <td>
         </td>
-        </thead>
+        </tbody>
     </table>
 
 
@@ -134,6 +121,7 @@
     <h2>Service profitability by month</h2>
 
     <form action="statistic/exportServiceProfitability">
+        <input type="hidden" name="group" value=${groupId}>
         <input type="submit" value="Export to Excel" class="btn btn-primary">
     </form>
 </div>

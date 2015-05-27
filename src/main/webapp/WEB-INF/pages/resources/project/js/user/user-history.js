@@ -1,5 +1,13 @@
 $(function () {
     var userId = startState.hidden.userId;
+
+    function initCap(str) {
+        if (typeof str === "string") {
+            return str.substr(0, 1).toUpperCase() + str.substr(1).toLowerCase();
+        }
+        return "";
+    }
+
     PagingUtils.install({
         paginationId: 'pagination',
         dataStoreUrl: '/user/loadHistory',
@@ -22,19 +30,49 @@ $(function () {
         displayDataCallback: function updateMainContent(status, orders, details) {
             console.log(orders);
             console.log(details);
-            var container = $("#items-container");
+            var container = $("#order-table-body");
+            var info = $('#info');
             if (status === 'ok') {
                 container.html(
-                    $('#orderItemTemplate').render(orders)
+                    $('#orderItemTemplate').render(orders, {
+                        initCap: initCap,
+                        normalize: function (status) {
+                            var parts = status.split('_');
+                            var result = '';
+                            for (var i = 0; i < parts.length; i++) {
+                                result += initCap(parts[i]);
+                                if (i < parts.length - 1) {
+                                    result += ' ';
+                                }
+                            }
+                            return result;
+                        },
+                        getButtonClass: function (status) {
+                            switch (status) {
+                                case 'QUEUED':
+                                    return 'btn-primary';
+                                case 'ASSIGNED':
+                                case 'IN_PROGRESS':
+                                case 'COMPLETED':
+                                    return 'btn-success';
+                                case 'UPDATING':
+                                    return 'btn-info';
+                                case 'CANCELED':
+                                    return 'btn-warning';
+                                case 'REFUSED':
+                                    return 'btn-danger';
+                            }
+                            return 'btn-link';
+                        }
+                    })
                 );
-                $('.history_node').on('click', function (event) {
-                    $(this).parent()
-                        .children('.history_details')
-                        .stop()
-                        .slideToggle();
+                $(".clickable-row").click(function () {
+                    window.document.location = $(this).data("href");
                 });
+                info.html('');
             } else if (status == 'notFound') {
-                container.html('<h2>Items not found</h2>')
+                container.html('');
+                info.html('<h2 class="text-center">Items not found</h2>');
             }
         },
         initState: startState

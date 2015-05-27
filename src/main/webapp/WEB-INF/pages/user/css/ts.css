@@ -1,72 +1,59 @@
-html, body{
-	height:100%;
-	/*background-color : #eee;*/
-}
-body {
-  
-}
-
-
-.navbar-brand {
-	color : #ffce00 !important;
-	font-size: 1.8em;
-	font-weight: bold;
+html, body {
+    height: 100%;
+    /*background-color : #eee;*/
 }
 
 .container {
-	height: 100%;
-	width: 100%;
+    /*height: 100%;
+    width: 100%;*/
 }
-
-.content {
-	padding-top: 50px;
-}
-
 
 .google-map-canvas {
-	width:100%;
+    width: 100%;
     height: 100%;
- 	height:calc(100% - 0px);
+    height: calc(100% - 0px);
 }
-.map { height: 100% }
+
+.map {
+    height: 100%
+}
 
 .input-append .btn.dropdown-toggle {
     float: none;
 }
 
 li small {
-	color:#999999;
+    color: #999999;
 }
 
 a {
-	cursor: pointer;
+    cursor: pointer;
 }
 
-
 .error-template {
-	padding: 40px 15px;
-	text-align: center;
+    padding: 40px 15px;
+    text-align: center;
 }
 
 .error-actions {
-	margin-top:15px;
-	margin-bottom:15px;
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
 
-.error-actions .btn { 
-	margin-right:10px; 
+.error-actions .btn {
+    margin-right: 10px;
 }
 
 .form-signin {
-  max-width: 330px;
-  padding: 15px;
-  margin: 0 auto;
+    max-width: 330px;
+    padding: 15px;
+    margin: 0 auto;
 }
 
 .center {
-     float: none;
-     margin-left: auto;
-     margin-right: auto;
+    float: none;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .vcenter {
@@ -75,55 +62,70 @@ a {
     float: none;
 }
 
-.input-group.fav-address input:nth-child(1){
-	
+.input-group.fav-address input:nth-child(1) {
+
 }
 
 /*
 Fixes
 */
-
-
-.input-group.fav-address{
-	width:100%;
+#orderForm [data-type="address-group"] .form-group .input-group .input-group:first-child {
+    float: left;
+    margin-right: 15px;
+}
+#orderForm.form-horizontal .form-group {
+    margin-right: 0px;
+    margin-left: 0px;
 }
 
-.input-group.fav-address button{
-	width:40px;
+#orderForm .form-group {
+    margin-bottom: 0px;
 }
 
-.input-group.fav-address .input-group{
-	margin:0px;
+.input-group.fav-address {
+    width: 100%;
+}
+
+.input-group.fav-address button {
+    width: 40px;
+}
+
+.input-group.fav-address .input-group {
+    margin: 0px;
 }
 
 .input-group.fav-address .input-group:first-child {
-	margin-bottom: -1px;
+    margin-bottom: -1px;
 }
+
 .input-group.fav-address .form-control:focus {
-  z-index: 7;
+    z-index: 7;
 }
+
 .input-group.fav-address .input-group:first-child input, .input-group.fav-address .input-group:first-child button {
-	border-bottom-right-radius: 0;
-	border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
 }
 
 .input-group.fav-address .input-group:last-child input, .input-group.fav-address .input-group:last-child button {
-	border-top-right-radius: 0;
-	border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
 }
+
 .input-group.fav-address .input-group:last-child button {
-	z-index: 5;
+    z-index: 5;
 }
+
 .form-group .input-group {
-	margin-bottom: 7px;
+    margin-bottom: 7px;
 }
 
 .input-group-addon.glyphicon {
-	top: 0px;
+    top: 0px;
 }
 
-.input-group-btn .btn{
-    height : 34px;
+.input-group-btn .btn {
+    height: 34px;
 }
 
 /*
@@ -131,31 +133,31 @@ Animations
 */
 
 .spinner {
-  display: inline-block;
-  opacity: 0;
-  width: 0;
+    display: inline-block;
+    opacity: 0;
+    width: 0;
 
-  -webkit-transition: opacity 0.25s, width 0.25s;
-  -moz-transition: opacity 0.25s, width 0.25s;
-  -o-transition: opacity 0.25s, width 0.25s;
-  transition: opacity 0.25s, width 0.25s;
+    -webkit-transition: opacity 0.25s, width 0.25s;
+    -moz-transition: opacity 0.25s, width 0.25s;
+    -o-transition: opacity 0.25s, width 0.25s;
+    transition: opacity 0.25s, width 0.25s;
 }
 
 .glyphicon-spin {
-  display: inline-block;
-  -moz-animation: spin 2s infinite linear;
-  -o-animation: spin 2s infinite linear;
-  -webkit-animation: spin 2s infinite linear;
-  animation: spin 2s infinite linear;
+    display: inline-block;
+    -moz-animation: spin 2s infinite linear;
+    -o-animation: spin 2s infinite linear;
+    -webkit-animation: spin 2s infinite linear;
+    animation: spin 2s infinite linear;
 }
 
 .has-spinner.active {
-  cursor:progress;
+    cursor: progress;
 }
 
 .has-spinner.active .spinner {
-  opacity: 1;
-  width: auto; /* This doesn't work, just fix for unkown width elements */
+    opacity: 1;
+    width: auto; /* This doesn't work, just fix for unkown width elements */
 }
 
 .has-spinner.btn-mini.active .spinner {

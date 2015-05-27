@@ -5,6 +5,7 @@ import com.teamd.taxi.exception.InfoNotFoundException;
 import com.teamd.taxi.exception.ItemNotFoundException;
 import com.teamd.taxi.models.AssembledOrder;
 import com.teamd.taxi.models.AssembledRoute;
+import com.teamd.taxi.models.Price;
 import com.teamd.taxi.persistence.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,8 @@ public class PriceCountService {
 
     private static final String IDLE_FREE_TIME_NAME = "idle_free_time";
 
+    private static final String REFUSED_ORDER_PENALTY = "refused_order_penalty";
+
     @Autowired
     private RouteRepository routeRepository;
 
@@ -36,6 +39,9 @@ public class PriceCountService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private BlackListItemRepository blackListItemRepository;
 
     @Transactional
     private Float countRoutePrice(
@@ -146,6 +152,7 @@ public class PriceCountService {
             tariffMultiplier = priceByDistance;
             orderMultiplier = route.getDistance();
         }
+        System.out.println("Resulted intervals: " + processed);
         for (Interval part : processed) {
             price += part.coeff * tariffMultiplier * orderMultiplier * (part.getDuration() / totalDuration);
         }
@@ -232,6 +239,16 @@ public class PriceCountService {
         for (Feature feature : features) {
             featurePrice += feature.getPrice();
         }
+        //штраф
+        BlackListItem blackListItem = order.getBlackListItem();
+        if (blackListItem != null) {
+            Info penalty = infoRepository.findOne(REFUSED_ORDER_PENALTY);
+            if (penalty != null) {
+                //делим штраф поровну на все маршруты
+                price += blackListItem.getMultiplier()
+                        * Double.parseDouble(penalty.getValue()) / order.getRoutes().size();
+            }
+        }
         return Math.max(price * (1 - groupDiscount), serviceType.getMinPrice()) + featurePrice;
     }
 
@@ -314,38 +331,72 @@ public class PriceCountService {
             float routePrice = routePrices.get(i);
             routePrices.set(i, routePrice + featurePrice);
         }
+        //штраф
+        BlackListItem blackListItem = order.getBlackListItem();
+        if (blackListItem != null) {
+            Info penalty = infoRepository.findOne(REFUSED_ORDER_PENALTY);
+            if (penalty != null) {
+                float penaltyPerRoute = blackListItem.getMultiplier()
+                        * Float.parseFloat(penalty.getValue()) / order.getRoutes().size();
+                for (int i = 0; i < routePrices.size(); i++) {
+                    float routePrice = routePrices.get(i);
+                    routePrices.set(i, routePrice + penaltyPerRoute);
+                }
+            }
+        }
         System.out.println("Counted prices: " + routePrices);
         return routePrices;
     }
 
     @Transactional
-    public float approximateOrderPrice(TaxiOrder order, Long userId) {
+    public Price approximateOrderPrice(TaxiOrder order, Long userId) {
+        Price price = new Price();
         List<Route> routes = order.getRoutes();
         //цена за фичи
         List<Feature> features = order.getFeatures();
         float featurePrice = 0;
-        for (Feature feature : features) {
-            featurePrice += feature.getPrice();
+        if (features != null) {
+            for (Feature feature : features) {
+                featurePrice += feature.getPrice();
+            }
         }
         featurePrice *= routes.size();
+        price.setFeaturePrice(featurePrice);
         //скидка за группы
-        float groupDiscount = 1;
+        float groupDiscount = 0;
         if (userId != null) {
             groupDiscount = getGroupDiscountForUser(userRepository.findOne(userId));
         }
         //цена за маршруты
-        float routePrice = 0;
+        float routesPrice = 0;
         ServiceType serviceType = order.getServiceType();
         CarClass carClass = order.getCarClass();
         //считать что-то можно только если указан пункт назначения
         if (serviceType.isDestinationRequired()) {
             for (Route route : routes) {
-                routePrice += route.getDistance()
+                routesPrice += route.getDistance()
                         * serviceType.getPriceByDistance()
                         * carClass.getPriceCoefficient();
             }
         }
-        return Math.max(routePrice * groupDiscount, serviceType.getMinPrice()) + featurePrice;
+        float priceWithDiscount = routesPrice * (1 - groupDiscount);
+        float minPrice = serviceType.getMinPrice();
+        if (priceWithDiscount < minPrice) {
+            price.setOriginalPrice(minPrice);
+        } else {
+            price.setOriginalPrice(routesPrice);
+            price.setPriceWithDiscount(priceWithDiscount);
+        }
+
+        if (userId != null) {
+            Info penalty = infoRepository.findOne(REFUSED_ORDER_PENALTY);
+            if (penalty != null) {
+                float penaltyValue = Float.parseFloat(penalty.getValue());
+                price.setPenaltyPrice(penaltyValue * blackListItemRepository.countByUserIdAndPayedTrue(userId));
+            }
+        }
+
+        return price;
     }
 
     private static class Interval {

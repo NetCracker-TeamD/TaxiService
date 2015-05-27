@@ -6,14 +6,13 @@ import com.teamd.taxi.authentication.AuthenticatedUser;
 import com.teamd.taxi.authentication.Utils;
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.exception.*;
-import com.teamd.taxi.models.AssembledOrder;
-import com.teamd.taxi.models.AssembledRoute;
-import com.teamd.taxi.models.MapResponse;
-import com.teamd.taxi.models.TaxiOrderForm;
+import com.teamd.taxi.models.*;
 
 import static com.teamd.taxi.entity.RouteStatus.*;
 
 import com.teamd.taxi.service.*;
+import com.teamd.taxi.service.email.MailService;
+import com.teamd.taxi.service.email.Notification;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,6 +26,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
+import javax.persistence.criteria.Order;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.lang.reflect.Type;
@@ -35,6 +36,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import com.teamd.taxi.controllers.user.UserAddressesController;
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Controller
 public class OrderController {
@@ -66,6 +69,9 @@ public class OrderController {
     @Autowired
     private UserAddressesController userAddressesController;
 
+    @Autowired
+    private MailService mailService;
+
     private static final Logger logger = Logger.getLogger(OrderController.class);
 
     @Autowired
@@ -80,7 +86,7 @@ public class OrderController {
             .create();
 
 
-    private void addUserAddressesToModel(Model model){
+    private void addUserAddressesToModel(Model model) {
         if (Utils.isAuthenticated()) {
             try {
                 model.addAttribute("addressesJSON", userAddressesController.getUserAddresses());
@@ -94,10 +100,6 @@ public class OrderController {
 
     @RequestMapping("/order")
     public String order(Model model) {
-        AbstractAuthenticationToken auth = (AbstractAuthenticationToken)
-                SecurityContextHolder.getContext().getAuthentication();
-        logger.info("Auth status: " + auth.getPrincipal()
-                + ", " + auth.getCredentials() + ", " + auth.getAuthorities() + ", " + auth.isAuthenticated());
         model.addAttribute("servicesJSON", getServices());
         addUserAddressesToModel(model);
         return "user/order";
@@ -107,8 +109,7 @@ public class OrderController {
     public String order(
             @PathVariable(value = "id") long orderId,
             @PathVariable(value = "secretKey") String secretKey,
-            Model model)
-    {
+            Model model) {
         try {
             String orderInfo = getOrder(orderId, secretKey);
             model.addAttribute("orderInfoJSON", orderInfo);
@@ -127,8 +128,7 @@ public class OrderController {
     @RequestMapping(value = "/order/{id}", produces = "application/json;charset=UTF-8")
     public String order(
             @PathVariable(value = "id") long orderId,
-            Model model)
-    {
+            Model model) {
         return order(orderId, null, model);
     }
 
@@ -222,7 +222,11 @@ public class OrderController {
     }
 
     //05/13/2015 12:47 AM
-    private static final SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy hh:mm a");
+    private static final SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
+
+    static {
+        formatter.setLenient(false);
+    }
 
     private Calendar parseDate(String date) throws ParseException {
         Calendar calendar = Calendar.getInstance();
@@ -261,6 +265,11 @@ public class OrderController {
             form.setCarsAmount(getInts(carsAmountElement));
         } else {
             form.setCarsAmount(Arrays.asList(1));
+        }
+        //стиль музыки
+        JsonElement musicElement = orderObject.get("musciStyle");
+        if (musicElement != null) {
+            form.setMusicStyle(musicElement.getAsString());
         }
         //пол водителя
         JsonPrimitive driverSexPrimitive = (JsonPrimitive) getAndCheck(orderObject, "driver_sex");
@@ -312,7 +321,7 @@ public class OrderController {
 
     @RequestMapping(value = "/countPrice", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Map<String, Object> countApproximatePrice(Reader reader)
+    public Price countApproximatePrice(Reader reader)
             throws ParseException, PropertyNotFoundException, ItemNotFoundException, MapServiceNotAvailableException, NotFoundException, NotCompatibleException {
         JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
         TaxiOrderForm form = fillForm(orderObject);
@@ -324,14 +333,14 @@ public class OrderController {
             userId = ((AuthenticatedUser) authentication.getPrincipal()).getId();
         }
         TaxiOrder order = taxiOrderService.fillOrder(form, null);
-        return new MapResponse().put("price", priceCountService.approximateOrderPrice(order, userId));
+        return priceCountService.approximateOrderPrice(order, userId);
     }
 
     @RequestMapping(value = "/makeOrder", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Map<String, Object> makeOrder(Reader reader) throws IOException,
             PropertyNotFoundException, ItemNotFoundException, ParseException,
-            NotCompatibleException, NotFoundException, MapServiceNotAvailableException {
+            NotCompatibleException, NotFoundException, MapServiceNotAvailableException, MessagingException {
         //заполняем форму
         JsonObject orderObject = (JsonObject) new JsonParser().parse(reader);
         logger.info("Received orderObject: " + orderObject);
@@ -345,13 +354,15 @@ public class OrderController {
         if (authentication instanceof AnonymousAuthenticationToken) {
             JsonElement name = getAndCheck(orderObject, "firstName");
             JsonElement lastName = getAndCheck(orderObject, "lastName");
-            //TODO: перевірять чи ні???
-            JsonElement email = orderObject.get("email");
+            JsonElement emailElement = orderObject.get("email");
             JsonElement phoneNumber = getAndCheck(orderObject, "phoneNumber");
             user = new User(null, name.getAsString(), lastName.getAsString(), UserRole.ROLE_ANONYMOUS, phoneNumber.getAsString());
-            if (email != null) {
-                //TODO: первірить чи не належить він зареєстр. корист.
-                user.setEmail(email.getAsString());
+            if (emailElement != null) {
+                String email = emailElement.getAsString();
+                if (!userService.isEmailFree(email)) {
+                    return new MapResponse().put("status", "emailNotFree");
+                }
+                user.setEmail(email);
             }
             user = userService.save(user);
         } else {
@@ -366,31 +377,36 @@ public class OrderController {
             //превышено количество refused-заказов, отказываемся от обслуживания
             return new MapResponse().put("status", "blockedDueToRefuses");
         }
+        //создаем ссылку на заказ
+        String link;
+        if (user.getUserRole() == UserRole.ROLE_CUSTOMER) {
+            link = MvcUriComponentsBuilder.fromMethodName(OrderController.class, "order", order.getId(), null)
+                    .toUriString();
+        } else {
+            link = MvcUriComponentsBuilder.fromMethodName(OrderController.class, "order", order.getId(), order.getSecretViewKey(), null)
+                    .toUriString();
+        }
+        System.out.println("link = " + link);
+        String userEmail = user.getEmail();
+        if (userEmail != null) {
+            mailService.sendNotification(userEmail, Notification.NEW_ORDER, new Object[]{order.getId(), link});
+        }
         //отправка ответа
-        /*
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("status", "OK");
-        //TODO: add real link with MvcComponentsBuilder, don't add a secret key if user is authenticated
-        jsonObject.addProperty("trackLink", "/viewOrder?trackNum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
-        new GsonBuilder().disableHtmlEscaping().create().toJson(jsonObject);*/
         return new MapResponse().put("status", "OK")
-                .put("trackLink", "/viewOrder?trackNum=" + order.getId() + "&secretKey=" + order.getSecretViewKey());
+                .put("trackLink", link);
     }
 
     private void checkAccess(TaxiOrder order, String secretKey, boolean allowAdmin) throws SecretKeyMismatchException {
-        //TODO: убрать это
-        if (true) {
-            return;
-        }
         User customer = order.getCustomer();
         AccessDeniedException accessDeniedException = new AccessDeniedException("not enough rights on[" + order.getId() + "]");
         //заказчик - зарегистрированный пользовательы
         if (customer.getUserRole() == UserRole.ROLE_CUSTOMER) {
             //пользователь не авторизован
-            if (Utils.isAuthenticated()) {
+            if (!Utils.isAuthenticated()) {
                 throw accessDeniedException;
             }
             String userRole = Utils.getCurrentUserRole();
+            System.out.println(userRole);
             //текущий пользователь администратор
             if (userRole.equals("ROLE_ADMINISTRATOR")) {
                 //действие разрешено для администратора
@@ -456,8 +472,13 @@ public class OrderController {
             return new MapResponse().put("status", "notFound");
         }
         checkAccess(order, secretKey, false);
-        taxiOrderService.cancelOrder(order.getId());
-        return new MapResponse().put("status", "OK");
+        String status = "OK";
+        try {
+            taxiOrderService.cancelOrder(order.getId());
+        } catch (OrderUpdatingException e) {
+            status = "orderPickedUp";
+        }
+        return new MapResponse().put("status", status);
     }
 
     @RequestMapping(value = "/updateOrder", produces = "application/json;charset=UTF-8")
@@ -624,6 +645,7 @@ public class OrderController {
         if (driverSex != null) {
             orderObject.addProperty("driverSex", driverSex.name());
         }
+        orderObject.addProperty("musicStyle", order.getMusicStyle());
         orderObject.addProperty("paymentType", order.getPaymentType().name());
         JsonArray features = new JsonArray();
         for (Feature feature : order.getFeatures()) {
@@ -631,10 +653,6 @@ public class OrderController {
         }
         orderObject.add("features", features);
         AssembledOrder assembledOrder = AssembledOrder.assembleOrder(order);
-        orderObject.addProperty("complete", assembledOrder.isComplete());
-        if (assembledOrder.isComplete()) {
-            orderObject.addProperty("price", assembledOrder.getTotalPrice());
-        }
         //марштуры
         JsonArray startAddresses = new JsonArray();
         JsonArray intermediateAddresses = new JsonArray();

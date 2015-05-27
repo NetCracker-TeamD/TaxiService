@@ -3,7 +3,7 @@
  */
 var getOrderPage = function (orderInfo, isUserLogged) {
     console.log(orderInfo)
-    var container = $('<div class="col-sm-5 col-sm-offset-1">\
+    var container = $('<div class="col-sm-6">\
                     <form class="form-horizontal" id="orderForm" method="POST" action="/makeOrder">\
                         <div class="form-group">\
                             <label for="serviceType">Choose service type</label>\
@@ -20,7 +20,7 @@ var getOrderPage = function (orderInfo, isUserLogged) {
                 <div class="clearfix"></div>\
                 <div class="row text-center">\
                     <div class="col-sm-6 center">\
-                        <h4 data-type="price-holder">The approximate cost of the trip is : <span data-type="price-value"></span>$</h4>\
+                        <h4 data-type="price-holder">The approximate cost of the trip is : <span data-type="price-value"></span></h4>\
                         <div data-type="button-holder">\
                         </div>\
                     </div>\
@@ -94,6 +94,7 @@ var showOrderPage = function(){
 
 
     var addressesClick = function(e){
+            console.log('addressClick')
             var target = $(e.target),
                 tagName = target[0].tagName.toLowerCase()
             //select fav location part
@@ -117,7 +118,7 @@ var showOrderPage = function(){
                     btn = target.closest("button")
                 }
                 if (btn.attr('data-action')=="remove"){
-                    var container = target.closest('.input-group'),
+                    var container = target.closest('.form-group'),
                         input = container.find('input'),
                         markerId = input.attr("data-number")
                     MapTools.removeMarker(markerId)
@@ -136,11 +137,27 @@ var showOrderPage = function(){
                 }
             }
         },
-        updateRoutes = function(invoker, place){
-            invoker = $(invoker)
-            var id = invoker.attr("data-number"),
-                location = place.geometry.location,
+        updateRoutes = function(status, invoker, place){
+            var invoker = $(invoker)
+            console.log('updated')
+            var triggerValidation = function(){
+                invoker.parent().validator('validate')
+            }
+
+            var id = invoker.attr("data-number")
+            if (status!='success'){
+                console.log('bad location')
+                MapTools.removeMarker(id)
+                invoker.removeAttr('valid')
+                triggerValidation()
+                return;
+            }
+            var location = place.geometry.location,
                 type = invoker.attr('name').split('_')[0]
+            invoker.val(place.formatted_address)
+            console.log(location, type)
+            invoker.attr('valid', '')
+            triggerValidation()
             MapTools.addMarker(id, location, type)
             MapTools.markersFitWindow()
         },
@@ -153,7 +170,9 @@ var showOrderPage = function(){
                     isRemovable = list.has('[data-action="remove"]').length > 0
                     if (list.length>0){
                         list.remove()
-                        holder.append(Templates.getDropDownAddress(FL, isRemovable))
+                        list = Templates.getDropDownAddress(FL, isRemovable)
+                        list.bind("click", addressesClick)
+                        holder.append(list)
                     }
                 })
             }
@@ -286,6 +305,9 @@ var showOrderPage = function(){
         MapTools.markersFitWindow()
         holder.html("")
         holder.append(Templates.getWhiteLoader)
+
+
+
         var loadOrder = $.isSet(orderInfo)
         //create DOM))
         console.log("CreateDom called")
@@ -294,13 +316,14 @@ var showOrderPage = function(){
             FL = fav_locations
         holder.html("")
         //add contacts
-        if (!isUserLogged){
+        if (!isUserLogged && !loadOrder){
             holder.append(Templates.getContacts())
         }
         //console.log(SD)
         var timeBlock = Templates.getTime(SD.timing.indexOf("now")>-1, SD.timing.indexOf("specified")>-1)
         holder.append(timeBlock)
         if (loadOrder) {
+
             if (SD.timing.indexOf("specified")>-1) {
                 var time = timeBlock.find('#time_specified')
                 if (time.length>0) {
@@ -417,18 +440,30 @@ var showOrderPage = function(){
             }
         }
         holder.append(features)
+
+        //TODO:add music style selector
+        var musicStyle = ('<div class="form-group">\
+            <div class="input-group"><span class="input-group-addon glyphicon glyphicon-music"></span>\
+              <input type="text" class="form-control" name="musicStyle" placeholder="Enter music style">\
+            </div>\
+            <div class="help-block with-errors"></div>\
+          </div>')
+        holder.append(musicStyle)
+        if (loadOrder && $.isSet(orderInfo.musicStyle)){
+            musicStyle.find('input').val(orderInfo.musicStyle)
+        }
         MapTools.clearAllMarkers()
         //console.log(holder.find('input[data-type="address"]'))
         var addresses = holder.find('input[data-type="address"]')
         var m = addresses.length;
             t = 1,
-            updateRoutesFix = function(invoker, place){
+            updateRoutesFix = function(status, invoker, place){
                 t++;
                 console.log(t+" "+m)
                 if (t>m) {
                     MapTools.enableDrawRoutes(true)
                 }
-                updateRoutes(invoker, place)
+                updateRoutes(status, invoker, place)
 
             }
         if (loadOrder) {
@@ -446,7 +481,7 @@ var showOrderPage = function(){
             Templates.lockAllControls($(orderDetails))
         }
         //bind events
-        addresses.bind("click", addressesClick)
+        $('#addressesContainer').bind("click", addressesClick)
     }
 
     var
@@ -604,7 +639,7 @@ var showOrderPage = function(){
                         BootstrapDialog.show({
                             type: BootstrapDialog.TYPE_DANGER, closable: true,
                             title: "Server error",
-                            message: "Server returns error with status '"+response.statusText+"'",
+                            message: "Server returns error with status '"+response.statusText+"'"
                         })
                         //craeteDOM()
                     }
@@ -618,18 +653,16 @@ var showOrderPage = function(){
             form : orderForm,
             button : makeOrderBtn,
             useJSON : true,
+            validator : function(){
+                orderForm.validator('validate');
+                return !(orderForm.validator('validate').has('.has-error').length>0)
+            },
+
             success : function(response){
-                //console.log("response")
-                //console.log(response)
-                var trackLink = response.trackLink,
-                //: "/viewOrder?trackNum=10651&secretKey=null"
-                    trackNumber = $.getURLParam(trackLink, "trackNum"),
-                    secretKey = $.getURLParam(trackLink, "secretKey")
-                if (secretKey == "null") {
-                    secretKey = null
-                }
-                trackLink = "/order/"+trackNumber+($.isSet(secretKey)? "/"+secretKey : "")
-                //console.log(trackNumber, secretKey)
+                console.log("response")
+                console.log(response)
+                var trackLink = response.trackLink
+
                 var watchIt = function(){
                     console.log("go to track link")
                     window.location = trackLink
@@ -676,6 +709,61 @@ var showOrderPage = function(){
     //fill page
     page.html('')
     page.append(container)
+    var prevCalcPriceCall = 0,
+        isCalculating = false;
+    var calcPrice = function(){
+        var curentTime =  new Date().getTime()
+        if (isCalculating) {
+            if (curentTime-prevCalcPriceCall<50) {
+                return;
+            }
+            setTimeout(calcPrice, 50)
+        }
+        prevCalcPriceCall = curentTime;
+        isCalculating = true;
+        var data = JSON.stringify(orderForm.serializeObject())
+        console.log(data)
+        var priceHolder = container.find('[data-type="price-holder"]'),
+            priceValue = priceHolder.find('[data-type="price-value"]')
+        $.ajax({
+            url : '/countPrice',
+            method : 'POST',
+            data : data,
+            contentType : "application/json; charset=utf-8",
+            success : function(response){
+                isCalculating = false;
+                console.log('success')
+                console.log(response)
+                var or = response.originalPrice,
+                    dis = response.priceWithDiscount,
+                    plus = 0
+                if (!$.isSet(dis) || isNaN(dis)){
+                    dis = or
+                }
+                if ($.isSet(response.penaltyPrice)) {
+                    plus += response.penaltyPrice;
+                }
+                if ($.isSet(response.featurePrice)) {
+                    plus += response.featurePrice;
+                }
+                or = (or+plus).toFixed(2)
+                dis = (dis+plus).toFixed(2)
+                if (!isNaN(or)) {
+                    priceValue.html(or + " uah." + ((or != dis) ? " With discount : " + dis + " uah." : ""))
+                    priceHolder.show()
+                } else {
+                    priceValue.html("Can`t calculate approximate price")
+                    priceHolder.show()
+                }
+            },
+            error : function(response){
+                isCalculating = false;
+                priceValue.html("Can`t calculate approximate price")
+                priceHolder.show()
+            }
+        })
+
+    }
 
     if (!loadOrder || (loadOrder && order.status=="updating")) {
         MapTools.enableDraggableMarkers(true)
@@ -685,8 +773,18 @@ var showOrderPage = function(){
     MapTools.removeListenerChain("onMarkerMoved")
     MapTools.removeListenerChain("onPlacePicked")
     MapTools.removeListenerChain("onDistanceChange")
-    MapTools.addListener("onMarkerMoved", function(marker_id, newLocationName){
-        $('[data-number="'+marker_id+'"').val(newLocationName)
+    MapTools.addListener("onMarkerMoved", function(status, marker_id, newLocationName){
+        var input =  $('[data-number="' + marker_id + '"')
+        input.val(newLocationName)
+        console.log(status)
+        if (status=='success') {
+            input.val(newLocationName).trigger('change')
+            //$('[data-number="' + marker_id + '"').val(newLocationName)
+            //MapTools.calcAndDrawRoute()
+        } else {
+            input.removeAttr('valid')
+            input.parent().validator('validate')
+        }
         MapTools.calcAndDrawRoute()
     })
 
@@ -737,19 +835,28 @@ var showOrderPage = function(){
                             var jqDialog = $(dialog.$modalBody)
                             jqDialog.html("")
                             jqDialog.append(Templates.getWhiteLoader())
-                            MapTools.getNameForLocation(lat, lgn, function(locationName){
-                                if (action=="add"){
-                                    var startNumber = addBtn.attr('data-start-number'),
-                                        hasCarsAmount = (addBtn.attr('data-mod')=="addCarsAmount"),
-                                        name = addBtn.attr("data-name"),
-                                        newAddressField = Templates.getAddress(fav_locations, name, hasCarsAmount, true, startNumber)
-                                    emptyInput = newAddressField.find("input")[0]
-                                    $(addBtn.parent()).find('[data-type="address-group"]').append(newAddressField)
-                                    MapTools.modAutocompleteAddressInput(emptyInput, updateRoutes)
-                                    emptyInput = $(emptyInput)
+                            MapTools.getNameForLocation(lat, lgn, function(status, locationName){
+                                if (status=='success') {
+                                    if (action == "add") {
+                                        var startNumber = addBtn.attr('data-start-number'),
+                                            hasCarsAmount = (addBtn.attr('data-mod') == "addCarsAmount"),
+                                            name = addBtn.attr("data-name"),
+                                            newAddressField = Templates.getAddress(fav_locations, name, hasCarsAmount, true, startNumber)
+                                        emptyInput = newAddressField.find("input")[0]
+                                        $(addBtn.parent()).find('[data-type="address-group"]').append(newAddressField)
+                                        MapTools.modAutocompleteAddressInput(emptyInput, updateRoutes)
+                                        emptyInput = $(emptyInput)
+                                    }
+                                    emptyInput.val(locationName).trigger('change')
+                                    dialog.close()
+                                } else {
+                                    dialog.close()
+                                    BootstrapDialog.show({
+                                        type: BootstrapDialog.TYPE_DANGER,
+                                        title: 'Address picking',
+                                        message: 'Bad location'
+                                    });
                                 }
-                                emptyInput.val(locationName).trigger('change')
-                                dialog.close()
                             })
                         })
                         return btn
@@ -770,23 +877,45 @@ var showOrderPage = function(){
         })
     })
 
-    MapTools.addListener("onDistanceChanged", function(newDistance){
-        var priceHolder = container.find('[data-type="price-holder"]'),
-            priceValue = priceHolder.find('[data-type="price-value"]')
+    MapTools.addListener("onDistanceChanged", function(status, newDistance, markerIds){
+        //var priceHolder = container.find('[data-type="price-holder"]'),
+        //    priceValue = priceHolder.find('[data-type="price-value"]')
         //console.log(newDistance)
-        priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
-        priceHolder.show()
+        //priceValue.html("&lt;price for "+(Math.round(newDistance/100)/10)+" km and selected features&gt;")
+        //priceHolder.show()
+        //calcPrice();
+        if (status == "error"){
+            for (var i = 1; i <markerIds.length; i++) {
+                var
+                    markerId = markerIds[i],
+                    input = container.find('[data-number="'+markerId+'"]')
+                input.removeAttr('valid')
+                input.parent().validator('validate')
+                console.log('valid attr removed')
+                //input.trigger('change')
+            }
+        } else {
+            for (var i = 1; i <markerIds.length; i++) {
+                var
+                    markerId = markerIds[i],
+                    input = container.find('[data-number="'+markerId+'"]')
+                input.attr('valid','')
+                input.parent().validator('validate')
+                //input.trigger('change')
+            }
+        }
     })
 
     MapTools.addListener("onGeolocationAllowed",function(pos){
-        MapTools.getNameForLocation(pos.latitude, pos.longitude, function(address){
-            DataTools.setUserLocation("Your location", address, true)
-            fav_locations.unshift({
-                name : "Your location",
-                address : address,
-                isUserLocation : true
-            })
-            updateLocationsLists()
+        MapTools.getNameForLocation(pos.latitude, pos.longitude, function(status, address){
+            if (status == 'success') {
+                fav_locations.unshift({
+                    name: "Your location",
+                    address: address,
+                    isUserLocation: true
+                })
+                updateLocationsLists()
+            }
         })
     })
 
@@ -812,9 +941,11 @@ var showOrderPage = function(){
             Templates.lockAllControls(orderDetails)
         }
     }
-
+    orderDetails.bind('change', function(){
+        calcPrice();
+    })
     serviceTypes.trigger("change")
-
+    $("#orderForm").validator()
     updateLocationsLists()
 }
 

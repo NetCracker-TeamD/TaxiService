@@ -22,12 +22,17 @@
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=places"></script>
     <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
     <script src="../../pages/resources/project/js/driver/drv-order.js" type="text/javascript"></script>
-
+    <link href="/pages/user/frameworks/css/bootstrap-dialog.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/pages/user/frameworks/js/transition.js"></script>
+    <script type="text/javascript" src="/pages/user/frameworks/js/collapse.js"></script>
+    <script type="text/javascript" src="/pages/user/frameworks/js/tooltip.js"></script>
+    <script type="text/javascript" src="/pages/user/frameworks/js/bootstrap-dialog.min.js"></script>
     <style>
         .row {
             margin-right: 0px;
             margin-left: 0px;
         }
+
         .btn-circle {
             width: 60px;
             height: 60px;
@@ -76,12 +81,6 @@
                                                   id="currentTime"></span>
                                         </h5>
                                     </div>
-                                    <%--<div class="row pull-right hidden" id="customerIsLate">--%>
-                                        <%--<label for="customLate" class="label label-info control-label"--%>
-                                               <%--style="padding-bottom: 0px; margin-bottom: 0px;padding: 0px;">Customer--%>
-                                            <%--is late</label>--%>
-                                        <%--<input type="checkbox" name="customerLate" id="customLate">--%>
-                                    <%--</div>--%>
                                 </div>
                             </div>
                         </div>
@@ -135,6 +134,7 @@
                                                        value="${route.sourceAddress}" name="source" readonly>
                                                 <input type="text" style="margin-top: 5px" class="form-control"
                                                        value="${route.destinationAddress}" name="dest" readonly>
+
                                             </div>
                                             <div style="padding-top: 5px; padding-bottom: 10px;">
                                                 <c:choose>
@@ -184,7 +184,7 @@
     </div>
     <hr>
     <!-- Modal -->
-    <div class="modal fade" id="resultWindow" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    <div class="modal fade panel-warning" id="resultWindow" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
          aria-hidden="true">
         <div class="modal-dialog modal-lg" style="width: 500px;">
             <div class="modal-content">
@@ -193,7 +193,7 @@
                     <h2 class="modal-title" id="myModalLabel">Taxi order</h2>
                 </div>
                 <div class="modal-body">
-                    <p class="resultMessage">Order is finished
+                    <p id="finishOrder">Order is finished
 
                     <p>
                 </div>
@@ -204,13 +204,9 @@
                             <i class="glyphicon glyphicon-list"> To queue</i></a>
                     </div>
                 </div>
-
             </div>
-            <!-- /.modal-content -->
         </div>
-        <!-- /.modal-dialog -->
     </div>
-    <!-- Modal -->
     <footer>
         <p>&#169 TeamD 2015</p>
     </footer>
