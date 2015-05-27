@@ -11,14 +11,15 @@
 <head>
   <%@ include file="../../pages/head-block.html"%>
   <script type="text/javascript">
-    var userAddresses = ${addressesJSON}
+    var userAddresses = ${addressesJSON},
+        userInfo = ${userInfoJSON};
   </script>
   <script type="text/javascript" src="/pages/user/js/page_account.js"></script>
 </head>
 <body>
 <%@ include file="header.jsp"%>
 <div class="container content">
-  <form id="contacts" class="form-signin" method="post" action="/test/wait/3000">
+  <form id="contacts" class="form-signin" method="post" action="/user/updateAccount">
     <div class="form-group"><h2 class="form-signin-heading">Change contacts</h2>
       <%@ include file="contacts.jsp"%>
     </div>

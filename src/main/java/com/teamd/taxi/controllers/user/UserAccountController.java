@@ -50,6 +50,7 @@ public class UserAccountController {
         } catch (IOException e) {
             model.addAttribute("addressesJSON", "[]");
         }
+        model.addAttribute("userInfoJSON", getAccountData());
         return "/user/account";
     }
 
