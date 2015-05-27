@@ -17,16 +17,15 @@
 <head>
     <title>Profile</title>
     <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="../../pages/resources/project/css/welcome.css">
     <link rel="stylesheet" href="/pages/resources/project/css/history.css">
     <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
 </head>
 <body>
-<%@ include file="../../pages/driver/drv-header.html"%>
-<div class="jumbotron welcome" style="height:150px;">
+<%@ include file="drv-header.jsp"%>
+<div class="jumbotron" style="height:150px;">
   <div class="container" style="height:150px;">
-    <h1 style="color:yellow; text-align:right;">Profile</h1>
+    <h1 style="color:#000; text-align:right;">Profile</h1>
   </div>
 </div>
 

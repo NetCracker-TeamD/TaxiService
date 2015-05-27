@@ -15,13 +15,12 @@
     <link rel="stylesheet" href="../../pages/resources/bootstrap/css/datepicker.css">
     <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="../../pages/resources/bootstrap/css/bootstrap-select.css">
-    <link rel="stylesheet" href="../../pages/resources/project/css/welcome.css">
     <link rel="stylesheet" href="../../pages/resources/project/css/history.css">
     <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
     <script src="../../pages/resources/jquery/jquery-2.1.3.js"></script>
     <script src="../../pages/resources/bootstrap/js/bootstrap.js"></script>
-    <script src="../../pages/resources/booetstrap/js/bootstrap-select.js"></script>
+    <script src="../../pages/resources/bootstrap/js/bootstrap-select.js"></script>
     <script src="../../pages/resources/bootstrap/js/bootstrap-datepicker.js"></script>
     <script src="../../pages/resources/project/js/driver/drv-history.js" type="text/javascript"></script></head>
 <body>
@@ -36,9 +35,9 @@
 </sec:authorize>
 <sec:authorize access="hasRole('ROLE_DRIVER')">
     <%@include file="drv-header.jsp"%>
-    <div class="jumbotron welcome" style="height:150px;">
+    <div class="jumbotron" style="height:150px;">
         <div class="container" style="height:150px;">
-            <h1 style="color:yellow; text-align:right;">History</h1>
+            <h1 style="color:#000; text-align:right;">History</h1>
         </div>
     </div>
 </sec:authorize>
@@ -75,7 +74,7 @@
                     <div class="row">
                         <div class="col-sm-8">
                             <div class="input-daterange form-group">
-                                <label id="datee">Date </label>
+                                <label id="datee">Date</label>
                                 <input value="${param.startDate}" class="form-control" type="text" id="from_date" name="startDate"
                                        placeholder="Select start date"  >
                                 <label>to</label>
