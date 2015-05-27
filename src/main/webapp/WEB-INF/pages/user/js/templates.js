@@ -423,9 +423,9 @@ var Templates = (function () {
                 uniqNumber++
                 var container = $('<div class="input-group fav-address"></div>'),
                     nameInput = $('<div class="input-group"><input data-number="' + (baseNumber + uniqNumber) + '" name="'
-                    + inputNamePrefix + '_name" data-type="address-name" type="text" class="form-control" placeholder="Enter short name"></div>'),
+                    + inputNamePrefix + '_name" data-type="address-name" type="text" class="form-control" placeholder="Enter short name" required></div>'),
                     addressInput = $('<div class="input-group"><input data-number="' + (baseNumber + uniqNumber) + '" name="'
-                    + inputNamePrefix + '_address" data-type="address" type="text" class="form-control"></div>'),
+                    + inputNamePrefix + '_address" data-type="address" type="text" class="form-control" data-custom-validator="true" data-error="Address is incorrect" required></div>'),
                     removeBtn = $('<div class="input-group-btn"><button class="btn btn-danger" type="button" data-action="remove">\
                     <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>\
                 </button></div>')
@@ -433,9 +433,11 @@ var Templates = (function () {
                 nameInput.append(removeBtn)
                 container.append(nameInput)
                 container.append(addressInput)
+                var wraper = $('<div class="form-group"></div>')
+                wraper.append(container)
+                wraper.append('<div class="help-block with-errors"></div>')
 
-
-                return container;
+                return wraper;
             }
         })()
     getDateTimePicker = function (name, value, config) {

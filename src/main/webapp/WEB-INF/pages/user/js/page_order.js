@@ -118,7 +118,7 @@ var showOrderPage = function(){
                     btn = target.closest("button")
                 }
                 if (btn.attr('data-action')=="remove"){
-                    var container = target.closest('.input-group'),
+                    var container = target.closest('.form-group'),
                         input = container.find('input'),
                         markerId = input.attr("data-number")
                     MapTools.removeMarker(markerId)
@@ -475,10 +475,7 @@ var showOrderPage = function(){
             Templates.lockAllControls($(orderDetails))
         }
         //bind events
-        var lists =  holder.find('[data-type="dropdown-address-list"]')
-
-        lists.bind("click", addressesClick)
-        addresses.bind("click", addressesClick)
+        $('#addressesContainer').bind("click", addressesClick)
     }
 
     var
@@ -656,8 +653,8 @@ var showOrderPage = function(){
             },
 
             success : function(response){
-                //console.log("response")
-                //console.log(response)
+                console.log("response")
+                console.log(response)
                 var trackLink = response.trackLink,
                 //: "/viewOrder?trackNum=10651&secretKey=null"
                     trackNumber = $.getURLParam(trackLink, "trackNum"),
