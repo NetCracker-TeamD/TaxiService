@@ -100,10 +100,6 @@ public class OrderController {
 
     @RequestMapping("/order")
     public String order(Model model) {
-        AbstractAuthenticationToken auth = (AbstractAuthenticationToken)
-                SecurityContextHolder.getContext().getAuthentication();
-        logger.info("Auth status: " + auth.getPrincipal()
-                + ", " + auth.getCredentials() + ", " + auth.getAuthorities() + ", " + auth.isAuthenticated());
         model.addAttribute("servicesJSON", getServices());
         addUserAddressesToModel(model);
         return "user/order";
@@ -406,10 +402,11 @@ public class OrderController {
         //заказчик - зарегистрированный пользовательы
         if (customer.getUserRole() == UserRole.ROLE_CUSTOMER) {
             //пользователь не авторизован
-            if (Utils.isAuthenticated()) {
+            if (!Utils.isAuthenticated()) {
                 throw accessDeniedException;
             }
             String userRole = Utils.getCurrentUserRole();
+            System.out.println(userRole);
             //текущий пользователь администратор
             if (userRole.equals("ROLE_ADMINISTRATOR")) {
                 //действие разрешено для администратора
