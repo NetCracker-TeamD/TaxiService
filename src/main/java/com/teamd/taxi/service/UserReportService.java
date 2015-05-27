@@ -1,6 +1,7 @@
 package com.teamd.taxi.service;
 
 import com.teamd.taxi.persistence.repository.ReportsRepository;
+import com.teamd.taxi.persistence.repository.UserGroupRepository;
 import com.teamd.taxi.view.Report;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -16,6 +17,14 @@ import java.util.*;
 
 @Service
 public class UserReportService {
+
+    @Autowired
+    UserGroupRepository userGroupRepository;
+
+    public List findGroupForUser(long userId){
+        return userGroupRepository.findByUserId(userId);
+    }
+
     @Autowired
     private ReportsRepository reportsRepository;
 

@@ -2,10 +2,7 @@ package com.teamd.taxi.controllers.admin;
 
 import com.teamd.taxi.entity.*;
 import com.teamd.taxi.persistence.repository.TariffByTimeRepository;
-import com.teamd.taxi.service.CarClassService;
-import com.teamd.taxi.service.FeatureService;
-import com.teamd.taxi.service.ServiceTypeService;
-import com.teamd.taxi.service.TariffService;
+import com.teamd.taxi.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +13,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -99,41 +99,169 @@ public class TariffsAdminController {
         if (page != 0) page--;
         Pageable pageable = new PageRequest(page, numberOfRecords, Sort.Direction.ASC, "id");
         Page<TariffByTime> tariffByTimes = tariffByService.getTariffs(pageable);
-        model.addAttribute("tariffs", tariffByTimes.getContent());
+        model.addAttribute("tariffs", tariffByTimes);
         return "admin/tariffsByTime";
     }
 
-    @RequestMapping(value = "/byTime/update", method = RequestMethod.POST, consumes = "application/json")
+    @RequestMapping(value = "/byTime/update", produces = "application/json",
+            method = RequestMethod.POST, consumes = "application/json")
     public
     @ResponseBody
-    String updateTariffsByTime(@RequestBody TariffByTime tbt) {
-        TariffByTime tariffByTime = tariffByService.findOne(tbt.getId());
-        tariffByTime.setFrom(tbt.getFrom());
-        tariffByTime.setTo(tbt.getTo());
-        tariffByTime.setPrice(tbt.getPrice());
-        tariffByService.save(tariffByTime);
+    String updateTariffByTime(BufferedReader reader) throws IOException {
+        String line;
+        List<String> items = new ArrayList<String>();
+        while ((line = reader.readLine()) != null) {
+            String lines[] = line.split(",");
+            for (int i = 0; i < lines.length; i++) {
+                String part[] = lines[i].split("\"");
+                if (!part[part.length - 1].equals("}")) {
+                    items.add(part[part.length - 1]);
+                } else {
+                    items.add(part[part.length - 2]);
+                }
+            }
+        }
+        int id = Integer.parseInt(items.get(0));
+        String type = items.get(1);
+        float price = Float.parseFloat(items.get(2));
+        String from = items.get(3);
+        String to = items.get(4);
+        TariffByTime entry = tariffByService.findOne(id);
+        entry.setPrice(price);
+        tariffByService.save(entry);
         return "{\"status\" : \"success\"}";
     }
 
 
-    @ResponseBody
-    @RequestMapping(value = "byTime/remove")
-    public String removeTariffsByTime(@RequestBody TariffByTime tbt) {
-        TariffByTime tariffByTime = tariffByService.findOne(tbt.getId());
-        tariffByService.removeTariff(tariffByTime.getId());
-        return "{\"status\" : \"success\"}";
-    }
-
-    @RequestMapping(value = "/byTime/create", method = RequestMethod.POST, consumes = "application/json")
+    @RequestMapping(value = "/byTime/remove", produces = "application/json",
+            method = RequestMethod.POST, consumes = "application/json")
     public
     @ResponseBody
-    String createTariffsByTime(@RequestBody TariffByTime tbt) {
-        TariffByTime newTariff = new TariffByTime();
-        newTariff.setFrom(tbt.getFrom());
-        newTariff.setTo(tbt.getTo());
-        newTariff.setPrice(tbt.getPrice());
-        tariffByService.save(newTariff);
+    String removeTariffByTime(BufferedReader reader) throws IOException {
+        String line;
+        List<String> items = new ArrayList<String>();
+        while ((line = reader.readLine()) != null) {
+            String lines[] = line.split(",");
+            for (int i = 0; i < lines.length; i++) {
+                String part[] = lines[i].split("\"");
+                if (!part[part.length - 1].equals("}")) {
+                    items.add(part[part.length - 1]);
+                } else {
+                    items.add(part[part.length - 2]);
+                }
+            }
+        }
+        int id = Integer.parseInt(items.get(0));
+        String type = items.get(1);
+        float price = Float.parseFloat(items.get(2));
+        String from = items.get(3);
+        String to = items.get(4);
+        TariffByTime entry = tariffByService.findOne(id);
+        tariffByService.removeTariff(entry.getId());
         return "{\"status\" : \"success\"}";
     }
+
+
+    private int convertStringDayToInt(String day) {
+        switch (day) {
+            case "MONDAY":
+                return Calendar.MONDAY;
+            case "TUESDAY":
+                return Calendar.TUESDAY;
+            case "WEDNESDAY":
+                return Calendar.WEDNESDAY;
+            case "THURSDAY":
+                return Calendar.THURSDAY;
+            case "FRIDAY":
+                return Calendar.FRIDAY;
+            case "SUNDAY":
+                return Calendar.SUNDAY;
+            default:
+                return Calendar.SATURDAY;
+        }
+    }
+
+    @RequestMapping(value = "/byTime/create", produces = "application/json",
+            method = RequestMethod.POST, consumes = "application/json")
+    public
+    @ResponseBody
+    String createTariffByTime(BufferedReader reader) throws IOException, ParseException {
+        String line;
+        List<String> items = new ArrayList<String>();
+        while ((line = reader.readLine()) != null) {
+            String lines[] = line.split(",");
+            for (int i = 0; i < lines.length; i++) {
+                String part[] = lines[i].split("\"");
+                if (!part[part.length - 1].equals("}")) {
+                    items.add(part[part.length - 1]);
+                } else {
+                    items.add(part[part.length - 2]);
+                }
+            }
+        }
+        String type = items.get(0);
+        float price = Float.parseFloat(items.get(1));
+        String from = items.get(3);
+        String to = items.get(2);
+        TariffByTime entry = new TariffByTime();
+        entry.setPrice(price);
+        if (type.equals("DAY_OF_WEEK")) {
+            entry.setTariffType(TariffType.DAY_OF_WEEK);
+            Calendar fromCalendar = Calendar.getInstance();
+            Calendar endCalendar = Calendar.getInstance();
+            fromCalendar.set(Calendar.DAY_OF_WEEK, convertStringDayToInt(from));
+            endCalendar.set(Calendar.DAY_OF_WEEK, convertStringDayToInt(to));
+            entry.setFrom(fromCalendar);
+            entry.setTo(endCalendar);
+        } else if (type.equals("DAY_OF_YEAR")) {
+            entry.setTariffType(TariffType.DAY_OF_YEAR);
+            Calendar fromCalendar = Calendar.getInstance();
+            Calendar endCalendar = Calendar.getInstance();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            fromCalendar.setTime(sdf.parse(from));
+            endCalendar.setTime(sdf.parse(to));
+            entry.setFrom(fromCalendar);
+            entry.setTo(endCalendar);
+        } else {
+            entry.setTariffType(TariffType.TIME_OF_DAY);
+            Calendar fromCalendar = Calendar.getInstance();
+            Calendar endCalendar = Calendar.getInstance();
+            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm", Locale.US);
+            fromCalendar.setTime(sdf.parse(from));
+            endCalendar.setTime(sdf.parse(to));
+            entry.setFrom(fromCalendar);
+            entry.setTo(endCalendar);
+        }
+        System.out.println(entry);
+        tariffByService.save(entry);
+        return "{\"status\" : \"success\"}";
+    }
+
+
+    private boolean isExists(TariffByTime entry) {
+        List<TariffByTime> tariffs = tariffByService.findTariffsByType(entry.getTariffType());
+        if (tariffs.contains(entry)) {
+            return true;
+        }
+        for (TariffByTime tariff : tariffs) {
+            if (tariff.getFrom().after(entry.getFrom())) {
+
+            }
+        }
+        return false;
+    }
+
+    private void isDayOfWeek() {
+
+    }
+
+    private void isDayOfYear() {
+
+    }
+
+    private void isTimeOfDay(TariffByTime entry) {
+      //  List<TariffByTime> tariffByTimes =
+    }
+
 
 }

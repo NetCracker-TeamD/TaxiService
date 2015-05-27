@@ -51,7 +51,7 @@
         <div class="row">
           <div class="container" id="main_table">
             <div class="table-responsive">
-             <h2 align="center">Access denied</h2>
+             <h2 align="center">${message}</h2>
             </div>
           </div>
         </div>

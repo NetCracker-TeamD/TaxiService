@@ -1,73 +1,29 @@
 $(function () {
-    $('#newStart').datetimepicker({
-        locale: 'en'
-    });
-});
-$(function () {
-    $('#newEnd').datetimepicker({
-        locale: 'en'
-    });
-});
-$(function () {
-    $('.form-group #updateStart').each(function(){
-        $(this).datetimepicker({
-            locale: 'en'
-        });
-    });
-});
-$(function () {
-    $('#updateEnd').datetimepicker({
-        locale: 'en'
-    });
-});
-$(function () {
-    $('#deleteStart').datetimepicker({
-        locale: 'en'
-    });
-});
-$(function () {
-    $('#deleteEnd').datetimepicker({
-        locale: 'en'
-    });
+    var pickerOpts = {
+        dateFormat: $.datepicker.ATOM
+    };
+    $("#start").datepicker(pickerOpts);
+    $("#end").datepicker(pickerOpts);
 });
 
 
 $(document).ready(function () {
 
-    $(function () {
-        $('.form-group #updateStart').each(function(){
-            $(this).datetimepicker({
-                locale: 'en'
-            });
-        });
-    });
-
-    $("#update").click(function(type){
-        alert()
-        if (type=='DAY_OF_YEAR'){
-            $('#updateStart').datetimepicker.setFormat('MMM, dd');
-        }else if (type='TIME_OF_DAY'){
-            $('#updateStart').datetimepicker.setFormat('hh:mm:ss');
-        }else{
-            $('#updateStart').datetimepicker.setFormat('EEEE');
-        }
-    });
-
-    $(function () {
-        $('.form-group #updateEnd').each(function(){
-            $(this).datetimepicker({
-                locale: 'en'
-            });
-        });
-    });
     $('.btn_edit').click(function () {
         $(this).parent().find(".editModal").modal();
-        $(this).parent().find(".save_edit").click(function () {
-            var tariffType = $("#tariff_type_update").val();
-            var price_coef = $("#price_coef_update").val();
-            var id = $(this).parents().eq(2).find("input[name=tariff_id]").val();
-            var from_datetime = $("#from_date_update").val();
-            var to_datetime = $("#to_date_update").val();
+
+    });
+
+    $(".save_update").click(function () {
+        var tariffType = $(this).parents().eq(2).find("input[name=tariff_type]").val();
+        var price_coef = $(this).parents().eq(2).find("input[name=price_coefitient]").val();
+        var id = $(this).parents().eq(2).find("input[name=tariff_id]").val();
+        var from_datetime = $(this).parents().eq(2).find("input[name=tariff_from]").val();
+        var to_datetime = $(this).parents().eq(2).find("input[name=tariff_to]").val();
+        console.log(price_coef);
+        if (price_coef == "") {
+            console.log("n")
+        } else {
             var data = {
                 "id": id,
                 "tariffType": tariffType,
@@ -75,6 +31,7 @@ $(document).ready(function () {
                 "from": from_datetime,
                 "to": to_datetime
             };
+            console.log(data);
             var url = window.location.pathname + "/update";
             $.ajax({
                 url: url,
@@ -82,64 +39,121 @@ $(document).ready(function () {
                 contentType: 'application/json',
                 data: JSON.stringify(data),
                 dataType: 'json',
-                success: function () {
-                    location.reload();
+                success: function (data) {
+                    //  location.reload();
                 },
                 error: function () {
                     $(".alert").removeClass("hide").addClass("alert-danger").html("Error! Incorrect data!");
                 }
             });
-        });
+        }
     });
+
+    $('[data-toggle="createModel"]').click(function () {
+        $("#end").datepicker('setDate', 'today');
+        $("#start").datepicker('setDate', 'today');
+        $("#start_time").val("00:00");
+        $("#end_time").val("23:59");
+        $("#start_time").hide();
+        $("#pick_day_start").hide();
+        $("#end_time").hide();
+        $("#pick_day_end").hide();
+        $("#end").show();
+        $("#start").show();
+    });
+
+    $("#pick_tariff_type").change(function () {
+        var tariffType = $("#pick_tariff_type").val();
+        if (tariffType == "DAY_OF_YEAR") {
+            $("#start_time").hide();
+            $("#pick_day_start").hide();
+            $("#end_time").hide();
+            $("#pick_day_end").hide();
+            $("#end").show();
+            $("#start").show();
+        } else {
+            if (tariffType == "DAY_OF_WEEK") {
+                $("#start_time").hide();
+                $("#pick_day_start").show();
+                $("#end_time").hide();
+                $("#pick_day_end").show();
+                $("#end").hide();
+                $("#start").hide();
+            } else {
+                $("#start_time").show();
+                $("#pick_day_start").hide();
+                $("#end_time").show();
+                $("#pick_day_end").hide();
+                $("#end").hide();
+                $("#start").hide();
+            }
+        }
+    });
+
     $('.btn_remove').click(function () {
         $(this).parent().find(".removeModal").modal();
-        $(this).parent().find(".remove_rec").click(function () {
-            var id = $(this).parents().eq(2).find("input[name=tariff_id]").val();
-            var tariffType = $(this).parents().eq(2).find("input[name=tariff_type]").val();
-            var price_coef = $(this).parents().eq(2).find("input[name=tariff_price]").val();
-            var from_datetime = $(this).parents().eq(2).find("input[name=tariff_from]").val();
-            var to_datetime = $(this).parents().eq(2).find("input[name=tariff_to]").val();
-            console.log(id);
-            var url = window.location.pathname + "/remove";
-            var data = {
-                "id": id,
-                "tariffType": tariffType,
-                "priceCoefficient": price_coef,
-                "from": from_datetime,
-                "to": to_datetime
-            };
-            $.ajax({
-                url: url,
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(data),
-                dataType: 'json',
-                success: function () {
-                    location.reload();
-                },
-                error: function () {
-                    $(".alert").removeClass("hide").addClass("alert-danger").html("Error! Incorrect data!");
-                }
-            });
+    });
+
+    $(".remove_rec").click(function () {
+        var id = $(this).parents().eq(2).find("input[name=tariff_id]").val();
+        var tariffType = $(this).parents().eq(2).find("input[name=tariff_type]").val();
+        var price_coef = $(this).parents().eq(2).find("input[name=tariff_price]").val();
+        var from_datetime = $(this).parents().eq(2).find("input[name=tariff_from]").val();
+        var to_datetime = $(this).parents().eq(2).find("input[name=tariff_to]").val();
+        console.log(id);
+        var url = window.location.pathname + "/remove";
+        var data = {
+            "id": id,
+            "tariffType": tariffType,
+            "priceCoefficient": price_coef,
+            "from": from_datetime,
+            "to": to_datetime
+        };
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            success: function () {
+                location.reload();
+            },
+            error: function () {
+                $(".alert").removeClass("hide").addClass("alert-danger").html("Error! Incorrect data!");
+            }
         });
     });
+
     $('.btn_create').click(function () {
         $(this).parent().find(".createModel").modal();
-        $(this).parent().find(".create_rec").click(function () {
-            var tariffType = $("#pick_tariff_type").val();
-            var price_coef_create = $("#price_coef_create").val();
-            var from_datetime = $('#from_create').val();
-            var to_datetime = $('#to_create').val();
-            var from_date = new Date(from_datetime);
-            var to_date = new Date(to_datetime);
-            console.log(from_datetime);
-            console.log(from_date);
+    });
+    $(".create_rec").click(function () {
+        var tariffType = $("#pick_tariff_type").val();
+        var price_coef_create = $("#price_coef_create").val();
+        var from_datetime;
+        var to_datetime;
+        if (tariffType == "DAY_OF_YEAR") {
+            from_datetime = $("#start").val();
+            to_datetime = $("#end").val();
+        } else if (tariffType == "DAY_OF_WEEK") {
+            from_datetime = $("#pick_day_start").val();
+            to_datetime = $("#pick_day_end").val();
+        } else {
+            from_datetime = $("#end_time").val();
+            to_datetime = $("#start_time").val();
+        }
+
+        if (price_coef_create == "") {
+            $(".inform").removeClass("hide").html("Enter price coefficient!");
+            return false;
+        } else {
             var data = {
                 "tariffType": tariffType,
                 "priceCoefficient": price_coef_create,
                 "from": from_datetime,
                 "to": to_datetime
             };
+            console.log(data);
             var url = window.location.pathname + "/create";
             $.ajax({
                 url: url,
@@ -154,8 +168,7 @@ $(document).ready(function () {
                     $(".alert").removeClass("hide").addClass("alert-danger").html("Error! Incorrect data!");
                 }
             });
-        });
+        }
     });
-
 
 });
