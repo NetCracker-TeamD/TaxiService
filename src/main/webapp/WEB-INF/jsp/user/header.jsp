@@ -28,6 +28,7 @@
         <sec:authorize access="isAuthenticated()">
           <li${fn:endsWith(page, '/user/history') ? ' class="active"' : ''}><a href="/user/history">View order history</a></li>
           <li${fn:endsWith(page, '/user/account') ? ' class="active"' : ''}><a href="/user/account">Edit account</a></li>
+          <li${fn:endsWith(page, '/user/group') ? ' class="active"' : ''}><a href="/user/group">Statistic</a></li>
         </sec:authorize>
       </ul>
       <ul class="nav navbar-nav navbar-right">
