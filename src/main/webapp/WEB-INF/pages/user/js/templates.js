@@ -441,6 +441,7 @@ var Templates = (function () {
             }
         })()
     getDateTimePicker = function (name, value, config) {
+        config.defaultDate = new Date()
         var picker = $('<div class="input-group date">\
 				<input type="text" class="form-control" id="'+name+'" name="' + name + '" value="' + value + '" required/>\
 				<span class="input-group-addon">\
@@ -448,6 +449,16 @@ var Templates = (function () {
 				</span>\
 			</div>')
         picker.datetimepicker(config)
+        var input = picker.find('input')
+        var def_val = input.val()
+        console.log(def_val)
+        input.on("blur", function(e){
+            console.log('change')
+            if (input.val().length<2){
+                input.val(def_val)
+                input.parent().validator('validate')
+            }
+        })
         return picker
     },
         getTime = function (isNow, isCustom) {

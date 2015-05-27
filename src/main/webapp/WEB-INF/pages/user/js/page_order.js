@@ -658,15 +658,8 @@ var showOrderPage = function(){
             success : function(response){
                 console.log("response")
                 console.log(response)
-                var trackLink = response.trackLink,
-                //: "/viewOrder?trackNum=10651&secretKey=null"
-                    trackNumber = $.getURLParam(trackLink, "trackNum"),
-                    secretKey = $.getURLParam(trackLink, "secretKey")
-                if (secretKey == "null") {
-                    secretKey = null
-                }
-                trackLink = "/order/"+trackNumber+($.isSet(secretKey)? "/"+secretKey : "")
-                //console.log(trackNumber, secretKey)
+                var trackLink = response.trackLink
+
                 var watchIt = function(){
                     console.log("go to track link")
                     window.location = trackLink
