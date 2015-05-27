@@ -379,12 +379,13 @@ public class OrderController {
         //создаем ссылку на заказ
         String link;
         if (user.getUserRole() == UserRole.ROLE_CUSTOMER) {
-            link = MvcUriComponentsBuilder.fromMethodName(OrderController.class, "order", order.getId())
+            link = MvcUriComponentsBuilder.fromMethodName(OrderController.class, "order", order.getId(), null)
                     .toUriString();
         } else {
-            link = MvcUriComponentsBuilder.fromMethodName(OrderController.class, "order", order.getId(), order.getSecretViewKey())
+            link = MvcUriComponentsBuilder.fromMethodName(OrderController.class, "order", order.getId(), order.getSecretViewKey(), null)
                     .toUriString();
         }
+        System.out.println("link = " + link);
         String userEmail = user.getEmail();
         if (userEmail != null) {
             mailService.sendNotification(userEmail, Notification.NEW_ORDER, new Object[]{order.getId(), link});
