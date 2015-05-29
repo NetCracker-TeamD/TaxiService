@@ -84,7 +84,6 @@ public class ProcessOrderService {
         if ((taxiOrder = taxiOrderService.findCurrentOrderByDriverId(driverId)) != null) {
 
             List<Route> routes = getChainForDriver(taxiOrder, driverId);
-            System.out.println("START");
             long taxiOrderId = taxiOrder.getId();
             if (status.equals("refuse")) {///  for refuse
                 for (Route r : routes) {
@@ -156,15 +155,11 @@ public class ProcessOrderService {
                 Float price = listPrice.get(i);
                 totalPrice += price;
                 r.setTotalPrice(price);
-                System.out.println("Driver : "+r.getDriver().getId()+
-                        " Route status : "+r.getStatus()+
-                        " Route price : "+r.getTotalPrice());
                 routeService.saveRoute(r);
             }
         } else {
             long routeId = routes.get(routes.size() - 1).getId();
             Route r = routeService.getRouteById(routeId);
-            System.out.println("ROUTE ID = = "+routeId+" SOURCE = "+r.getSourceAddress()+ " DEST = " +r.getDestinationAddress()+" COMPL TIME : "+r.getStatus());
             totalPrice = priceCountService.countPriceForSingleRouteOrder(routeId);
             r.setTotalPrice(totalPrice);
             routeService.setTotalPrice(totalPrice, r.getId());
@@ -264,7 +259,6 @@ public class ProcessOrderService {
         ServiceType serviceType = taxiOrder.getServiceType();
 
         if (serviceType.isDestinationRequired()) {
-            System.out.println("Destination required ");
             //Taxi Asap, Advance
             Boolean isChain = serviceType.isDestinationLocationsChain();
             if ((isChain != null) && isChain) {
@@ -276,10 +270,6 @@ public class ProcessOrderService {
                             routes.add(route);
                         }
                     }
-                    System.out.println("Chain Driver : "+routes.get(routes.size()-1).getDriver().getId()+
-                            " Route status : "+routes.get(routes.size()-1).getStatus()+
-                            " Service type : "+taxiOrder.getServiceType().getName()+
-                            " Source : "+routes.get(routes.size()-1).getSourceAddress());
                     result.add(routes.get(routes.size()-1));
 
                 }
@@ -293,9 +283,6 @@ public class ProcessOrderService {
                         for (Route route : assembledRoutes.get(j).getRoutes()) {
                             Driver routeDriver = route.getDriver();
                             if ((routeDriver != null) && (driverId == routeDriver.getId())) {
-                                System.out.println("Driver : "+route.getDriver().getId()+
-                                        " Route status : "+route.getStatus()+
-                                        " Service type : "+taxiOrder.getServiceType().getName());
                                 routes.add(route);
                             }
                         }
@@ -327,9 +314,6 @@ public class ProcessOrderService {
                             routes.add(route);
                         }
                     }
-                    System.out.println("Driver : "+routes.get(routes.size()-1).getDriver().getId()+
-                            " Route status : "+routes.get(routes.size()-1).getStatus()+
-                            " Service type : "+taxiOrder.getServiceType().getName());
                     if(!routes.isEmpty()){
                         result.add(routes.get(routes.size()-1));
                     }
@@ -364,14 +348,12 @@ public class ProcessOrderService {
             if ((serviceType.isDestinationLocationsChain() != null) &&
                     serviceType.isDestinationLocationsChain()) {
                 List<Route> freeRoutes = getFreeRouteForChainOrder(taxiOrder);
-                System.out.println("Taxi Asap, Advance ");
                 for (Route r : freeRoutes) {
                     initAssignStatus(driver, freeRoutes);
                 }
             } else {
                 // Cargo Taxi, Convey corp emps, Meet my guest,
                 // sober, foodstuff, guest delivery
-                System.out.println("Cargo Taxi, Convey corp emps, Meet my guest, sober, foodstuff, guest delivery");
                 List<Route> freeRoutes = getFreeRouteForOrder(taxiOrder);
                 List<String> sourceL;
                 List<String> destL;
@@ -468,11 +450,9 @@ public class ProcessOrderService {
 
     private void initAssignStatus(Driver driver, List<Route> routes) {
         TaxiOrder taxiOrder = taxiOrderService.findOneById(routes.get(0).getOrder().getId());
-        System.out.println(" /n ASSIGNED STATUS START");
         for (int i = 0; i < routes.size(); i++) {
             routeService.updateRouteAssigned(RouteStatus.ASSIGNED, driver, routes.get(i).getId());
         }
-        System.out.println(" /n ASSIGNED STATUS FINISH");
 
         String link = taxiOrderService.generateLink(routes.get(0).getOrder());
         Object[] objs = {taxiOrder.getExecutionDate(), routes.get(0).getSourceAddress(), link};
@@ -482,9 +462,7 @@ public class ProcessOrderService {
     private void initInProgressStatus(Route r) {
 
         Calendar calendar = Calendar.getInstance();
-        System.out.println(" /n IN PROGRESS STATUS START ");
         routeService.updateRouteInProgress(RouteStatus.IN_PROGRESS, calendar, r.getId());
-        System.out.println(" /n IN PROGRESS STATUS FINISH");
 
         String link = taxiOrderService.generateLink(r.getOrder());
         Object[] objs = {r.getSourceAddress(), link};
@@ -493,10 +471,8 @@ public class ProcessOrderService {
 
     private void initCompleteStatus(Route r) {
 
-        System.out.println(" /n COMPLETE STATUS START");
         Calendar calendar = Calendar.getInstance();
         routeService.updateRouteCompleted(RouteStatus.COMPLETED, calendar, r.getId());
-        System.out.println(" /n COMPLETE STATUS FINISH");
 
         String link = taxiOrderService.generateLink(r.getOrder());
         Object[] objs = {r.getSourceAddress(), r.getCompletionTime(), link};
@@ -504,11 +480,8 @@ public class ProcessOrderService {
     }
 
     private void initRefuseStatus(Route r) {
-        System.out.println(" /n REFUSE STATUS START");
         Calendar calendar = Calendar.getInstance();
         routeService.updateRouteRefused(RouteStatus.REFUSED, calendar, r.getId());
-        System.out.println(" /n REFUSE STATUS FINISH");
-
 
         String link = taxiOrderService.generateLink(r.getOrder());
         Object[] objs = {r.getSourceAddress(),link};
